@@ -1,0 +1,13 @@
+---
+description: 禁止未经用户明确要求就 git commit / push
+alwaysApply: true
+---
+
+# Git：禁止自主提交
+
+- **禁止**在未获用户明确要求时执行 `git commit` / `git push` / `git commit --amend`。
+- 「实现某功能」「过闸」「做完」**≠** 授权提交。
+- 仅当用户明确说出例如：提交 / commit / 推送 / push 时，才可执行对应 git 写入。
+- 协调者任务书若**明文**写出「合入 main」「commit」等，视为授权任务书范围内的那些动作；未写的（尤其 push / 碰生产）仍禁止。
+
+改完代码默认停在工作区，等用户查看后再听令提交。
