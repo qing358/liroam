@@ -14,6 +14,7 @@
 | `liroam-refund` | 退款最小闭环（§9）：`RefundRules`（版本化，无规则即需审核；dev 默认 `liroam/dev-seed/refund-rules.sql`）、`RefundCases`（冻结 → 审批 → 卡动作 → 完成）、`CommissionReversal` 端口（默认只记审计）；买家 `POST /buyer/liroam/cards/{id}/refund`、后台 `/manager/liroam/refunds`、`/manager/liroam/refund-rules`；卡写入只经 `CardActions` | fulfillment |
 | `liroam-shell-bridge` | 唯一允许依赖 `cn.lili` 的模块：H1 支付监听、H1′ 补偿扫描 | fulfillment |
 | `liroam-architecture-tests` | ArchUnit 规则与厂商名源码扫描（新增模块须加为它的依赖） | 全部 |
+| `liroam-smoke-tests` | 只有测试：P2 主路径冒烟（domain-design §15 V3–V7、V10），真 `mock-shape-a`/`mock-shape-b` + 各模块自动配置（test profile）走唯一履约入口 → worker 出卡 → 交码 → 壳发货回写端口（记录型假实现）→ 卡投影 → 加包；进 CI 命令。不依赖壳 | fulfillment、supplier-mock（均 test） |
 
 约定：
 

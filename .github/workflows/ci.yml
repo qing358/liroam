@@ -39,4 +39,4 @@ jobs:
           cache: maven
       # 仓根 reactor：上游沿用其根 pom 的 skipTests=true，只编译（原因见 docs/upstream.md「已知上游问题」）；
       # 自研 modules 不继承该属性，单测、契约套件、集成测试与架构检查全部在此运行
-      - run: mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests -am verify
+      - run: mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify

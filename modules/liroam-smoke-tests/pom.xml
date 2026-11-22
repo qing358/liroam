@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.liroam</groupId>
+        <artifactId>liroam-modules</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>liroam-smoke-tests</artifactId>
+    <description>P2 主路径冒烟（domain-design §15 V3–V7、V10）：真 mock-shape-a / mock-shape-b 适配器 + 各模块自动配置（test profile）+ 本项目测试库；只有测试，不依赖壳</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-fulfillment</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-mock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-fulfillment</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-schema</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

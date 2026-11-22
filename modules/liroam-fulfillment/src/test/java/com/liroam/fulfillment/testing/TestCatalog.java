@@ -8,9 +8,16 @@ import java.sql.Statement;
 
 /**
  * 两家供应商的最小目录种子：A 卖日本、B 卖美国，各一个新卡 SKU 与一个加包 SKU（均已上架、有 ACTIVE 售价）。
- * 壳 SKU id 形如 {@code SKU-A} / {@code SKU-A-TOP}。
+ * 壳 SKU id 形如 {@code SKU-A} / {@code SKU-A-TOP}。供应商指向哪两个适配器、各套餐的上游套餐码由 {@link Upstreams} 定。
  */
 public final class TestCatalog {
+
+    /** 两家供应商的适配器 Bean 名与四个 offering 的上游套餐码（A 新卡、A 加包、B 新卡、B 加包）。 */
+    public record Upstreams(String adapterA, String adapterB, String baseA, String topUpA, String baseB, String topUpB) {
+
+        static final Upstreams STUBS = new Upstreams(FulfillmentHarness.ADAPTER_A, FulfillmentHarness.ADAPTER_B, "BASE-1", "TOPUP-1", "BASE-1",
+                "TOPUP-1");
+    }
 
     public final long supplierA;
     public final long supplierB;
@@ -24,13 +31,13 @@ public final class TestCatalog {
     public final long skuBTopUp;
     public final long templateATopUp;
 
-    private TestCatalog(JdbcTemplate jdbc) {
+    private TestCatalog(JdbcTemplate jdbc, Upstreams up) {
         regionJp = insert(jdbc, "INSERT INTO lr_usage_region (code, name_zh, continent) VALUES ('JP', '日本', '亚洲')");
         regionUs = insert(jdbc, "INSERT INTO lr_usage_region (code, name_zh, continent) VALUES ('US', '美国', '北美洲')");
         supplierA = insert(jdbc, "INSERT INTO lr_supplier (code, name, adapter_key, enabled, listing_enabled) VALUES ('SUP_A', '供应商甲', '"
-                + FulfillmentHarness.ADAPTER_A + "', 1, 1)");
+                + up.adapterA() + "', 1, 1)");
         supplierB = insert(jdbc, "INSERT INTO lr_supplier (code, name, adapter_key, enabled, listing_enabled) VALUES ('SUP_B', '供应商乙', '"
-                + FulfillmentHarness.ADAPTER_B + "', 1, 1)");
+                + up.adapterB() + "', 1, 1)");
         productA = insert(jdbc, "INSERT INTO lr_card_product (supplier_id, home_location, card_type_code, name, allowed_forms) VALUES ("
                 + supplierA + ", 'HK', 'A_T1', '亚洲漫游卡', 'ESIM')");
         productB = insert(jdbc, "INSERT INTO lr_card_product (supplier_id, home_location, card_type_code, name, allowed_forms, cap_voice, cap_sms) VALUES ("
@@ -39,10 +46,10 @@ public final class TestCatalog {
         templateATopUp = template(jdbc, "日本加油包 1GB", 1L << 30, 5);
         long tplB = template(jdbc, "美国 7 天 5GB", 5L << 30, 7);
         long tplBTop = template(jdbc, "美国加油包 2GB", 2L << 30, 7);
-        long offA = offering(jdbc, supplierA, productA, regionJp, tplA, "BASE", "BASE-1");
-        long offATop = offering(jdbc, supplierA, productA, regionJp, templateATopUp, "TOP_UP", "TOPUP-1");
-        long offB = offering(jdbc, supplierB, productB, regionUs, tplB, "BASE", "BASE-1");
-        long offBTop = offering(jdbc, supplierB, productB, regionUs, tplBTop, "TOP_UP", "TOPUP-1");
+        long offA = offering(jdbc, supplierA, productA, regionJp, tplA, "BASE", up.baseA());
+        long offATop = offering(jdbc, supplierA, productA, regionJp, templateATopUp, "TOP_UP", up.topUpA());
+        long offB = offering(jdbc, supplierB, productB, regionUs, tplB, "BASE", up.baseB());
+        long offBTop = offering(jdbc, supplierB, productB, regionUs, tplBTop, "TOP_UP", up.topUpB());
         skuANew = sku(jdbc, "SKU-A", "G-A", "NEW_CARD", supplierA, productA, regionJp, tplA, offA);
         skuATopUp = sku(jdbc, "SKU-A-TOP", "G-A-TOP", "TOP_UP", supplierA, productA, regionJp, templateATopUp, offATop);
         skuBNew = sku(jdbc, "SKU-B", "G-B", "NEW_CARD", supplierB, productB, regionUs, tplB, offB);
@@ -54,7 +61,11 @@ public final class TestCatalog {
     }
 
     static TestCatalog seed(JdbcTemplate jdbc) {
-        return new TestCatalog(jdbc);
+        return seed(jdbc, Upstreams.STUBS);
+    }
+
+    public static TestCatalog seed(JdbcTemplate jdbc, Upstreams upstreams) {
+        return new TestCatalog(jdbc, upstreams);
     }
 
     private static long template(JdbcTemplate jdbc, String name, long quotaBytes, int days) {
