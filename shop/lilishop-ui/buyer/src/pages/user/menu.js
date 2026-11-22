@@ -1,0 +1,121 @@
+//  * icon  图标
+//  * title 一级菜单
+//  * display 是否显示菜单
+//  * menus 菜单栏
+//  * path路径  router 配置的
+
+// 订单中心
+const order = [{
+  icon: 'List',
+  title: '订单中心',
+  menus: [{
+    icon: 'Goods',
+    title: '我的订单',
+    path: 'MyOrder'
+  },
+  {
+    icon: 'Location',
+    title: '收货地址',
+    path: 'MyAddress'
+  },
+  {
+    icon: 'RefreshLeft',
+    title: '售后订单',
+    path: 'AfterSale'
+  }
+  ],
+  display: true
+}];
+
+// 会员中心
+const member = [{
+  icon: 'User',
+  title: '会员中心',
+  menus: [{
+    icon: 'User',
+    title: '用户信息',
+    path: 'Profile'
+  },
+  {
+    icon: 'Lock',
+    title: '账户安全',
+    path: 'AccountSafe'
+  },
+  {
+    icon: 'Bell',
+    title: '我的消息',
+    path: 'MsgList'
+  },
+  {
+    icon: 'Clock',
+    title: '我的足迹',
+    path: 'MyTracks'
+  },
+
+  {
+    icon: 'Star',
+    title: '我的收藏',
+    path: 'Favorites'
+  },
+  {
+    icon: 'ChatDotRound',
+    title: '我的评论',
+    path: 'CommentList'
+  },
+  {
+    icon: 'Warning',
+    title: '我的投诉',
+    path: 'ComplainList'
+  },
+  {
+    icon: 'Coin',
+    title: '我的积分',
+    path: 'Point'
+  },
+  {
+    icon: 'Trophy',
+    title: '我的等级',
+    path: 'MemberGrade'
+  },
+  {
+    icon: 'Ticket',
+    title: '我的优惠券',
+    path: 'Coupons'
+  },
+  {
+    icon: 'Wallet',
+    title: '我的余额',
+    path: 'MoneyManagement'
+  },
+  {
+    icon: 'Present',
+    title: '我的礼品卡',
+    path: 'MyGiftCards'
+  }
+  ],
+  display: true
+}];
+
+// 活动中心
+// const activity = [{
+//   icon: '',
+//   title: '活动中心',
+//   menus: [
+//     // {
+//     //   icon: '',
+//     //   title: '拍卖活动',
+//     //   path: 'MyOrder',
+//     // },
+//     // {
+//     //   icon: '',
+//     //   title: '夺宝奇兵',
+//     //   path: 'MyOrder',
+//     // },
+//   ],
+//   display: true
+// }]
+
+let menuList = []
+menuList.push(order[0], member[0])
+
+export default menuList

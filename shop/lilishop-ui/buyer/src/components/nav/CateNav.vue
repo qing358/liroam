@@ -1,0 +1,510 @@
+<template>
+  <div class="cate-nav" :class="{'fixed-show':useClass == 'fixed-show'}">
+    <div class="nav-con" :class="{'background-white':useClass == 'background-white'}">
+      <div
+        class="all-categories hover-pointer"
+        @mouseenter="showFirstLists"
+        @mouseleave="showFirstList = false"
+      >
+        商品分类
+      </div>
+      <ul class="nav-item " v-if="showNavBar">
+        <li
+          class="nav-lis flex flex-a-c flex-j-c"
+          v-for="(item, index) in navList.list"
+          :key="index"
+          @click="linkTo(item.url)"
+        >
+          {{ item.name }}
+          <div class="colum" v-if="index !== navList.list.length - 1"></div>
+        </li>
+      </ul>
+    </div>
+    <!-- 全部商品分类 -->
+    <div
+      class="cate-list"
+      :style="{'top':!showNavBar ?'60px':'46px'}"
+      v-show="showAlways || showFirstList"
+      @mouseenter="showFirstList = true"
+      @mouseleave="closePanel"
+    >
+      <!-- 第一级分类 -->
+      <div
+        class="nav-side"
+        :class="{ 'large-nav': large, 'opacity-nav': opacity }"
+      >
+        <ul>
+          <li
+            v-for="(item, index) in cateList"
+            :key="index"
+            :class="{ 'is-active': panel && panelIndex === index }"
+            @mouseenter="showDetail(index)"
+          >
+            <span class="nav-side-item" @click="goGoodsList(item.id)">{{ item.name }}</span>
+            <el-icon><ArrowRight /></el-icon>
+          </li>
+        </ul>
+      </div>
+      <!-- 展开分类 -->
+      <div
+        class="detail-item-panel"
+        :style="{ minHeight: large ? '470px' : '340px' }"
+        v-show="panel"
+        @mouseenter="panel = true"
+        @mouseleave="panel = false"
+      >
+        <div class="nav-detail-item">
+          <template v-for="(item,index) in panelData">
+            <span
+              @click="goGoodsList(item.id,item.parentId)"
+              v-if="index < 8"
+              :key="index"
+              >{{ item.name }}<el-icon><ArrowRight /></el-icon></span>
+          </template>
+        </div>
+        <ul>
+          <li
+            v-for="(items, index) in panelData"
+            :key="index"
+            class="detail-item-row"
+          >
+            <span
+              class="detail-item-title"
+              @click="goGoodsList(items.id, items.parentId)"
+            >
+              {{ items.name }} <el-icon><ArrowRight /></el-icon>
+              <span class="glyphicon glyphicon-menu-right"></span>
+            </span>
+            <div>
+              <span
+                v-for="(item, subIndex) in items.children"
+                @click="goGoodsList(item.id, items.id, items.parentId)"
+                :key="subIndex"
+                class="detail-item"
+                >{{ item.name }}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { getCategory } from "@/api/goods";
+import storage from "@/plugins/storage.js";
+import { ArrowRight } from "@element-plus/icons-vue";
+import { useAppStore } from "@/stores/app";
+
+defineOptions({ name: "GoodsListNav" });
+
+const props = defineProps({
+  showAlways: {
+    // 总是显示下拉分类
+    default: false,
+    type: Boolean,
+  },
+  showNavBar: {
+    // 显示全部商品分类右侧导航条
+    default: true,
+    type: Boolean,
+  },
+  hover: {
+    default: false,
+    type: Boolean,
+  },
+  large: {
+    // 是否更高的高度
+    default: false,
+    type: Boolean,
+  },
+  opacity: {
+    // 是否背景透明
+    default: false,
+    type: Boolean,
+  },
+  useClass: {
+    type: null,
+    default: '',
+  },
+});
+
+const router = useRouter();
+const appStore = useAppStore();
+
+const panel = ref(false); // 二级分类展示
+const panelIndex = ref(-1);
+const panelData = ref([]); // 二级分类数据
+const showFirstList = ref(false); // 始终展示一级列表
+const cateList = ref([]); // 商品分类
+
+// 导航列表
+const navList = computed(() => {
+  if (storage.getItem("navList")) {
+    return JSON.parse(storage.getItem("navList"));
+  }
+  return { list: [] };
+});
+
+function showFirstLists() {
+  showFirstList.value = true;
+  if (
+    localStorage.getItem("category") &&
+    localStorage.getItem("category_expiration_time")
+  ) {
+    // this.getCate();
+    // 如果缓存过期，则获取最新的信息
+    if (new Date() > localStorage.getItem("category_expiration_time")) {
+      getCate();
+      return;
+    }
+    cateList.value = JSON.parse(localStorage.getItem("category"));
+    // Message.info(cateList)
+  }
+}
+
+function getCate() {
+  // 获取分类数据
+  if (props.hover) return false;
+  getCategory(0).then((res) => {
+    if (res.success) {
+      cateList.value = res.result;
+      appStore.setCategory(res.result);
+      // 过期时间
+      var expirationTime = new Date().setHours(new Date().getHours() + 1);
+      // 存放过期时间
+      localStorage.setItem("category_expiration_time", expirationTime);
+      // 存放分类信息
+      localStorage.setItem("category", JSON.stringify(res.result));
+    }
+  }).catch((err) => {
+    console.warn('获取分类失败', err);
+  });
+}
+
+function showDetail(index) {
+  // 展示全部分类
+  panel.value = true;
+  panelIndex.value = index;
+  panelData.value = cateList.value[index].children;
+}
+
+function closePanel() {
+  showFirstList.value = false;
+  panel.value = false;
+  panelIndex.value = -1;
+}
+
+function goGoodsList(id, secondId, firstId) {
+  // 分类共有三级，传全部分类过去
+  const arr = [firstId, secondId, id];
+  if (!arr[1]) {
+    arr.splice(0, 2);
+  }
+  if (!arr[0]) {
+    arr.shift();
+  }
+  router.push({
+    path: "/goodsList",
+    query: { categoryId: arr.toString() },
+  });
+}
+
+onMounted(() => {
+  if (
+    localStorage.getItem("category") &&
+    localStorage.getItem("category_expiration_time")
+  ) {
+    // 如果缓存过期，则获取最新的信息
+    if (new Date() > localStorage.getItem("category_expiration_time")) {
+      getCate();
+      return;
+    }
+    cateList.value = JSON.parse(localStorage.getItem("category"));
+  } else {
+    getCate();
+  }
+});
+</script>
+
+<style scoped lang="scss">
+.background-white{
+  background: #fff;
+}
+.nav-lis:hover {
+  color: $theme_color !important;
+  cursor: pointer;
+
+}
+.nav-lis{
+  width: 103px;
+  text-align: center;
+  position: relative;
+}
+.fixed-show{
+  margin-top: 0 !important;
+  width: 100%;
+  >.nav-con{
+  >.all-categories{
+    width: 100%;
+    align-items: center !important;
+    height: 60px;
+    display: inherit;
+    justify-content: center;
+    padding: 0 !important;
+  }
+  }
+}
+.colum{
+  height: 14.7px;
+  opacity: 1;
+  border: 0.7px solid #CBC8C8;
+  position: absolute;
+  right: 0;
+}
+.cate-nav {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  margin: 14px 0 0;
+  box-sizing: border-box;
+}
+/** 商品分类 */
+.nav-con {
+  height: 46px;
+  margin: 0 auto;
+  display: flex;
+  align-items: stretch;
+  .all-categories {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    height: 46px;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding-left: 16px;
+    background: #FFFFFF;
+    width: 263.2px;
+    border-bottom: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #171A26;
+    box-sizing: border-box;
+  }
+  .nav-item {
+    flex: 1;
+    min-width: 0;
+    height: 46px;
+    border-radius: 10px;
+    background: #FFFFFF;
+    margin: 0 0 0 10px;
+    padding: 0;
+    line-height: 46px;
+    overflow: hidden;
+    list-style: none;
+    display: flex;
+    li {
+      float: left;
+      font-size: 15px;
+      font-weight: 400;
+      color: #171A26;
+
+
+      &:hover {
+        color: $theme_color;
+      }
+    }
+  }
+}
+// 分类列表（浮层叠在轮播左列之上）
+.cate-list {
+  position: absolute;
+  left: 0;
+  top: 46px;
+  z-index: 1000;
+}
+
+.nav-side {
+  width: 263.2px;
+  color: #171A26;
+  float: left;
+  overflow: hidden;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+  background-color: #fff;
+  height: 344px;
+  ////自动移滚动条样式
+  //&::-webkit-scrollbar {
+  //  width: 1px;
+  //  height: 5px;
+  //}
+  //&::-webkit-scrollbar-thumb {
+  //  border-radius: 1em;
+  //  background-color: rgba(50, 50, 50, 0.3);
+  //}
+  //&::-webkit-scrollbar-track {
+  //  border-radius: 1em;
+  //  background-color: rgba(50, 50, 50, 0.1);
+  //}
+}
+.large-nav {
+  height: 470px;
+}
+.opacity-nav {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.nav-side ul {
+  width: 100%;
+  height: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nav-side li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  padding: 0 12px 0 16px;
+  font-size: 14px;
+  line-height: 20px;
+  box-sizing: border-box;
+  cursor: pointer;
+
+  .el-icon {
+    flex-shrink: 0;
+    color: #ccc;
+    font-size: 12px;
+  }
+
+  &:hover,
+  &.is-active {
+    background: #fff5f4;
+    color: $theme_color;
+
+    .el-icon {
+      color: $theme_color;
+    }
+  }
+}
+.nav-side-item {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-side-item:hover {
+  cursor: pointer;
+  color: $theme_color;
+}
+
+/*显示商品详细信息*/
+.detail-item-panel {
+  width: 936px;
+  min-height: 340px;
+  background-color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-radius: 0 4px 4px 0;
+  position: absolute;
+  top: 0;
+  left: 263.2px;
+  z-index: 1000;
+  padding: 8px 20px 16px;
+  box-sizing: border-box;
+}
+.nav-detail-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  margin: 8px 0 4px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+}
+.nav-detail-item span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #171A26;
+
+  .el-icon {
+    font-size: 12px;
+    color: #ccc;
+  }
+}
+.nav-detail-item span:hover {
+  color: $theme_color;
+
+  .el-icon {
+    color: $theme_color;
+  }
+}
+.detail-item-panel li {
+  line-height: 28px;
+}
+.detail-item-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  width: 108px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 28px;
+  cursor: pointer;
+  color: #171A26;
+  text-align: left;
+
+  .glyphicon {
+    display: none;
+  }
+
+  .el-icon {
+    font-size: 12px;
+    color: #ccc;
+  }
+}
+.detail-item-title:hover {
+  color: $theme_color;
+
+  .el-icon {
+    color: $theme_color;
+  }
+}
+.detail-item-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 0;
+
+  > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+.detail-item {
+  font-size: 14px;
+  line-height: 28px;
+  padding: 0 12px;
+  color: #666;
+  cursor: pointer;
+  border: none;
+
+  &:first-child {
+    padding-left: 12px;
+  }
+}
+.detail-item:hover {
+  color: $theme_color;
+}
+</style>

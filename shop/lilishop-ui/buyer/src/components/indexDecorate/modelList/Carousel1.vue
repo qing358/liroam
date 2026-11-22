@@ -1,0 +1,74 @@
+<template>
+  <div class="model-carousel1" :style="{background: bgColor}">
+    <div class="nav-body clearfix">
+      <!-- 侧边导航 -->
+      <div class="nav-side"></div>
+      <div class="nav-content">
+        <!-- 轮播图 -->
+        <el-carousel height="470px" :interval="5000" @change="autoChange">
+          <el-carousel-item v-for="(item, index) in data.options.list" :key="index">
+            <div style="overflow: hidden">
+              <img :src="item.img" width="1200" height="470" />
+            </div>
+          </el-carousel-item>
+        </el-carousel>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { onMounted, ref } from 'vue'
+
+defineOptions({ name: 'modelCarousel1' })
+
+const props = defineProps(['data'])
+
+const showModal = ref(false) // modal显隐
+const selected = ref(null) // 已选数据
+const picModelFlag = ref(false) // 选择图片modal
+const bgColor = ref('#fff') // 轮播背景色
+
+onMounted(() => {
+  bgColor.value = props.data.options.list[0].bgColor
+})
+
+// 自动切换时改变背景色
+function autoChange(index) {
+  bgColor.value = props.data.options.list[index].bgColor
+}
+</script>
+
+<style scoped lang="scss">
+.model-carousel1 {
+  width: 100%;
+  height: 470px;
+  background: #fff;
+}
+
+/*大的导航信息，包含导航，幻灯片等*/
+.nav-body {
+  width: 1200px;
+  height: 470px;
+  margin: 0px auto;
+}
+.nav-side {
+  height: 470px;
+  width: 200px;
+  padding: 0px;
+  color: #fff;
+  line-height: 470px;
+  text-align: center;
+  position: absolute;
+  z-index: 1;
+}
+
+/*导航内容*/
+.nav-content {
+  width: 1200px;
+  height: 470px;
+  overflow: hidden;
+  float: left;
+  position: relative;
+}
+</style>
