@@ -7,7 +7,7 @@ import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava } from './lib/config.mjs';
+import { backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava } from './lib/config.mjs';
 import { renderPcConfig } from '../shop/docker/scripts/dev-env-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -21,8 +21,8 @@ const logsDir = path.join(runDir, 'logs');
 const pidPath = path.join(runDir, 'pids.json');
 
 const BACKENDS = [
-  { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl' },
-  { name: 'buyer-api', module: 'buyer-api', urlKey: 'buyerApiUrl' },
+  { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl', worker: true },
+  { name: 'buyer-api', module: 'buyer-api', urlKey: 'buyerApiUrl', worker: false },
 ];
 const FRONTENDS = [
   { name: 'manager-ui', app: 'manager', urlKey: 'managerUrl', prefix: '/manager' },
@@ -77,9 +77,9 @@ function backendJar(module) {
 }
 
 function buildBackend(javaHome) {
-  console.log('\n$ mvn package（buyer-api、manager-api 及其依赖，跳过测试）');
-  const result = spawnSync('mvn', ['-B', '-q', '-pl', BACKENDS.map((b) => b.module).join(','), '-am', 'package', '-DskipTests'], {
-    cwd: backendDir,
+  console.log('\n$ mvn package（仓根 reactor：buyer-api、manager-api 及自研依赖，跳过测试）');
+  const result = spawnSync('mvn', backendBuildArgs(BACKENDS.map((b) => b.module)), {
+    cwd: rootDir,
     stdio: 'inherit',
     env: { ...process.env, JAVA_HOME: javaHome, PATH: `${javaHome}/bin:${process.env.PATH}` },
   });
@@ -202,8 +202,8 @@ async function up() {
   }
 
   const pids = readPids();
-  const javaEnv = backendEnv(env, config);
   for (const be of BACKENDS) {
+    const javaEnv = backendEnv(env, config, { worker: be.worker });
     const workDir = path.join(runDir, be.name);
     fs.mkdirSync(workDir, { recursive: true });
     startProcess(be.name, path.join(javaHome, 'bin/java'),

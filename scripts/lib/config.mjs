@@ -31,14 +31,22 @@ export function validatePorts(env) {
   if (seen.size === 0) throw new Error('ports.env 未登记任何 LIROAM_*_PORT');
 }
 
-export const SECRET_KEYS = ['LIROAM_MYSQL_ROOT_PASSWORD', 'LIROAM_REDIS_PASSWORD', 'LILI_JWT_SECRET'];
+// LIROAM_DATA_KEY_V1 / LIROAM_DATA_HASH_KEY：ICCID、交码内容等敏感字段的 AES-256-GCM 密钥与查重用 HMAC 密钥（liroam-common SensitiveCipher）
+export const SECRET_KEYS = ['LIROAM_MYSQL_ROOT_PASSWORD', 'LIROAM_REDIS_PASSWORD', 'LILI_JWT_SECRET', 'LIROAM_DATA_KEY_V1', 'LIROAM_DATA_HASH_KEY'];
 
 export function generateSecrets() {
   return {
     LIROAM_MYSQL_ROOT_PASSWORD: crypto.randomBytes(18).toString('base64url'),
     LIROAM_REDIS_PASSWORD: crypto.randomBytes(18).toString('base64url'),
     LILI_JWT_SECRET: crypto.randomBytes(32).toString('base64'),
+    LIROAM_DATA_KEY_V1: crypto.randomBytes(32).toString('base64'),
+    LIROAM_DATA_HASH_KEY: crypto.randomBytes(32).toString('base64'),
   };
+}
+
+// 仓根 pom 聚合上游与自研 modules；API 进程依赖 liroam-shell-bridge，必须从仓根构建
+export function backendBuildArgs(modules) {
+  return ['-B', '-q', '-pl', modules.map((m) => `shop/lilishop/${m}`).join(','), '-am', 'package', '-DskipTests'];
 }
 
 export function ensureSecretsFile(secretsPath) {
@@ -68,8 +76,12 @@ export function buildConfig(env, host = 'localhost') {
   };
 }
 
-export function backendEnv(env, config) {
+// worker（补偿扫描等定时任务）只在 manager-api 进程开（domain-design §5 H12）
+export function backendEnv(env, config, { worker = false } = {}) {
   return {
+    LIROAM_DATA_KEY_V1: env.LIROAM_DATA_KEY_V1,
+    LIROAM_DATA_HASH_KEY: env.LIROAM_DATA_HASH_KEY,
+    LIROAM_WORKER_ENABLED: String(worker),
     SPRING_DATASOURCE_URL: `jdbc:mysql://127.0.0.1:${config.mysqlPort}/lilishop?useUnicode=true&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai`,
     SPRING_DATASOURCE_USERNAME: 'root',
     SPRING_DATASOURCE_PASSWORD: env.LIROAM_MYSQL_ROOT_PASSWORD,

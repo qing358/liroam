@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-import { backendEnv, buildConfig, ensureSecretsFile, parseEnv, SECRET_KEYS, validatePorts } from './config.mjs';
+import { backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, generateSecrets, parseEnv, SECRET_KEYS, validatePorts } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -55,6 +55,29 @@ test('backendEnv 只用登记端口与 .env 口令覆盖上游示例配置', () 
   assert.equal(out.SPRING_DATA_REDIS_PASSWORD, 'p2');
 });
 
+test('backendEnv 透传自研数据密钥；worker 只在显式开启的进程打开', () => {
+  const env = { LIROAM_MYSQL_ROOT_PASSWORD: 'p1', LIROAM_REDIS_PASSWORD: 'p2', LILI_JWT_SECRET: 's', LIROAM_DATA_KEY_V1: 'k1', LIROAM_DATA_HASH_KEY: 'h' };
+  const config = { mysqlPort: 39306, redisPort: 39379 };
+  const plain = backendEnv(env, config);
+  assert.equal(plain.LIROAM_DATA_KEY_V1, 'k1');
+  assert.equal(plain.LIROAM_DATA_HASH_KEY, 'h');
+  assert.equal(plain.LIROAM_WORKER_ENABLED, 'false');
+  assert.equal(backendEnv(env, config, { worker: true }).LIROAM_WORKER_ENABLED, 'true');
+});
+
+test('数据密钥为 32 字节 base64（AES-256 / HMAC-SHA256）', () => {
+  const secrets = generateSecrets();
+  for (const key of ['LIROAM_DATA_KEY_V1', 'LIROAM_DATA_HASH_KEY']) {
+    assert.equal(Buffer.from(secrets[key], 'base64').length, 32, key);
+  }
+  assert.notEqual(secrets.LIROAM_DATA_KEY_V1, secrets.LIROAM_DATA_HASH_KEY);
+});
+
+test('后端从仓根 reactor 构建，自研模块随 API 进程一起编译', () => {
+  assert.deepEqual(backendBuildArgs(['manager-api', 'buyer-api']),
+    ['-B', '-q', '-pl', 'shop/lilishop/manager-api,shop/lilishop/buyer-api', '-am', 'package', '-DskipTests']);
+});
+
 test('ensureSecretsFile 首次生成全部口令，再次运行不覆盖已有值、只补缺', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'liroam-secrets-'));
   const file = path.join(dir, '.env');
@@ -68,6 +91,6 @@ test('ensureSecretsFile 首次生成全部口令，再次运行不覆盖已有�
 
   fs.writeFileSync(file, `LIROAM_MYSQL_ROOT_PASSWORD=keep\n`);
   const third = ensureSecretsFile(file);
-  assert.deepEqual(third.created, ['LIROAM_REDIS_PASSWORD', 'LILI_JWT_SECRET']);
+  assert.deepEqual(third.created, ['LIROAM_REDIS_PASSWORD', 'LILI_JWT_SECRET', 'LIROAM_DATA_KEY_V1', 'LIROAM_DATA_HASH_KEY']);
   assert.equal(third.values.LIROAM_MYSQL_ROOT_PASSWORD, 'keep');
 });

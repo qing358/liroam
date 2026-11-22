@@ -18,6 +18,12 @@
             <artifactId>framework</artifactId>
             <version>${revision}</version>
         </dependency>
+        <!-- liroam：自研防腐层（H1/H1′ 挂接、自有表迁移），登记见仓根 docs/upstream.md -->
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-shell-bridge</artifactId>
+            <version>0.1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>

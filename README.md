@@ -54,7 +54,10 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 | `LIROAM_MYSQL_ROOT_PASSWORD` | MySQL root 口令；后端经 `SPRING_DATASOURCE_PASSWORD` 使用 | `.env` 自动生成 | 密钥管理注入，按环境独立 |
 | `LIROAM_REDIS_PASSWORD` | Redis 口令；后端经 `SPRING_DATA_REDIS_PASSWORD` 使用 | `.env` 自动生成 | 同上 |
 | `LILI_JWT_SECRET` | 上游 JWT 签名密钥（上游 yml 有默认值，必须覆盖） | `.env` 自动生成 | 同上 |
-| `JASYPT_ENCRYPTOR_PASSWORD` | 上游 jasypt 解密口令（上游 yml 默认 `lili`） | 未覆盖，用上游默认 | 生产必须覆盖【待核实：上游配置中是否有 ENC() 值依赖默认口令】 |
+| `LIROAM_DATA_KEY_V1` | 敏感字段（ICCID、交码内容等）AES-256-GCM 密钥，32 字节 base64；轮换时新增 `_V2`（最大版本加密，旧版本仍可解） | `.env` 自动生成 | 密钥管理注入；缺失或格式不对后端启动失败 |
+| `LIROAM_DATA_HASH_KEY` | 敏感字段查重用 HMAC-SHA256 密钥，32 字节 base64；不随加密密钥轮换（换了会使唯一索引失效） | `.env` 自动生成 | 同上 |
+| `LIROAM_WORKER_ENABLED` | 自研定时任务（支付补偿扫描等）开关 | `scripts/dev.mjs` 只给 manager-api 设 `true` | 只在一个进程组开 |
+| `JASYPT_ENCRYPTOR_PASSWORD` | 上游 jasypt 解密口令（上游 yml 默认 `lili`） | 未覆盖，用上游默认 | 建议覆盖。2026-11-22 核实：上游配置、SQL、docker 摘取文件中没有任何 `ENC(` 值，`JasyptUtil` 只在其自带 `main` 里用，现无依赖默认口令的密文 |
 | 支付、短信、OSS、快递等三方密钥 | 上游存于库表 `li_setting`，由管理端配置 | 未配置 | 按环境在管理端录入，不进仓库 |
 
 供应商（Quadcell 等）、京东渠道、汇率来源的密钥变量名在对应模块接入时补到本表。
@@ -62,10 +65,13 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 ## 测试
 
 ```bash
-node --test 'scripts/**/*.test.mjs'                                  # 编排脚本单测
-(cd shop/lilishop && mvn -B -pl manager-api,buyer-api -am verify)    # 后端构建（JDK 21），含测试代码编译
+node --test 'scripts/**/*.test.mjs'    # 编排脚本单测
+# 仓根 reactor（JDK 21）：上游只编译；自研模块单测、契约套件、集成测试、架构检查全跑
+mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests -am verify
 ```
+
+自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。
 
 上游根 pom 默认跳过测试，不要加 `-DskipTests=false` 跑上游测试：有过时失败，且整上下文测试会直连本机 `localhost:6379`（见 `docs/upstream.md`）。
 
-CI 同样两步，见 `.github/workflows/ci.yml`。
+CI 同样两步（后端带 MySQL 服务容器，映射到 39306），见 `.github/workflows/ci.yml`。

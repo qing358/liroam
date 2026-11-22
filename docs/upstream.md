@@ -29,6 +29,7 @@ docker 摘取文件：在上游 docker 仓选不晚于后端 tag 的提交，覆
 
 | 挂接点 | 文件 | 原因 | 合并注意 |
 |--------|------|------|----------|
+| H1 / H1′（装配） | `shop/lilishop/{manager-api,buyer-api}/pom.xml` | 各加一个依赖 `com.liroam:liroam-shell-bridge`（版本写死 `0.1.0-SNAPSHOT`）。挂接代码全在 `modules/liroam-shell-bridge`，经 Spring Boot 自动配置加载（上游 `scanBasePackages = "cn.lili"` 扫不到 `com.liroam`），不改任何上游 Java；自有表由 Flyway 用独立历史表 `lr_flyway_schema_history` 迁移。仓根 `pom.xml` 聚合上游与 `modules/`，必须从仓根构建 | 上游若改这两个 pom 的 `<dependencies>`，重新补这一项；合并后跑 `modules/liroam-shell-bridge` 的 CT-SHELL-01（`OrderPaidEvent` 构造/`getOrder()`、`payOrder` 仍 `@Transactional` 且同步发布）与 `WalletPlugin` 退款用例 |
 | 前端运行时配置 | `shop/lilishop-ui/{buyer,seller,manager}/public/index.html` | 开发模式在 `config.js` 之后加载 `config.local.js`，由 `scripts/dev.mjs` 按 `deploy/ports.env` 生成，API 地址不写死在上游文件。上游自家 `dev-env.mjs` 也生成 `config.local.js`，但 v5.0.6 的 `index.html` 没有加载它 | 上游若改 `config.js` 那一行，重新补这一行 |
 
 ## 已知上游问题（本仓绕开方式）
@@ -39,5 +40,5 @@ docker 摘取文件：在上游 docker 仓选不晚于后端 tag 的提交，覆
 | lilishop-ui v5.0.6 的 `manager/pnpm-lock.yaml` 与 `package.json` 不同步（锁里仍是 vuex），`--frozen-lockfile` 失败；`seller` 用 npm 安装报 ERESOLVE | 跟上游 `dev-env.mjs` 一致用 `npm install`；有上游 `yarn.lock` 的 `seller` 用 `yarn --frozen-lockfile` |
 | 上游 `dev-env.mjs` 写死 3306/6379 与容器名 `mysql`/`redis`、jar 名 `*-4.3.jar`、强依赖 uniapp | 不直接运行，由 `scripts/dev.mjs` 按本仓端口登记编排 |
 | 基线 `lilishop.sql` 的 `li_verification_source` 为空，三端登录滑块报「服务器繁忙」（`Random.nextInt(0)`）；`loginBypassEnabled` 只跳过服务端校验，前端登录页仍先要滑块 | `deploy/dev-seed.sql` 补 docker 仓 `561997f` 的滑块素材（本机演示数据）；`health` 检查滑块可生成 |
-| 根 `pom.xml` 默认 `skipTests=true`，上游测试无人维护：v5.0.6 打开后 framework 932 个用例 4 失败 41 错误（字段改名、mock 未注入）；manager-api 的 `FullDiscountTest` 等是整上下文测试，Redisson 直连 `localhost:6379`、MySQL 指向上游局域网地址 | CI 与 README 测试命令沿用默认，只编译不跑上游测试；本机不要加 `-DskipTests=false` 跑上游测试（会写入本机其它项目的 Redis）。自研模块的测试在 `modules/` 内自管 |
-| 余额支付 `WalletPlugin.callBack`：扣款 `MemberWalletServiceImpl.reduce` 是独立事务先提交，`paymentService.success` 抛非 `ServiceException`（如支付事务内同步监听器的数据库异常）时只进外层 `catch (Exception)`，不返还余额，且对外报「余额不足」。2026-11-22 本机实测：订单回滚为未付款，余额少 7 元 | 未改上游。挂在支付事务内的监听器失败须抛 `ServiceException`（或修此处补偿后登记本表）；P1 设计据此约束 |
+| 根 `pom.xml` 默认 `skipTests=true`，上游测试无人维护：v5.0.6 打开后 framework 932 个用例 4 失败 41 错误（字段改名、mock 未注入）；manager-api 的 `FullDiscountTest` 等是整上下文测试，Redisson 直连 `localhost:6379`、MySQL 指向上游局域网地址 | CI 与 README 测试命令沿用默认，只编译不跑上游测试；本机不要加 `-DskipTests=false` 跑上游测试（会写入本机其它项目的 Redis）。自研模块不继承该属性，其测试随仓根 `verify` 必跑，只连 `deploy/ports.env` 登记的本项目 MySQL（拒绝 3306） |
+| 余额支付 `WalletPlugin.callBack`：扣款 `MemberWalletServiceImpl.reduce` 是独立事务先提交，`paymentService.success` 抛非 `ServiceException`（如支付事务内同步监听器的数据库异常）时只进外层 `catch (Exception)`，不返还余额，且对外报「余额不足」。2026-11-22 本机实测：订单回滚为未付款，余额少 7 元 | 未改上游。`OrderPaidFulfillmentListener` 把一切失败包成 `ServiceException`；`WalletRefundOnFulfillmentFailureTest` 用真 `WalletPlugin` 证明收单失败时余额退回，并保留一条「非 ServiceException 不退款」的基线用例，上游修复后该用例会红，届时更新本行 |
