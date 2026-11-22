@@ -9,6 +9,7 @@ import com.liroam.catalog.SupplierDirectory;
 import com.liroam.catalog.config.LiroamCatalogAutoConfiguration;
 import com.liroam.fulfillment.FulfillmentEntry;
 import com.liroam.fulfillment.FulfillmentRules;
+import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.store.CardAssets;
 import com.liroam.fulfillment.store.FulfillmentLines;
 
@@ -28,6 +29,11 @@ public class LiroamFulfillmentAutoConfiguration {
     @Bean
     FulfillmentRules liroamFulfillmentRules(SkuBindings liroamSkuBindings, SupplierDirectory liroamSupplierDirectory, CardAssets liroamCardAssets) {
         return new FulfillmentRules(liroamSkuBindings, liroamSupplierDirectory, liroamCardAssets);
+    }
+
+    @Bean
+    TopUpIntents liroamTopUpIntents(JdbcClient liroamJdbcClient) {
+        return new TopUpIntents(liroamJdbcClient);
     }
 
     @Bean
