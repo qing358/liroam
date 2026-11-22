@@ -18,6 +18,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-mock</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>cn.lili</groupId>
             <artifactId>framework</artifactId>
             <scope>test</scope>
