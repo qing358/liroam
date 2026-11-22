@@ -28,7 +28,9 @@ public class ManualTasks {
         /** 卡动作降级为本地标记，需与供应商账单核对。 */
         RECON_DIFF,
         /** 退款流程中需人工处理（如未开始的加包无法撤销）。 */
-        REFUND_EXCEPTION
+        REFUND_EXCEPTION,
+        /** 旅行卡已全部交码，但壳订单含实体卡或其它商品，需运营录物流发货。 */
+        SHELL_SHIPPING
     }
 
     public enum Status { OPEN, DONE, IGNORED }

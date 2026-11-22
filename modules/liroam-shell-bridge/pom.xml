@@ -16,6 +16,19 @@
             <groupId>com.liroam</groupId>
             <artifactId>liroam-fulfillment</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-pricing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-refund</artifactId>
+        </dependency>
+        <!-- 只在 dev/test profile 装配；生产 profile 装到即启动失败（ProductionSafetyGate / SupplierWiringCheck） -->
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-mock</artifactId>
+        </dependency>
         <!-- 壳进程自带；这里只编译期使用，避免 buyer-api/manager-api 打进第二份 -->
         <dependency>
             <groupId>cn.lili</groupId>
