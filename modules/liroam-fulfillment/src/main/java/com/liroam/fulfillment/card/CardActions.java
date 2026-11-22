@@ -19,10 +19,12 @@ import com.liroam.fulfillment.state.CardAssetStatus;
 import com.liroam.fulfillment.state.CardPlanStatus;
 import com.liroam.fulfillment.state.CommandPriority;
 import com.liroam.fulfillment.state.CommandType;
+import com.liroam.fulfillment.state.FulfillmentLineStatus;
 import com.liroam.fulfillment.store.CardAssets;
 import com.liroam.fulfillment.store.CardAssets.Card;
 import com.liroam.fulfillment.store.CardPlans;
 import com.liroam.fulfillment.store.CardPlans.Plan;
+import com.liroam.fulfillment.store.FulfillmentLines;
 import com.liroam.fulfillment.store.SupplierCommands;
 import com.liroam.fulfillment.task.ManualTasks;
 import com.liroam.supplier.spi.SupplierCapabilities;
@@ -30,7 +32,7 @@ import com.liroam.supplier.spi.SupplierCapabilities.StatusOp;
 
 /**
  * 卡动作（退款与后台用）：冻结/解冻、请求上游停用/恢复/终止（不支持终止时降级为停用，再不支持则只在本地终止，均开对账待办）、
- * 取消未执行的指令、退款收尾（作废或终止、池卡归还或作废）。套餐级同理。每个方法自成事务并写审计。
+ * 取消未执行的指令、退款收尾（作废或终止、池卡归还或作废）与履约行推进。套餐级同理。每个方法自成事务（调用方已开事务则加入）并写审计。
  */
 public class CardActions {
 
@@ -51,10 +53,12 @@ public class CardActions {
 
     private static final Set<CardAssetStatus> UPSTREAM_LIVE = EnumSet.of(CardAssetStatus.PROVISIONED, CardAssetStatus.DELIVERED,
             CardAssetStatus.IN_USE, CardAssetStatus.SUSPENDED, CardAssetStatus.EXPIRED);
+    private static final Set<CardAssetStatus> REFUND_ENDS = EnumSet.of(CardAssetStatus.CANCELLED, CardAssetStatus.TERMINATED);
 
     private final TransactionOperations tx;
     private final CardAssets cards;
     private final CardPlans plans;
+    private final FulfillmentLines lines;
     private final SupplierCommands commands;
     private final SupplierDirectory suppliers;
     private final SupplierAdapterRegistry adapters;
@@ -64,11 +68,13 @@ public class CardActions {
     private final AuditLog audit;
     private final Clock clock;
 
-    public CardActions(TransactionOperations tx, CardAssets cards, CardPlans plans, SupplierCommands commands, SupplierDirectory suppliers,
-            SupplierAdapterRegistry adapters, CardPool pool, ManualTasks tasks, Settings settings, AuditLog audit, Clock clock) {
+    public CardActions(TransactionOperations tx, CardAssets cards, CardPlans plans, FulfillmentLines lines, SupplierCommands commands,
+            SupplierDirectory suppliers, SupplierAdapterRegistry adapters, CardPool pool, ManualTasks tasks, Settings settings, AuditLog audit,
+            Clock clock) {
         this.tx = tx;
         this.cards = cards;
         this.plans = plans;
+        this.lines = lines;
         this.commands = commands;
         this.suppliers = suppliers;
         this.adapters = adapters;
@@ -192,6 +198,33 @@ public class CardActions {
             audit.record(actor, "PLAN_REFUND_FINALIZE", "CARD_PLAN", Long.toString(plan.id()), null, "{\"cancelled\":" + cancelled + "}");
             return cancelled;
         }));
+    }
+
+    /**
+     * 退款完成后推进履约行（§7.2）：加包退款 → 该加包行 CANCELLED；整卡退款 → 行内卡都已作废/终止则 CANCELLED，否则 PARTIAL_REFUNDED。
+     * 已在目标状态或状态机不允许时不动。@return 行的当前状态
+     */
+    public FulfillmentLineStatus settleRefundedLine(long cardAssetId, Long cardPlanId, String actor) {
+        return tx.execute(status -> {
+            long lineId;
+            FulfillmentLineStatus target;
+            if (cardPlanId != null) {
+                lineId = plans.find(cardPlanId).orElseThrow(() -> new UserFacingException("找不到这个套餐")).fulfillmentLineId();
+                target = FulfillmentLineStatus.CANCELLED;
+            } else {
+                lineId = requireCard(cardAssetId).fulfillmentLineId();
+                target = cards.byLine(lineId).stream().allMatch(c -> REFUND_ENDS.contains(c.status()))
+                        ? FulfillmentLineStatus.CANCELLED : FulfillmentLineStatus.PARTIAL_REFUNDED;
+            }
+            FulfillmentLineStatus current = lines.lock(lineId).orElseThrow().status();
+            if (current == target || !FulfillmentLineStatus.MACHINE.canMove(current, target)) {
+                return current;
+            }
+            lines.move(lineId, current, target);
+            audit.record(actor, "LINE_REFUND_SETTLE", "FULFILLMENT_LINE", Long.toString(lineId), "{\"status\":\"" + current + "\"}",
+                    "{\"status\":\"" + target + "\"}");
+            return target;
+        });
     }
 
     private void enqueue(Card card, CommandType type, Instant now) {

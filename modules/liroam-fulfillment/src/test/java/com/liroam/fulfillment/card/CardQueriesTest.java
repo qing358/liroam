@@ -74,7 +74,7 @@ class CardQueriesTest {
         assertThat(b).extracting(CardView::productName, CardView::usageRegionName, CardView::supplierCode, CardView::status, CardView::statusText,
                 CardView::remainingText, CardView::expiresText, CardView::updatedText, CardView::canTopUp, CardView::canRefund)
                 .containsExactly("美国畅游卡", "美国", "SUP_B", "IN_USE", "使用中", "1536 B", "2026-12-31 23:59",
-                        "2026-11-22 18:00", true, false);
+                        "2026-11-22 18:00", true, true);
         assertThat(b.plans()).extracting(CardView.PlanView::name, CardView.PlanView::statusText, CardView.PlanView::remainingText,
                 CardView.PlanView::expiresText).containsExactly(tuple("美国 7 天 5GB", "使用中", "1536 B", "2026-12-31 23:59"));
 
@@ -148,6 +148,10 @@ class CardQueriesTest {
         assertThat(queries.topUpOptions(undelivered, "m1")).as("还没交付").isEmpty();
         assertThat(queries.getForMember(undelivered, "m1").orElseThrow()).extracting(CardView::statusText, CardView::canTopUp, CardView::canRefund)
                 .containsExactly("开通中", false, true);
+
+        h.bean(CardActions.class).finalizeRefund(ids[1], CardActions.RefundEnd.TERMINATED, CardActions.PoolDisposition.VOID, "op");
+        assertThat(queries.getForMember(ids[1], "m1").orElseThrow()).as("已终止不能再退").extracting(CardView::canRefund, CardView::refundHold)
+                .containsExactly(false, false);
     }
 
     @Test

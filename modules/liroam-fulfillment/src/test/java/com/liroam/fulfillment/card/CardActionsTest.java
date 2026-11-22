@@ -3,6 +3,7 @@ package com.liroam.fulfillment.card;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +16,7 @@ import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.card.CardActions.PoolDisposition;
 import com.liroam.fulfillment.card.CardActions.RefundEnd;
 import com.liroam.fulfillment.card.CardActions.StatusRequest;
+import com.liroam.fulfillment.state.FulfillmentLineStatus;
 import com.liroam.fulfillment.testing.FulfillmentHarness;
 import com.liroam.fulfillment.testing.TestCatalog;
 import com.liroam.fulfillment.worker.CommandExecutor;
@@ -197,5 +199,33 @@ class CardActionsTest {
         assertThat(h.status("lr_card_plan", base)).isEqualTo("READY");
         assertThat(h.count("lr_manual_task WHERE kind = 'REFUND_EXCEPTION' AND ref_type = 'CARD_PLAN' AND ref_id = ?", Long.toString(base))).isEqualTo(1);
         assertThatThrownBy(() -> actions.finalizePlanRefund(999_999, "op")).isInstanceOf(UserFacingException.class).hasMessage("找不到这个套餐");
+    }
+
+    @Test
+    void refundedLineIsCancelledOnlyWhenEveryCardEndedOtherwisePartiallyRefunded() {
+        h.importPoolA(3, true);
+        long line = h.acceptShop("O-11", "O-11-1", c.skuANew, 2, "m1");
+        h.drain();
+        List<Long> ids = h.jdbc.queryForList("SELECT id FROM lr_card_asset WHERE fulfillment_line_id = ? ORDER BY unit_seq", Long.class, line);
+        assertThat(h.status("lr_fulfillment_line", line)).isEqualTo("COMPLETED");
+
+        actions.finalizeRefund(ids.get(0), RefundEnd.TERMINATED, PoolDisposition.VOID, "op");
+        assertThat(actions.settleRefundedLine(ids.get(0), null, "op")).isEqualTo(FulfillmentLineStatus.PARTIAL_REFUNDED);
+        assertThat(actions.settleRefundedLine(ids.get(0), null, "op")).as("重复调用不动").isEqualTo(FulfillmentLineStatus.PARTIAL_REFUNDED);
+        actions.finalizeRefund(ids.get(1), RefundEnd.TERMINATED, PoolDisposition.VOID, "op");
+        assertThat(actions.settleRefundedLine(ids.get(1), null, "op")).as("行内卡都已退").isEqualTo(FulfillmentLineStatus.CANCELLED);
+        assertThat(h.status("lr_fulfillment_line", line)).isEqualTo("CANCELLED");
+        assertThat(h.count("lr_audit_log WHERE action = 'LINE_REFUND_SETTLE' AND target_id = ?", Long.toString(line))).isEqualTo(2);
+
+        long card = h.acceptCard("O-12", c.skuANew, "m1");
+        h.drain();
+        long topUpLine = h.acceptTopUp("O-12T", "O-12T-1", c.skuATopUp, "m1", card);
+        h.bean(FulfillmentWorker.class).runOnce(10);
+        long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE fulfillment_line_id = ?", Long.class, topUpLine);
+        actions.finalizePlanRefund(plan, "op");
+        assertThat(actions.settleRefundedLine(card, plan, "op")).as("加包行即该套餐").isEqualTo(FulfillmentLineStatus.CANCELLED);
+        assertThat(h.status("lr_fulfillment_line", topUpLine)).isEqualTo("CANCELLED");
+        assertThat(h.status("lr_fulfillment_line", h.jdbc.queryForObject("SELECT fulfillment_line_id FROM lr_card_asset WHERE id = ?", Long.class,
+                card))).as("原卡行不动").isEqualTo("COMPLETED");
     }
 }

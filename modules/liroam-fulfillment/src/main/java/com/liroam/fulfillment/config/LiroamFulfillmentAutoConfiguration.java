@@ -232,9 +232,11 @@ public class LiroamFulfillmentAutoConfiguration {
 
     @Bean
     CardActions liroamCardActions(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, CardPlans liroamCardPlans,
-            SupplierCommands liroamSupplierCommands, SupplierDirectory liroamSupplierDirectory, SupplierAdapterRegistry liroamSupplierAdapterRegistry,
-            CardPool liroamCardPool, ManualTasks liroamManualTasks, Settings liroamSettings, AuditLog liroamAuditLog, Clock liroamFulfillmentClock) {
-        return new CardActions(liroamFulfillmentTx, liroamCardAssets, liroamCardPlans, liroamSupplierCommands, liroamSupplierDirectory,
+            FulfillmentLines liroamFulfillmentLines, SupplierCommands liroamSupplierCommands, SupplierDirectory liroamSupplierDirectory,
+            SupplierAdapterRegistry liroamSupplierAdapterRegistry, CardPool liroamCardPool, ManualTasks liroamManualTasks, Settings liroamSettings,
+            AuditLog liroamAuditLog, Clock liroamFulfillmentClock) {
+        return new CardActions(liroamFulfillmentTx, liroamCardAssets, liroamCardPlans, liroamFulfillmentLines, liroamSupplierCommands,
+                liroamSupplierDirectory,
                 liroamSupplierAdapterRegistry, liroamCardPool, liroamManualTasks, liroamSettings, liroamAuditLog, liroamFulfillmentClock);
     }
 

@@ -25,9 +25,8 @@ public final class CardViewProjector {
             Long templateQuotaBytes, int validityDays) {
     }
 
-    /** 尚未激活、可整卡退款的状态；已激活或已结束的卡走售后，不在这里放开。 */
-    private static final Set<CardAssetStatus> REFUNDABLE = EnumSet.of(CardAssetStatus.CREATED, CardAssetStatus.ALLOCATED,
-            CardAssetStatus.PROVISIONED, CardAssetStatus.DELIVERED, CardAssetStatus.EXCEPTION);
+    /** 作废/终止后不能再申请；其余状态都可申请，批不批由退款规则定（已激活的默认驳回、后台可例外批）。 */
+    private static final Set<CardAssetStatus> REFUND_CLOSED = EnumSet.of(CardAssetStatus.CANCELLED, CardAssetStatus.TERMINATED);
     private static final Set<CardPlanStatus> LIVE = EnumSet.of(CardPlanStatus.READY, CardPlanStatus.IN_USE);
     private static final String NONE = "—";
 
@@ -40,8 +39,13 @@ public final class CardViewProjector {
         return new CardView(card.id(), card.cardNo(), card.productName(), card.usageRegionName(), card.form(), card.status().name(),
                 statusText(card.status()), remainingText(live), time(card.expiresAt()),
                 time(card.lastPolledAt() != null ? card.lastPolledAt() : card.updatedAt()), canTopUp,
-                !card.refundHold() && REFUNDABLE.contains(card.status()), card.refundHold(), card.iccidLast4(), card.supplierCode(),
+                canApplyRefund(card.status(), card.refundHold()), card.refundHold(), card.iccidLast4(), card.supplierCode(),
                 plans.stream().map(CardViewProjector::plan).toList());
+    }
+
+    /** 「可申请退款」的唯一判定：退款冻结即有进行中的退款单，不能重复申请。 */
+    public static boolean canApplyRefund(CardAssetStatus status, boolean refundHold) {
+        return !refundHold && !REFUND_CLOSED.contains(status);
     }
 
     public static String statusText(CardAssetStatus status) {
