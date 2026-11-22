@@ -15,12 +15,14 @@ class MigrationTest {
     @Test
     void migratesEmptyDatabaseAndSecondRunIsNoop() {
         DataSource ds = ItDatabase.fresh("schema_empty");
+        int pending = pending(ds);
 
         MigrateResult first = LiroamMigrations.migrate(ds);
         MigrateResult second = LiroamMigrations.migrate(ds);
 
         assertThat(first.success).isTrue();
-        assertThat(first.migrationsExecuted).isEqualTo(7);
+        assertThat(pending).isGreaterThanOrEqualTo(8);
+        assertThat(first.migrationsExecuted).isEqualTo(pending);
         assertThat(second.migrationsExecuted).isZero();
         assertThat(new JdbcTemplate(ds).queryForObject(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'lr_fulfillment_line'", Integer.class))
@@ -33,15 +35,21 @@ class MigrationTest {
         JdbcTemplate jdbc = new JdbcTemplate(ds);
         jdbc.execute("CREATE TABLE li_order (id BIGINT PRIMARY KEY, sn VARCHAR(255)) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci");
         jdbc.update("INSERT INTO li_order VALUES (1, 'O1')");
+        int pending = pending(ds);
 
         MigrateResult result = LiroamMigrations.migrate(ds);
 
         assertThat(result.success).isTrue();
-        assertThat(result.migrationsExecuted).isEqualTo(7);
+        assertThat(result.migrationsExecuted).isEqualTo(pending);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM lr_flyway_schema_history WHERE type = 'BASELINE'", Integer.class)).isEqualTo(1);
         assertThat(jdbc.queryForObject("SELECT sn FROM li_order WHERE id = 1", String.class)).isEqualTo("O1");
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'li_order'", Integer.class))
                 .isEqualTo(2);
+    }
+
+    /** 各阶段都会加迁移，按目录里的待执行数断言，不写死个数。 */
+    private static int pending(DataSource ds) {
+        return LiroamMigrations.flyway(ds).info().pending().length;
     }
 }
