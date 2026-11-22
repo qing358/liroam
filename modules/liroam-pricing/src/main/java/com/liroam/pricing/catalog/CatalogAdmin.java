@@ -1,8 +1,10 @@
 package com.liroam.pricing.catalog;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -17,6 +19,7 @@ import com.liroam.common.audit.AuditLog;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.pricing.catalog.ShellSkuDirectory.ShellSku;
 import com.liroam.pricing.price.PriceVersions;
+import com.liroam.pricing.tariff.CardForms;
 
 /**
  * 后台「旅行卡商品」：套餐模板、套餐映射（领域套餐 → 上游套餐码）、SKU 绑定与上下架。
@@ -38,8 +41,9 @@ public class CatalogAdmin {
     public record NewSku(String shellSkuId, long offeringId, String form, KycGateMode kycGateMode, Boolean numberedGate) {
     }
 
+    /** @param softFeeAvailable 供应商当前资费表报了「纯软件卡 Profile」卡费，运营才能开卖软卡 */
     public record CardProductRow(long id, long supplierId, String supplierCode, String name, boolean capData, boolean capVoice, boolean capSms,
-            boolean hasNumber, String allowedForms) {
+            boolean hasNumber, String allowedForms, boolean softFeeAvailable) {
     }
 
     public record PlanTemplateRow(long id, String name, Long dataQuotaBytes, Long voiceSeconds, Integer smsCount, int validityDays) {
@@ -55,7 +59,7 @@ public class CatalogAdmin {
     }
 
     private record Offering(long id, long supplierId, long cardProductId, Long regionId, long planTemplateId, String kind, String allowedForms,
-            boolean hasNumber, Boolean kycRequired) {
+            boolean hasNumber, Boolean kycRequired, String regionName, String restrictionNote) {
     }
 
     private final JdbcClient jdbc;
@@ -74,11 +78,50 @@ public class CatalogAdmin {
         this.audit = audit;
     }
 
+    private record ProductForms(long id, long supplierId, String allowedForms) {
+    }
+
     public List<CardProductRow> cardProducts() {
+        Map<Long, Boolean> soft = new HashMap<>();
         return jdbc.sql("""
-                SELECT p.id, p.supplier_id, s.code AS supplier_code, p.name, p.cap_data, p.cap_voice, p.cap_sms, p.has_number, p.allowed_forms
+                SELECT p.id, p.supplier_id, s.code AS supplier_code, p.name, p.cap_data, p.cap_voice, p.cap_sms, p.has_number, p.allowed_forms,
+                       FALSE AS soft_fee_available
                   FROM lr_card_product p JOIN lr_supplier s ON s.id = p.supplier_id ORDER BY p.supplier_id, p.id
-                """).query(CardProductRow.class).list();
+                """).query(CardProductRow.class).list().stream()
+                .map(p -> new CardProductRow(p.id(), p.supplierId(), p.supplierCode(), p.name(), p.capData(), p.capVoice(), p.capSms(), p.hasNumber(),
+                        p.allowedForms(), soft.computeIfAbsent(p.supplierId(), this::activeSheetPricesSoft)))
+                .toList();
+    }
+
+    /** 软卡由运营按卡产品打开：须当前资费表报了软卡卡费；关闭前须先下架在售的软卡商品。 */
+    public void setSoftEnabled(long cardProductId, boolean enabled, String actor) {
+        tx.executeWithoutResult(s -> {
+            ProductForms p = jdbc.sql("SELECT id, supplier_id, allowed_forms FROM lr_card_product WHERE id = ? FOR UPDATE").param(cardProductId)
+                    .query(ProductForms.class).optional().orElseThrow(() -> new UserFacingException("卡产品不存在"));
+            if (CardForms.allows(p.allowedForms(), CardForms.SOFT) == enabled) {
+                return;
+            }
+            if (enabled && !activeSheetPricesSoft(p.supplierId())) {
+                throw new UserFacingException("当前资费表没有「纯软件卡 Profile」卡费，不能开卖软卡");
+            }
+            if (!enabled && jdbc.sql("SELECT COUNT(*) FROM lr_sku_binding WHERE card_product_id = ? AND form = 'SOFT' AND listing_state = 'LISTED'")
+                    .param(cardProductId).query(Integer.class).single() > 0) {
+                throw new UserFacingException("该卡产品还有在售的软卡商品，请先下架");
+            }
+            String forms = enabled ? p.allowedForms() + "," + CardForms.SOFT
+                    : Arrays.stream(p.allowedForms().split(",")).map(String::trim).filter(f -> !CardForms.SOFT.equalsIgnoreCase(f))
+                            .collect(Collectors.joining(","));
+            jdbc.sql("UPDATE lr_card_product SET allowed_forms = ?, updated_at = UTC_TIMESTAMP(3) WHERE id = ?").params(forms, cardProductId).update();
+            audit.record(actor, "CARD_PRODUCT_UPDATE", "CARD_PRODUCT", Long.toString(cardProductId), "{\"allowedForms\":\"" + p.allowedForms() + "\"}",
+                    "{\"allowedForms\":\"" + forms + "\",\"soft\":" + enabled + "}");
+        });
+    }
+
+    private boolean activeSheetPricesSoft(long supplierId) {
+        return CardForms.pricesSoft(jdbc.sql("""
+                SELECT l.item_raw FROM lr_tariff_line l JOIN lr_tariff_sheet t ON t.id = l.sheet_id
+                 WHERE t.supplier_id = ? AND t.status = 'ACTIVE' AND l.kind = 'CARD_FEE'
+                """).param(supplierId).query(String.class).list());
     }
 
     /** 含号码由运营按卡产品资料设定（资费表不给）。 */
@@ -179,13 +222,17 @@ public class CatalogAdmin {
         String skuId = n.shellSkuId().trim();
         Offering o = jdbc.sql("""
                 SELECT o.id, o.supplier_id, o.card_product_id, o.region_id, o.plan_template_id, o.kind, p.allowed_forms, p.has_number,
-                       cpr.kyc_required
+                       cpr.kyc_required, r.name_zh AS region_name, cpr.restriction_note
                   FROM lr_supplier_offering o
                   JOIN lr_card_product p ON p.id = o.card_product_id
+                  LEFT JOIN lr_usage_region r ON r.id = o.region_id
                   LEFT JOIN lr_card_product_region cpr ON cpr.card_product_id = o.card_product_id AND cpr.region_id = o.region_id AND cpr.active = 1
                  WHERE o.id = ? AND o.enabled = 1
                 """).param(n.offeringId()).query(Offering.class).optional().orElseThrow(() -> new UserFacingException("套餐映射不存在或已停用"));
         CardForm form = form(n.form(), o.allowedForms());
+        if (form == CardForm.SOFT && CardForms.softUnsupported(o.restrictionNote())) {
+            throw new UserFacingException("「" + o.regionName() + "」不支持纯软卡（资费表注明），请改用 eSIM 或实体卡");
+        }
         boolean topUp = "TOP_UP".equals(o.kind());
         if (topUp && form.shipsPhysically()) {
             throw new UserFacingException("加包不能绑实体卡形态");
@@ -233,6 +280,10 @@ public class CatalogAdmin {
             }
             boolean listable = jdbc.sql("SELECT COUNT(*) FROM lr_supplier WHERE id = ? AND enabled = 1 AND listing_enabled = 1")
                     .param(b.supplierId()).query(Integer.class).single() > 0;
+            String allowedForms = jdbc.sql("SELECT allowed_forms FROM lr_card_product WHERE id = ?").param(b.cardProductId()).query(String.class).single();
+            if (!CardForms.allows(allowedForms, b.form())) {
+                throw new UserFacingException("该卡产品已不支持这种卡形态，不能上架");
+            }
             if (prices.active(b.id()).isEmpty()) {
                 throw new UserFacingException("请先设置售价");
             }
@@ -283,8 +334,7 @@ public class CatalogAdmin {
         } catch (IllegalArgumentException e) {
             throw new UserFacingException("请选择卡形态");
         }
-        List<String> allowed = Arrays.stream(allowedForms.split(",")).map(f -> f.trim().toUpperCase(Locale.ROOT)).toList();
-        if (!allowed.contains(form.name())) {
+        if (!CardForms.allows(allowedForms, form.name())) {
             throw new UserFacingException("该卡产品不支持这种卡形态");
         }
         return form;

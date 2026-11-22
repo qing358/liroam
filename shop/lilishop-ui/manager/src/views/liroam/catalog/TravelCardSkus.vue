@@ -82,7 +82,16 @@
             <el-table-column label="能力" min-width="140">
               <template #default="{ row }">{{ capabilityOf(row) }}</template>
             </el-table-column>
-            <el-table-column prop="allowedForms" label="可选形态" min-width="140" />
+            <el-table-column label="可选形态" min-width="160">
+              <template #default="{ row }">{{ formsText(row.allowedForms) }}</template>
+            </el-table-column>
+            <el-table-column label="开卖软卡" width="110" align="center">
+              <template #default="{ row }">
+                <el-tooltip :disabled="row.softFeeAvailable || isSoft(row)" content="当前资费表没有「纯软件卡 Profile」卡费" placement="top">
+                  <el-switch :model-value="isSoft(row)" :disabled="!row.softFeeAvailable && !isSoft(row)" @change="(v) => toggleSoft(row, v)" />
+                </el-tooltip>
+              </template>
+            </el-table-column>
             <el-table-column label="含号码" width="100" align="center">
               <template #default="{ row }">
                 <el-switch :model-value="row.hasNumber" @change="(v) => toggleHasNumber(row, v)" />
@@ -90,6 +99,7 @@
             </el-table-column>
           </el-table>
           <div class="liroam-hint mt_10">含号码的卡产品默认挂「号码卡」闸：全局开关「号码卡可售」关闭时不可下单。</div>
+          <div class="liroam-hint">纯软卡需买家自备软卡设备，按资费表「纯软件卡 Profile」卡费计成本；资费表注明不支持软卡的区域不能绑软卡 SKU。</div>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -199,7 +209,7 @@ import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   createCatalogSku, createOffering, createPlanTemplate, deleteSku, delistSku, listCardProductRegions, listCatalogCardProducts, listCatalogSkus,
-  listOfferings, listPlanTemplates, listSku, setCardProductHasNumber, setSkuPrice, updateSkuGates,
+  listOfferings, listPlanTemplates, listSku, setCardProductHasNumber, setCardProductSoft, setSkuPrice, updateSkuGates,
 } from "@/api/liroam";
 import {
   CARD_FORMS, KYC_GATE_MODES, LISTING_STATES, SKU_KINDS, fenToYuan, labelOf, listOf, planQuotaText, skuActions, yuanToFen,
@@ -348,6 +358,14 @@ function saveTemplate() {
     name: templateForm.name.trim(), dataGb: nz(templateForm.dataGb), voiceMinutes: nz(templateForm.voiceMinutes), smsCount: nz(templateForm.smsCount),
     validityDays: templateForm.validityDays,
   }), "模板已新增", () => { templateDialog.value = false; });
+}
+
+const formList = (forms) => (forms || "").split(",").map((f) => f.trim()).filter(Boolean);
+const isSoft = (row) => formList(row.allowedForms).includes("SOFT");
+const formsText = (forms) => formList(forms).map((f) => labelOf(CARD_FORMS, f)).join("、") || "—";
+
+function toggleSoft(row, value) {
+  run(() => setCardProductSoft(row.id, value), value ? "已开卖软卡" : "已关闭软卡");
 }
 
 function toggleHasNumber(row, value) {

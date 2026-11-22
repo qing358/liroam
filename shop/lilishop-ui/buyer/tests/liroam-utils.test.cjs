@@ -25,6 +25,7 @@ test('卡形态：formText 优先，已知形态翻译，未知原样，缺失�
   assert.equal(cardFormText({ form: 'ESIM', formText: '电子卡' }), '电子卡');
   assert.equal(cardFormText({ form: 'esim' }), 'eSIM');
   assert.equal(cardFormText({ form: 'PHYSICAL' }), '实体卡');
+  assert.equal(cardFormText({ form: 'SOFT' }), '纯软卡');
   assert.equal(cardFormText({ form: 'WATCH' }), 'WATCH');
   assert.equal(cardFormText({}), '');
   assert.equal(cardFormText(null), '');

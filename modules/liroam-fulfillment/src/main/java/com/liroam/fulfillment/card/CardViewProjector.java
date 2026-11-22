@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import com.liroam.catalog.CardForm;
 import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.common.time.UtcColumns;
 import com.liroam.fulfillment.DisplayTime;
@@ -44,7 +45,8 @@ public final class CardViewProjector {
         KycStatus kyc = KycStatus.valueOf(card.kycStatus());
         boolean kycBlocking = KycGateMode.valueOf(card.kycGateMode()) == KycGateMode.BLOCK_DELIVERY && !kyc.passesGate();
         String statusText = card.status() == CardAssetStatus.PROVISIONED && kycBlocking ? kyc.text() : statusText(card.status());
-        return new CardView(card.id(), card.cardNo(), card.productName(), card.usageRegionName(), card.form(), card.status().name(),
+        return new CardView(card.id(), card.cardNo(), card.productName(), card.usageRegionName(), card.form(), formText(card.form()), formGuide(card.form()),
+                card.status().name(),
                 statusText, remainingText(live), time(card.expiresAt()),
                 time(card.lastPolledAt() != null ? card.lastPolledAt() : card.updatedAt()), canTopUp,
                 canApplyRefund(card.status(), card.refundHold()), card.refundHold(), card.iccidLast4(), card.supplierCode(),
@@ -56,6 +58,21 @@ public final class CardViewProjector {
     /** 「可申请退款」的唯一判定：退款冻结即有进行中的退款单，不能重复申请。 */
     public static boolean canApplyRefund(CardAssetStatus status, boolean refundHold) {
         return !refundHold && !REFUND_CLOSED.contains(status);
+    }
+
+    static String formText(String form) {
+        return switch (CardForm.of(form)) {
+            case ESIM -> "eSIM";
+            case PHYSICAL -> "实体卡";
+            case SOFT -> "纯软卡";
+        };
+    }
+
+    static String formGuide(String form) {
+        return CardForm.of(form) == CardForm.SOFT
+                ? "纯软卡需写入你自备的软卡设备（如 SIM 贴片、可写 eUICC 卡）后使用：在设备配套 App 里选择导入 Profile，粘贴或扫描下方激活信息；"
+                        + "不能直接在手机「添加 eSIM」里安装。写入后按设备说明插入手机并开启数据漫游。"
+                : null;
     }
 
     public static String statusText(CardAssetStatus status) {

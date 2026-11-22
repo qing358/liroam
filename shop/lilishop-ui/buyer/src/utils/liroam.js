@@ -46,7 +46,7 @@ export function normalizeCredential(result) {
   return credential.lpa || credential.activationCode ? credential : null;
 }
 
-const FORM_LABELS = { ESIM: "eSIM", PHYSICAL: "实体卡" };
+const FORM_LABELS = { ESIM: "eSIM", PHYSICAL: "实体卡", SOFT: "纯软卡" };
 
 /** 后端给 formText 就用它；否则按已知形态翻译，未知原样显示。 */
 export function cardFormText(card) {

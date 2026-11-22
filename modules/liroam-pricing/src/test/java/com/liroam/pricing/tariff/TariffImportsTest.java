@@ -183,6 +183,35 @@ class TariffImportsTest {
         assertThat(f.jdbc.queryForObject("SELECT cap_voice FROM lr_card_product WHERE card_type_code = 'R1'", Integer.class)).isEqualTo(1);
     }
 
+    private long activate(String file, TestRateSheet sheet) {
+        long id = f.tariffs.importXlsx(supplier, file, new ByteArrayInputStream(sheet.build()), "manager:ops");
+        f.tariffs.activate(id, "manager:ops");
+        return id;
+    }
+
+    private String allowedForms() {
+        return f.jdbc.queryForObject("SELECT allowed_forms FROM lr_card_product WHERE card_type_code = 'R1'", String.class);
+    }
+
+    @Test
+    void softCardFeeIsParsedAndOpsEnabledSoftSurvivesReimportOnlyWhileSheetStillPricesIt() {
+        assertThat(CardForms.formOf("纯软件卡 Profile")).contains("SOFT");
+        assertThat(CardForms.formOf("纯软件卡Profile")).contains("SOFT");
+
+        activate("a.xlsx", new TestRateSheet().data("R1", false, row("亚洲", "日本", "KDDI", "5"))
+                .cardFee("eSIM", "2").cardFee("纯软件卡Profile", "0.5"));
+        assertThat(allowedForms()).as("软卡不自动开卖").isEqualTo("ESIM");
+        assertThat(f.count("SELECT COUNT(*) FROM lr_tariff_line WHERE kind = 'CARD_FEE' AND item_raw = '纯软件卡Profile'")).isEqualTo(1);
+
+        f.jdbc.update("UPDATE lr_card_product SET allowed_forms = 'ESIM,SOFT' WHERE card_type_code = 'R1'");
+        activate("b.xlsx", new TestRateSheet().data("R1", false, row("亚洲", "日本", "KDDI", "4"))
+                .cardFee("eSIM", "2").cardFee("实体卡", "1").cardFee("纯软件卡Profile", "0.6"));
+        assertThat(allowedForms()).as("运营开的软卡重导保留").isEqualTo("ESIM,PHYSICAL,SOFT");
+
+        activate("c.xlsx", new TestRateSheet().data("R1", false, row("亚洲", "日本", "KDDI", "4")).cardFee("eSIM", "2"));
+        assertThat(allowedForms()).as("新表不再报软卡卡费 → 关掉").isEqualTo("ESIM");
+    }
+
     @Test
     void rejectsNonHkdOrUnknownLayout() {
         byte[] usd = new TestRateSheet().currency("美元").data("R1", false, row("亚洲", "日本", "KDDI", "5")).build();

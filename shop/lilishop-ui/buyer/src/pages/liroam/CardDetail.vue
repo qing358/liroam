@@ -57,7 +57,7 @@
     </UserCenterLayout>
 
     <template v-if="card">
-      <CredentialDialog v-model="credentialVisible" :card-id="card.id" :physical="card.form === 'PHYSICAL'" />
+      <CredentialDialog v-model="credentialVisible" :card-id="card.id" :physical="card.form === 'PHYSICAL'" :guide="card.formGuide || ''" />
       <TopUpDialog v-model="topUpVisible" :card="card" />
       <RefundDialog v-model="refundVisible" :card="card" @done="load" />
     </template>

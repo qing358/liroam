@@ -57,6 +57,21 @@ class CardTypeViewTest {
     }
 
     @Test
+    void formTextNamesEachFormAndOnlySoftCardCarriesAWriteGuide() {
+        h.importPoolA(1, true);
+        long card = h.acceptCard("O-F", c.skuANew, "m1");
+        h.drain();
+
+        assertThat(queries.getForMember(card, "m1").orElseThrow()).extracting(CardView::formText, CardView::formGuide).containsExactly("eSIM", null);
+        h.jdbc.update("UPDATE lr_card_asset SET form = 'PHYSICAL' WHERE id = ?", card);
+        assertThat(queries.getForMember(card, "m1").orElseThrow()).extracting(CardView::formText, CardView::formGuide).containsExactly("实体卡", null);
+        h.jdbc.update("UPDATE lr_card_asset SET form = 'SOFT' WHERE id = ?", card);
+        CardView soft = queries.getForMember(card, "m1").orElseThrow();
+        assertThat(soft.formText()).isEqualTo("纯软卡");
+        assertThat(soft.formGuide()).contains("软卡设备").contains("不能").contains("添加 eSIM");
+    }
+
+    @Test
     void voiceSmsCardShowsTemplateQuotaThenMirroredRemaining() {
         long card = h.acceptCard("O-2", c.skuBNew, "m1");
         h.drain();

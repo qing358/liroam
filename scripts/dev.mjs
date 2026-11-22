@@ -328,8 +328,10 @@ async function health() {
 }
 
 
-// 本机演示目录：两家模拟供应商、资费表导入启用、全卡型旅行卡 SKU 绑定（纯流量 / 语音短信 / 实名 / 实体卡）与定价、池卡。幂等，可重复执行；要求 up 已起好后端。
+// 本机演示目录：两家模拟供应商、资费表导入启用、全卡型旅行卡 SKU 绑定（纯流量 / 语音短信 / 实名 / 实体卡 / 纯软卡）与定价、池卡，
+// 物流轨迹来源切到模拟快递。幂等，可重复执行；要求 up 已起好后端。
 const DEMO_SHEET = 'docs/media/202611-资费报价-想象智能-202611(20261117）.xlsx';
+const DEMO_SOFT = { supplier: 'SUP_B', cardType: '45412_C' };
 const DEMO_POOL_SIZE = 20;
 
 async function demo() {
@@ -351,6 +353,17 @@ async function demo() {
     await api.post(`/manager/liroam/tariff-sheets/${report.sheetId}/activate`);
     console.log(`- ${sup.code}：资费表已导入并启用（#${report.sheetId}）`);
   }
+  const softProduct = (await api.get('/manager/liroam/catalog/card-products'))
+    .find((p) => p.supplierCode === DEMO_SOFT.supplier && p.name === DEMO_SOFT.cardType);
+  if (softProduct && !softProduct.allowedForms.split(',').includes('SOFT')) {
+    await api.put(`/manager/liroam/catalog/card-products/${softProduct.id}/soft`, { enabled: true });
+    console.log(`- ${DEMO_SOFT.supplier} 卡产品 ${DEMO_SOFT.cardType} 已开卖软卡`);
+  }
+  const shipping = await api.get('/manager/liroam/cards/settings/shipping');
+  if (shipping.trackingSource !== 'mock') {
+    await api.put('/manager/liroam/cards/settings/shipping', { multiWaybillMode: shipping.multiWaybillMode, trackingSource: 'mock' });
+    console.log('- 物流轨迹来源切到模拟快递（mock）');
+  }
 
   const skus = parseTsv(runSql('deploy/dev-demo.sql'));
   if (!skus.length) throw new Error('旅行卡 SKU 绑定为空：资费表里没有资源 45412_C 或缺日本/中国区域');
@@ -370,7 +383,7 @@ async function demo() {
   }
   compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });
   console.log('\n演示目录就绪。买家端商品页：');
-  for (const [label, n] of [['纯流量 eSIM', 1], ['语音短信 eSIM', 6], ['实名后交付 eSIM', 7], ['实体卡（寄送）', 8]]) {
+  for (const [label, n] of [['纯流量 eSIM', 1], ['语音短信 eSIM', 6], ['实名后交付 eSIM', 7], ['实体卡（寄送）', 8], ['纯软卡', 9]]) {
     console.log(`- ${label}：${config.buyerPcUrl}/goodsDetail?skuId=910000000000000100${n}&goodsId=910000000000000000${n}`);
   }
 }
@@ -409,6 +422,7 @@ function managerClient(baseUrl) {
     },
     get: (url) => call('GET', url),
     post: (url, body) => call('POST', url, body),
+    put: (url, body) => call('PUT', url, body),
   };
 }
 

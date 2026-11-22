@@ -32,6 +32,9 @@ public class CatalogManagerController {
     public record HasNumberRequest(boolean hasNumber) {
     }
 
+    public record SoftRequest(boolean enabled) {
+    }
+
     public record GatesRequest(KycGateMode kycGateMode, boolean numberedGate) {
     }
 
@@ -52,6 +55,12 @@ public class CatalogManagerController {
     @PutMapping("/card-products/{id}/has-number")
     public ApiResult<Void> setHasNumber(@PathVariable long id, @RequestBody HasNumberRequest body) {
         admin.setHasNumber(id, body != null && body.hasNumber(), actor.requireOperator());
+        return ApiResult.ok(null);
+    }
+
+    @PutMapping("/card-products/{id}/soft")
+    public ApiResult<Void> setSoftEnabled(@PathVariable long id, @RequestBody SoftRequest body) {
+        admin.setSoftEnabled(id, body != null && body.enabled(), actor.requireOperator());
         return ApiResult.ok(null);
     }
 

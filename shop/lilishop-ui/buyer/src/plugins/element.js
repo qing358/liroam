@@ -49,6 +49,8 @@ import "element-plus/es/components/table/style/css";
 import "element-plus/es/components/table-column/style/css";
 import "element-plus/es/components/tabs/style/css";
 import "element-plus/es/components/tag/style/css";
+import "element-plus/es/components/timeline/style/css";
+import "element-plus/es/components/timeline-item/style/css";
 import "element-plus/es/components/tooltip/style/css";
 import "element-plus/es/components/upload/style/css";
 // JS 服务样式（ElMessage/ElMessageBox 在调用处显式 import，这里只需样式）
@@ -107,6 +109,9 @@ import {
   ElTableColumn,
   ElTabs,
   ElTag,
+  // ElTimeline 的 install 会同时注册 ElTimelineItem
+  ElTimeline,
+  ElTimelineItem,
   ElTooltip,
   ElUpload,
   ElLoading,
@@ -163,6 +168,7 @@ const components = [
   ElTableColumn,
   ElTabs,
   ElTag,
+  ElTimeline,
   ElTooltip,
   ElUpload,
 ];

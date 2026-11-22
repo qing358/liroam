@@ -149,7 +149,7 @@ public class TariffImports {
     /** 新资源建卡产品档；已有的卡产品等激活时再按本表更新。 */
     private Map<String, Long> ensureCardProducts(long supplierId, RateSheet sheet) {
         String forms = CardForms.fromCardFees(sheet.lines().stream()
-                .filter(l -> l.kind() == RateSheet.Kind.CARD_FEE).map(RateSheet.Line::itemRaw).toList());
+                .filter(l -> l.kind() == RateSheet.Kind.CARD_FEE).map(RateSheet.Line::itemRaw).toList(), false);
         Map<String, Long> ids = new LinkedHashMap<>();
         for (String resource : resources(sheet)) {
             boolean voice = sheet.lines().stream().anyMatch(l -> l.resourceCode().equals(resource) && l.kind() == RateSheet.Kind.VOICE);
@@ -250,6 +250,8 @@ public class TariffImports {
         for (String resource : resources) {
             long productId = jdbc.sql("SELECT id FROM lr_card_product WHERE supplier_id = ? AND card_type_code = ?")
                     .params(head.supplierId(), resource).query(Long.class).single();
+            boolean softOpened = CardForms.allows(jdbc.sql("SELECT allowed_forms FROM lr_card_product WHERE id = ?").param(productId)
+                    .query(String.class).single(), CardForms.SOFT);
             List<DataRemark> rows = jdbc.sql("""
                     SELECT l.region_id, r.code, l.remark_raw FROM lr_tariff_line l JOIN lr_usage_region r ON r.id = l.region_id
                      WHERE l.sheet_id = ? AND l.resource_code = ? AND l.kind = 'DATA' ORDER BY l.id
@@ -271,7 +273,7 @@ public class TariffImports {
                     UPDATE lr_card_product SET kyc_policy = ?, cap_voice = ?, cap_sms = ?, allowed_forms = ?, constraints_json = CAST(? AS JSON),
                            updated_at = UTC_TIMESTAMP(3)
                      WHERE id = ?
-                    """).params(anyKyc ? "CONDITIONAL" : "NONE", voice, sms, CardForms.fromCardFees(cardItems),
+                    """).params(anyKyc ? "CONDITIONAL" : "NONE", voice, sms, CardForms.fromCardFees(cardItems, softOpened),
                     derived.productNotes().isEmpty() ? null : Json.write(Map.of("notes", derived.productNotes())), productId).update();
             derived.byRegion().forEach((code, note) -> jdbc.sql("""
                     INSERT INTO lr_card_product_region (card_product_id, region_id, active, kyc_required, restriction_note) VALUES (?, ?, 1, ?, ?)

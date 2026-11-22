@@ -1,8 +1,10 @@
 package com.liroam.pricing.catalog;
 
+import static com.liroam.pricing.testing.TestRateSheet.row;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +16,7 @@ import com.liroam.catalog.SkuBinding;
 import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.catalog.SkuBinding.ListingState;
 import com.liroam.common.web.UserFacingException;
+import com.liroam.pricing.catalog.CatalogAdmin.CardProductRow;
 import com.liroam.pricing.catalog.CatalogAdmin.NewOffering;
 import com.liroam.pricing.catalog.CatalogAdmin.NewPlanTemplate;
 import com.liroam.pricing.catalog.CatalogAdmin.NewSku;
@@ -21,6 +24,7 @@ import com.liroam.pricing.catalog.CatalogAdmin.SkuRow;
 import com.liroam.pricing.catalog.ShellSkuDirectory.ShellSku;
 import com.liroam.pricing.testing.PricedCatalog;
 import com.liroam.pricing.testing.PricingFixture;
+import com.liroam.pricing.testing.TestRateSheet;
 
 /**
  * 后台「旅行卡商品」：套餐模板 → 套餐映射（上游套餐码）→ SKU 绑定（草稿）→ 改闸 → 上架/下架。
@@ -130,6 +134,52 @@ class CatalogAdminTest {
         assertThat(f.bindings.findById(sku).orElseThrow().listingState()).isEqualTo(ListingState.DELISTED);
         admin.list(sku, "op1");
         assertThat(f.bindings.findById(sku).orElseThrow().listingState()).isEqualTo(ListingState.LISTED);
+    }
+
+    private void activateSheetWithSoftFee() {
+        byte[] xlsx = new TestRateSheet().data("R1", true,
+                row("亚洲", "日本", "KDDI", "10", "-"),
+                row("亚洲", "中国", "CMCC", "6", "不支持纯软卡文件 (ii)"),
+                row("亚洲", "香港", "CSL", "5", "实名认证"))
+                .cardFee("eSIM", "2").cardFee("实体卡", "1").cardFee("纯软件卡Profile", "0.5")
+                .notes("(i) 实名认证:\nR1在香港使用前须实名。\n\n(ii) NO Soft-Profile:\n不支持软配置文件")
+                .build();
+        f.tariffs.activate(f.tariffs.importXlsx(c.supplier, "soft.xlsx", new ByteArrayInputStream(xlsx), "manager:ops"), "manager:ops");
+    }
+
+    private CardProductRow product() {
+        return admin.cardProducts().stream().filter(p -> p.id() == c.product).findFirst().orElseThrow();
+    }
+
+    @Test
+    void softFormIsOpenedByOpsOnlyWithSoftCardFeeAndNotInRegionsMarkedUnsupported() {
+        assertThat(product()).extracting(CardProductRow::allowedForms, CardProductRow::softFeeAvailable).containsExactly("ESIM,PHYSICAL", false);
+        assertThatThrownBy(() -> admin.setSoftEnabled(c.product, true, "op1")).hasMessage("当前资费表没有「纯软件卡 Profile」卡费，不能开卖软卡");
+
+        activateSheetWithSoftFee();
+        assertThat(product()).extracting(CardProductRow::allowedForms, CardProductRow::softFeeAvailable).as("有软卡卡费也不自动开卖")
+                .containsExactly("ESIM,PHYSICAL", true);
+        long jp = offering("JP", voicePlan());
+        assertThatThrownBy(() -> admin.createSku(new NewSku("G1-ESIM", jp, "SOFT", null, null), "op1")).hasMessage("该卡产品不支持这种卡形态");
+
+        admin.setSoftEnabled(c.product, true, "op1");
+        assertThat(product().allowedForms()).isEqualTo("ESIM,PHYSICAL,SOFT");
+        assertThat(f.count("SELECT COUNT(*) FROM lr_audit_log WHERE action = 'CARD_PRODUCT_UPDATE' AND after_json LIKE '%soft%'")).isEqualTo(1);
+
+        assertThatThrownBy(() -> admin.createSku(new NewSku("G1-ESIM", offering("CN", voicePlan()), "SOFT", null, null), "op1"))
+                .hasMessage("「中国」不支持纯软卡（资费表注明），请改用 eSIM 或实体卡");
+        long soft = admin.createSku(new NewSku("G1-ESIM", jp, "SOFT", null, null), "op1");
+        f.setFx("0.9");
+        f.fxSync.run("op1");
+        assertThat(f.costs.quote(soft).breakdownJson()).as("软卡按纯软件卡卡费计成本").contains("纯软件卡Profile");
+        f.prices.activateManual(soft, 3900, "op1");
+        admin.list(soft, "op1");
+
+        assertThatThrownBy(() -> admin.setSoftEnabled(c.product, false, "op1")).hasMessage("该卡产品还有在售的软卡商品，请先下架");
+        admin.delist(soft, "op1");
+        admin.setSoftEnabled(c.product, false, "op1");
+        assertThat(product().allowedForms()).isEqualTo("ESIM,PHYSICAL");
+        assertThatThrownBy(() -> admin.list(soft, "op1")).hasMessage("该卡产品已不支持这种卡形态，不能上架");
     }
 
     @Test

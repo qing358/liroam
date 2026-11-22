@@ -5,6 +5,8 @@ import java.util.List;
 /**
  * 买家与后台共用的卡投影（中文文案已就绪，前端不再翻译状态码）。
  *
+ * @param formText 卡形态文案：eSIM / 实体卡 / 纯软卡
+ * @param formGuide 买家拿到激活信息后怎么用；只有纯软卡给（eSIM、实体卡沿用各自弹窗里的说明）
  * @param refundHold 退款处理中：不能加包、不出激活码
  * @param capabilityText 卡产品能力，如「流量 · 语音 · 短信」
  * @param voiceRemainingText 卡产品无语音能力时为 null
@@ -18,6 +20,8 @@ public record CardView(
         String productName,
         String usageRegionName,
         String form,
+        String formText,
+        String formGuide,
         String status,
         String statusText,
         String remainingText,

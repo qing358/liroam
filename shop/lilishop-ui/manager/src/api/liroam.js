@@ -36,6 +36,7 @@ export const resolveManualTask = (id, note) => postRequest(`/liroam/cards/manual
 // 旅行卡商品
 export const listCatalogCardProducts = () => getRequest("/liroam/catalog/card-products");
 export const setCardProductHasNumber = (id, hasNumber) => putRequest(`/liroam/catalog/card-products/${encodeURIComponent(id)}/has-number`, { hasNumber }, JSON_HEADERS);
+export const setCardProductSoft = (id, enabled) => putRequest(`/liroam/catalog/card-products/${encodeURIComponent(id)}/soft`, { enabled }, JSON_HEADERS);
 export const listPlanTemplates = () => getRequest("/liroam/catalog/plan-templates");
 export const createPlanTemplate = (body) => postRequest("/liroam/catalog/plan-templates", body, JSON_HEADERS);
 export const listOfferings = () => getRequest("/liroam/catalog/offerings");

@@ -1,5 +1,5 @@
 <template>
-  <el-dialog :model-value="modelValue" :title="physical ? '物流信息' : 'eSIM 激活码'" width="460px" @update:model-value="emit('update:modelValue', $event)" @open="load">
+  <el-dialog :model-value="modelValue" :title="physical ? '物流信息' : guide ? '纯软卡激活信息' : 'eSIM 激活码'" width="460px" @update:model-value="emit('update:modelValue', $event)" @open="load">
     <el-skeleton v-if="loading" :rows="4" animated />
     <div v-else-if="errorText" class="credential-empty">{{ errorText }}</div>
     <div v-else-if="shipment" class="credential">
@@ -18,8 +18,9 @@
     <div v-else-if="credential" class="credential">
       <div v-if="credential.lpa && isLpa" class="credential-qr">
         <vue-qr :text="credential.lpa" :margin="0" colorDark="#000" colorLight="#fff" :size="200" />
-        <p>在手机「设置 › 蜂窝网络 › 添加 eSIM」中扫描此二维码</p>
+        <p>{{ guide ? "在软卡设备的配套 App 中扫描此二维码" : "在手机「设置 › 蜂窝网络 › 添加 eSIM」中扫描此二维码" }}</p>
       </div>
+      <p v-if="guide" class="credential-guide">{{ guide }}</p>
       <dl class="credential-fields">
         <template v-if="credential.smdpAddress">
           <dt>SM-DP+ 地址</dt>
@@ -38,7 +39,7 @@
           <dd><span class="credential-lpa">{{ credential.lpa }}</span><el-button link type="primary" @click="copy(credential.lpa)">复制</el-button></dd>
         </template>
       </dl>
-      <p class="credential-tip">激活码仅限本人使用，请勿截图外传；一张 eSIM 通常只能安装一次。</p>
+      <p class="credential-tip">激活码仅限本人使用，请勿截图外传；{{ guide ? "一份 Profile 通常只能写入一次。" : "一张 eSIM 通常只能安装一次。" }}</p>
     </div>
   </el-dialog>
 </template>
@@ -56,6 +57,8 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   cardId: { type: [String, Number], required: true },
   physical: { type: Boolean, default: false },
+  /** 纯软卡写卡说明（CardView.formGuide）；有值即按软卡展示 */
+  guide: { type: String, default: "" },
 });
 const emit = defineEmits(["update:modelValue"]);
 
@@ -118,6 +121,7 @@ function copy(text) {
   dd { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 0; font-size: 14px; color: #303133; word-break: break-all; }
 }
 .credential-lpa { font-family: monospace; font-size: 12px; }
+.credential-guide { margin: 16px 0 0; padding: 10px 12px; font-size: 12px; line-height: 1.7; color: #606266; background: #f4f4f5; border-radius: 4px; }
 .credential-track { margin: 20px 0 0; padding-left: 2px; }
 .credential-track-empty { margin: 16px 0 0; font-size: 13px; color: #606266; }
 .credential-tip { margin: 20px 0 0; font-size: 12px; color: #e6a23c; }
