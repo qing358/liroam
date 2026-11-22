@@ -11,14 +11,14 @@ function load() {
   return new Function(source + '; return { fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf, '
     + 'REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome, '
     + 'KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision, '
-    + 'REPRICE_ADJUST_MODES };')();
+    + 'REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType };')();
 }
 
 const {
   fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf,
   REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome,
   KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision,
-  REPRICE_ADJUST_MODES,
+  REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType,
 } = load();
 
 test('枚举标签：已知值翻译，未知原样，缺失为空串', () => {
@@ -173,4 +173,23 @@ test('批量确认 / 驳回结果：全部成功、部分失败逐条列原因�
   );
   assert.equal(describeBatchDecision({ done: [], failed: [{ id: 3, message: 'x' }] }, '驳回'), '已驳回 0 条，1 条未处理：#3 x');
   assert.equal(describeBatchDecision(null, '驳回'), '已驳回 0 条');
+});
+
+test('渠道订单操作：待人工的单可重放，回传转人工的行可重试', () => {
+  assert.deepEqual(channelOrderActions({ status: 'MANUAL', lines: [{ id: 1, writebackStatus: 'PENDING' }] }), { replay: true, retryLineIds: [] });
+  assert.deepEqual(channelOrderActions({ status: 'FULFILLING', lines: [{ id: 1, writebackStatus: 'MANUAL' }, { id: 2, writebackStatus: 'DONE' }] }),
+    { replay: false, retryLineIds: [1] });
+  assert.deepEqual(channelOrderActions({}), { replay: false, retryLineIds: [] });
+  assert.deepEqual(channelOrderActions(null), { replay: false, retryLineIds: [] });
+});
+
+test('渠道订单标记颜色：对账与回传状态', () => {
+  assert.equal(reconTagType('BALANCED'), 'success');
+  assert.equal(reconTagType('DIFF'), 'danger');
+  assert.equal(reconTagType(null), 'info');
+  assert.equal(writebackTagType('DONE'), 'success');
+  assert.equal(writebackTagType('MANUAL'), 'danger');
+  assert.equal(writebackTagType('FAILED'), 'warning');
+  assert.equal(writebackTagType('PENDING'), 'info');
+  assert.equal(writebackTagType('READY'), 'info');
 });

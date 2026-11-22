@@ -13,6 +13,12 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import com.liroam.catalog.config.LiroamCatalogAutoConfiguration;
+import com.liroam.channel.MemberPhones;
+import com.liroam.channel.config.LiroamChannelAutoConfiguration;
+import com.liroam.commission.AgentDirectory;
+import com.liroam.commission.CommissionLedger;
+import com.liroam.commission.CommissionSchedules;
+import com.liroam.commission.config.LiroamCommissionAutoConfiguration;
 import com.liroam.common.config.LiroamCommonAutoConfiguration;
 import com.liroam.common.testing.ItDatabase;
 import com.liroam.common.testing.TestKeys;
@@ -20,14 +26,21 @@ import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
 import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.ops.OpsSchedules;
+import com.liroam.ops.config.LiroamOpsAutoConfiguration;
+import com.liroam.ops.recon.ShellPayments;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
 import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.price.ShellPriceWriter;
+import com.liroam.refund.CommissionReversal;
 import com.liroam.refund.config.LiroamRefundAutoConfiguration;
 import com.liroam.schema.LiroamSchemaAutoConfiguration;
+import com.liroam.shell.distribution.ShellAgentDirectory;
 import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
 import com.liroam.shell.logistics.ShellCourierTracking;
+import com.liroam.shell.member.ShellMemberPhones;
+import com.liroam.shell.order.ShellPaidOrders;
 import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
@@ -37,6 +50,7 @@ import com.liroam.shell.security.ShellCurrentActor;
 import cn.lili.cache.Cache;
 import cn.lili.modules.goods.service.GoodsService;
 import cn.lili.modules.goods.service.GoodsSkuService;
+import cn.lili.modules.member.service.MemberService;
 import cn.lili.modules.order.order.service.OrderItemService;
 import cn.lili.modules.order.order.service.OrderPackageService;
 import cn.lili.modules.order.order.service.OrderService;
@@ -56,7 +70,8 @@ class ShellBridgeWiringTest {
         return new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(LiroamCommonAutoConfiguration.class, LiroamSchemaAutoConfiguration.class,
                         LiroamCatalogAutoConfiguration.class, LiroamFulfillmentAutoConfiguration.class, LiroamPricingAutoConfiguration.class,
-                        LiroamRefundAutoConfiguration.class, LiroamShellBridgeAutoConfiguration.class))
+                        LiroamRefundAutoConfiguration.class, LiroamCommissionAutoConfiguration.class, LiroamOpsAutoConfiguration.class,
+                        LiroamChannelAutoConfiguration.class, LiroamShellBridgeAutoConfiguration.class))
                 .withBean(DataSource.class, () -> dataSource)
                 .withBean(PlatformTransactionManager.class, () -> new DataSourceTransactionManager(dataSource))
                 .withBean(OrderItemService.class, () -> mock(OrderItemService.class))
@@ -66,6 +81,7 @@ class ShellBridgeWiringTest {
                 .withBean(GoodsSkuService.class, () -> mock(GoodsSkuService.class))
                 .withBean(GoodsService.class, () -> mock(GoodsService.class))
                 .withBean(Cache.class, () -> mock(Cache.class))
+                .withBean(MemberService.class, () -> mock(MemberService.class))
                 .withPropertyValues(TestKeys.properties());
     }
 
@@ -87,13 +103,18 @@ class ShellBridgeWiringTest {
             assertThat(ctx.getBean(CurrentActor.class)).isInstanceOf(ShellCurrentActor.class);
             assertThat(ctx).hasSingleBean(ShellCourierTracking.class);
             assertThat(ctx.getBean(CardTracking.class).sourceKeys()).containsExactly(ShellCourierTracking.KEY);
+            assertThat(ctx.getBean(AgentDirectory.class)).isInstanceOf(ShellAgentDirectory.class);
+            assertThat(ctx.getBean(CommissionReversal.class)).isInstanceOf(CommissionLedger.class);
+            assertThat(ctx.getBean(ShellPayments.class)).isInstanceOf(ShellPaidOrders.class);
+            assertThat(ctx.getBean(MemberPhones.class)).isInstanceOf(ShellMemberPhones.class);
         });
     }
 
     @Test
     void workerEnabledAddsCompensationScanner() {
         runner().withPropertyValues("liroam.worker.enabled=true")
-                .run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(PaidOrderCompensationScanner.class));
+                .run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(PaidOrderCompensationScanner.class).hasSingleBean(CommissionSchedules.class)
+                        .hasSingleBean(OpsSchedules.class));
     }
 
     @Test

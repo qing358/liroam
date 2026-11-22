@@ -27,6 +27,10 @@
         <module>liroam-pricing</module>
         <module>liroam-fulfillment</module>
         <module>liroam-refund</module>
+        <module>liroam-commission</module>
+        <module>liroam-ops</module>
+        <module>liroam-channel</module>
+        <module>liroam-channel-jd</module>
         <module>liroam-shell-bridge</module>
         <module>liroam-architecture-tests</module>
         <module>liroam-smoke-tests</module>
@@ -104,6 +108,32 @@
             <dependency>
                 <groupId>com.liroam</groupId>
                 <artifactId>liroam-refund</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-commission</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-ops</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-channel</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-channel</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-channel-jd</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

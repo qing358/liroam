@@ -44,6 +44,16 @@
 - 后台「旅行卡商品」（`/manager/liroam/catalog`）配卡产品含号码、套餐模板、套餐映射、SKU 绑定与闸、上下架；绑定形状由映射推导，形态须与壳商品类型一致。
 - 生产基线：运营告警 `/manager/liroam/ops/alerts`（各模块 `OpsAlertSource`，阈值 `alert.*`，worker 进程每 5 分钟 WARN 日志）；版本迁移只增不改（`AdditiveMigrationsTest`）；`dev.mjs backup` / `restore-drill`。支付不改壳：本机余额支付，真沙箱待商户号（上线清单）。
 
+## 渠道（P5 已落地，mock 渠道）
+
+- `liroam-channel`：渠道只经 `ChannelAdapter`（拉单 / 回传 / 日对账单）接入，`lr_channel.adapter_key` 选实现；渠道单走唯一履约入口（CHANNEL 行，不建壳订单），交码后回传渠道，`CHANNEL_DAILY` 日对账；买家凭订单号 + 绑定手机号认领到「我的卡」。后台「渠道」菜单（`li_menu` id 170–172）。
+- `liroam-channel-jd`：现只有模拟适配器 `mock-jd`（dev/test）；`node scripts/dev.mjs demo` 建渠道 `JD` 与一条 SKU 映射。真开放平台适配器待资质、AppKey/Secret 与 SKU 映射表。渠道退款 / 取消（§9.4）未做。
+
+## 运营闭环（P5 已落地，mock 渠道 / 假支付对账单）
+
+- `liroam-commission`：佣金策略版本化（`PAID_RATE` 实付抽成 / `FLOOR_DIFF` 底价差价 / `NONE`；SKU > 代理等级 > 全局；两级分成、T+N 结算、提现是否审批），比例只在后台配置。自建台账 `lr_commission_entry`（不用壳分销商品），分销员与订单归属只读壳 `li_distribution` / `li_order.distribution_id`（H9）。交码后计提，到期转可提现；退款按比例冲回（已结算可为负，后续抵扣）；提现 = 申请 → 审批 → 线下打款登记凭证。买家「我的佣金」、后台「佣金」菜单（`li_menu` 160–162）。
+- `liroam-ops`：卡到期站内提醒（阈值 `notify.expiry_remind_before`，买家「我的卡」顶部提示；短信端口 `MemberSms` 未接，开关默认关）；日对账共用 `lr_recon_run` / `lr_recon_diff`（支付日对账 = 上传支付渠道 CSV 对壳已支付订单，供应商日对账 = 上传账单对成功开卡/加包成本，渠道日对账见下节），差异可标已处理/忽略；按日经营报表；后台「报表与对账」菜单（`li_menu` 180–182）。真实对账单格式【待核实】。
+
 ## 卡型与履约扩展（P6 已落地，mock 上游 / mock 快递）
 
 - 语音短信用量：SPI `PlanUsage` 带语音秒数、短信条数总量与已用；套餐「用完」= 所有有额度的维度都用尽；买家「我的卡」与后台台账出「已用 / 总量」。

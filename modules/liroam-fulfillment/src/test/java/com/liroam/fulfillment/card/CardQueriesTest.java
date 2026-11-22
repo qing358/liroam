@@ -15,7 +15,11 @@ import org.junit.jupiter.api.Test;
 import com.liroam.common.web.PageResult;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.card.CardQueries.CardFilter;
+import com.liroam.fulfillment.FulfillmentEntry;
+import com.liroam.fulfillment.FulfillmentRequest;
+import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.card.CardQueries.CredentialView;
+import com.liroam.fulfillment.card.CardQueries.LineCredential;
 import com.liroam.fulfillment.card.CardQueries.TopUpOption;
 import com.liroam.fulfillment.poll.PollScheduler;
 import com.liroam.fulfillment.testing.FulfillmentHarness;
@@ -115,6 +119,25 @@ class CardQueriesTest {
         assertThatThrownBy(() -> queries.credentialForMember(ids[0], "m1")).isInstanceOf(UserFacingException.class)
                 .hasMessage("该卡退款处理中，暂不能查看激活码");
         assertThat(h.count("lr_sensitive_access_log")).as("被拒的不留痕也不出码").isEqualTo(2);
+    }
+
+    @Test
+    void channelWriteBackReadsDeliveredCredentialsOfALineAndLogsEachRead() {
+        h.importPoolA(1, true);
+        long line = h.bean(FulfillmentEntry.class).accept(new FulfillmentRequest(SourceType.CHANNEL, "X-1", "CH:X-1:1", c.skuANew, 2, null, null, null))
+                .fulfillmentLineId();
+        h.drain();
+        List<Long> cards = h.jdbc.queryForList("SELECT id FROM lr_card_asset WHERE fulfillment_line_id = ? ORDER BY unit_seq", Long.class, line);
+
+        List<LineCredential> read = queries.credentialsOfLine(line, "channel-writeback");
+
+        assertThat(read).as("池里只有一张带码，第二张还没交码").hasSize(1);
+        assertThat(read.getFirst().cardAssetId()).isEqualTo(cards.getFirst());
+        assertThat(read.getFirst().cardNo()).isNotBlank();
+        assertThat(read.getFirst().credential().payload()).startsWith("LPA:1$pool.example$");
+        assertThat(read.getFirst().toString()).doesNotContain("pool.example");
+        assertThat(h.jdbc.queryForList("SELECT CONCAT(operator_type, ':', operator_id, ':', target_id) FROM lr_sensitive_access_log", String.class))
+                .containsExactly("SYSTEM:channel-writeback:" + cards.getFirst());
     }
 
     @Test

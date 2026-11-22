@@ -3,8 +3,17 @@
     <UserCenterLayout>
       <div class="cards-heading">
         <div><h2>我的卡</h2><p>每张旅行卡的剩余额度、到期时间与激活码 / 物流</p></div>
-        <el-button :loading="loading" @click="load">刷新</el-button>
+        <div class="cards-heading__actions">
+          <el-button @click="claimVisible = true">认领渠道订单</el-button>
+          <el-button :loading="loading" @click="load">刷新</el-button>
+        </div>
       </div>
+
+      <el-alert v-if="notices.length" type="warning" show-icon class="cards-notice" close-text="知道了" @close="dismissNotices">
+        <template #title>
+          <div v-for="n in notices" :key="n.id">{{ n.text }}</div>
+        </template>
+      </el-alert>
 
       <el-skeleton v-if="loading && !cards.length" :rows="5" animated />
       <div v-else-if="loadFailed" class="cards-error"><p>卡片加载失败，请稍后重试</p><el-button @click="load">重新加载</el-button></div>
@@ -43,6 +52,7 @@
 
     <TopUpDialog v-model="topUpVisible" :card="activeCard" />
     <RefundDialog v-model="refundVisible" :card="activeCard" @done="load" />
+    <ClaimChannelOrderDialog v-model="claimVisible" @done="load" />
   </div>
 </template>
 
@@ -50,10 +60,11 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@/utils/message";
-import { listMyCards } from "@/api/liroam";
-import { cardFormText, failureMessage, listOf, quotaRows } from "@/utils/liroam";
+import { listMyCards, listMyNotifications, markNotificationsRead } from "@/api/liroam";
+import { cardFormText, expiryNotices, failureMessage, listOf, quotaRows } from "@/utils/liroam";
 import TopUpDialog from "./components/TopUpDialog.vue";
 import RefundDialog from "./components/RefundDialog.vue";
+import ClaimChannelOrderDialog from "./components/ClaimChannelOrderDialog.vue";
 
 defineOptions({ name: "LiroamMyCards" });
 
@@ -64,6 +75,8 @@ const loadFailed = ref(false);
 const activeCard = ref(null);
 const topUpVisible = ref(false);
 const refundVisible = ref(false);
+const notices = ref([]);
+const claimVisible = ref(false);
 
 async function load() {
   loading.value = true;
@@ -83,6 +96,24 @@ async function load() {
   }
 }
 
+async function loadNotices() {
+  try {
+    const res = await listMyNotifications();
+    if (res && res.success) notices.value = expiryNotices(res.result);
+  } catch {
+    // 提醒拉不到不影响卡列表
+  }
+}
+
+async function dismissNotices() {
+  notices.value = [];
+  try {
+    await markNotificationsRead();
+  } catch {
+    // 下次进入仍会显示
+  }
+}
+
 function openDetail(card) {
   router.push({ name: "LiroamCardDetail", query: { id: card.id } });
 }
@@ -97,7 +128,10 @@ function openRefund(card) {
   refundVisible.value = true;
 }
 
-onMounted(load);
+onMounted(() => {
+  load();
+  loadNotices();
+});
 </script>
 
 <style scoped lang="scss">
@@ -109,7 +143,9 @@ onMounted(load);
     padding: 10px 4px 22px;
     h2 { margin: 0 0 8px; font-size: 22px; font-weight: 600; color: #252833; }
     p { margin: 0; font-size: 13px; color: #909399; }
+    &__actions { display: flex; gap: 8px; }
   }
+  .cards-notice { margin-bottom: 16px; }
   .cards-error { padding: 64px 0; text-align: center; color: #909399; }
   .cards-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 }

@@ -211,3 +211,101 @@ export function alertLevelTag(level) {
   if (level === "WARN") return "warning";
   return "info";
 }
+
+/** 佣金策略作用域、结算锚点（CommissionPolicy）。 */
+export const COMMISSION_SCOPES = [
+  { value: "GLOBAL", label: "全局" },
+  { value: "AGENT_GRADE", label: "按代理等级" },
+  { value: "SKU", label: "按 SKU" },
+];
+
+export const SETTLE_ANCHORS = [
+  { value: "DELIVERED", label: "交码起算" },
+  { value: "PAID", label: "支付起算" },
+];
+
+export const WITHDRAWAL_STATUSES = [
+  { value: "APPLIED", label: "待审核" },
+  { value: "APPROVED", label: "待打款" },
+  { value: "PAID", label: "已打款" },
+  { value: "REJECTED", label: "已驳回" },
+];
+
+export const WITHDRAW_METHODS = [
+  { value: "ALIPAY", label: "支付宝" },
+  { value: "WECHAT", label: "微信" },
+  { value: "BANK", label: "银行卡" },
+];
+
+export const RECON_KINDS = [
+  { value: "PAYMENT_DAILY", label: "支付日对账" },
+  { value: "SUPPLIER_DAILY", label: "供应商日对账" },
+  { value: "CHANNEL_DAILY", label: "渠道日对账" },
+];
+
+export const RECON_DIFF_KINDS = [
+  { value: "AMOUNT", label: "金额不符" },
+  { value: "MISSING_THEIRS", label: "对方缺失" },
+  { value: "MISSING_OURS", label: "我方缺失" },
+  { value: "STATUS", label: "未履约完成" },
+];
+
+/** 策略一行摘要：「实付抽成 10%｜一级 80% / 二级 20%｜T+1（交码起算）｜提现需审批」。 */
+export function policySummary(policy, modes) {
+  if (!policy) return "";
+  const mode = (modes || []).find((m) => m.mode === policy.mode);
+  const title = mode ? mode.title : policy.mode;
+  if (policy.mode === "NONE") return title;
+  const head = policy.mode === "PAID_RATE" && policy.poolRate !== null && policy.poolRate !== undefined ? `${title} ${rateToPercent(policy.poolRate)}` : title;
+  return [
+    head,
+    `一级 ${rateToPercent(policy.directRate || 0)} / 二级 ${rateToPercent(policy.inviteRate || 0)}`,
+    `T+${policy.settleDays || 0}（${labelOf(SETTLE_ANCHORS, policy.settleAnchor)}）`,
+    policy.withdrawApproval === false ? "提现免审批" : "提现需审批",
+  ].join("｜");
+}
+
+/** 只决定按钮显隐；能否操作以后端为准（Withdrawals）。 */
+export function withdrawalActions(w) {
+  return {
+    approve: w.status === "APPLIED",
+    reject: w.status === "APPLIED" || w.status === "APPROVED",
+    paid: w.status === "APPROVED",
+  };
+}
+
+export function reconScopeText(run) {
+  if (!run.scopeRef) return "—";
+  return `${run.kind === "CHANNEL_DAILY" ? "渠道" : "供应商"} ${run.scopeRef}`;
+}
+
+export function reconDiffText(d) {
+  const money = (minor) => `${fenToYuan(minor)} ${d.currency}`;
+  if (d.diffKind === "AMOUNT") return `${d.ourRef}：我方 ${money(d.ourAmountMinor)}，对方 ${money(d.theirAmountMinor)}`;
+  if (d.diffKind === "MISSING_THEIRS") return `${d.ourRef}：对方账单没有（我方 ${money(d.ourAmountMinor)}）`;
+  if (d.diffKind === "MISSING_OURS") return `${d.theirRef}：我方没有（对方 ${money(d.theirAmountMinor)}）`;
+  if (d.diffKind === "STATUS") return `${d.ourRef}：对方已结算，我方未履约完成（${money(d.ourAmountMinor)}）`;
+  return `${d.ourRef || d.theirRef || ""}：${d.diffKind}`;
+}
+
+/** 渠道订单行内可做的操作：整单待人工可重放；回传转人工的行可重试回传。 */
+export function channelOrderActions(order) {
+  const lines = (order && Array.isArray(order.lines)) ? order.lines : [];
+  return {
+    replay: Boolean(order) && order.status === "MANUAL",
+    retryLineIds: lines.filter((l) => l.writebackStatus === "MANUAL").map((l) => l.id),
+  };
+}
+
+export function reconTagType(reconStatus) {
+  if (reconStatus === "BALANCED") return "success";
+  if (reconStatus === "DIFF") return "danger";
+  return "info";
+}
+
+export function writebackTagType(status) {
+  if (status === "DONE") return "success";
+  if (status === "MANUAL") return "danger";
+  if (status === "FAILED") return "warning";
+  return "info";
+}

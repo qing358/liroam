@@ -83,3 +83,45 @@ export function quotaRows(card) {
   if (card && card.smsRemainingText) rows.push({ label: "短信剩余", value: card.smsRemainingText });
   return rows;
 }
+
+export function yuanToFen(yuan) {
+  if (yuan === null || yuan === undefined || yuan === "") return null;
+  const n = Number(yuan);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(Number((n * 100).toFixed(6)));
+}
+
+/** 提现表单前端校验；空串 = 可提交（最终以后端为准）。 */
+export function withdrawFormError(form, summary) {
+  const raw = String(form.amountYuan ?? "").trim();
+  if (!raw) return "请填写提现金额";
+  if (!/^\d+(\.\d{1,2})?$/.test(raw)) return Number.isFinite(Number(raw)) ? "金额最多两位小数" : "请填写正确的金额";
+  const fen = yuanToFen(raw);
+  if (fen < summary.minWithdrawFen) return `最低提现 ${fenToYuan(summary.minWithdrawFen)} 元`;
+  if (fen > summary.availableFen) return `最多可提 ${fenToYuan(summary.availableFen)} 元`;
+  if (!form.method) return "请选择收款方式";
+  if (!String(form.name || "").trim()) return "请填写收款人姓名";
+  if (!String(form.account || "").trim()) return "请填写收款账号";
+  return "";
+}
+
+/** 「我的卡」顶部到期提醒：未读的 EXPIRY_REMIND，每张卡只留最新一条（items 按时间倒序）。 */
+export function expiryNotices(inbox) {
+  const seen = new Set();
+  const notices = [];
+  for (const item of (inbox && inbox.items) || []) {
+    if (item.kind !== "EXPIRY_REMIND" || item.read || seen.has(item.cardAssetId)) continue;
+    seen.add(item.cardAssetId);
+    notices.push({ id: item.id, cardAssetId: item.cardAssetId, text: item.body });
+  }
+  return notices;
+}
+
+/** 认领渠道订单前的输入检查；手机号与后端同一口径（去空格、横线、+86）。通过返回 null。 */
+export function claimInputError(orderNo, phone) {
+  if (!String(orderNo || "").trim()) return "请填写渠道订单号";
+  const raw = String(phone || "").trim();
+  if (!raw) return "请填写收货手机号";
+  const digits = raw.replace(/[\s\-()]/g, "").replace(/^\+?(0086|86)(?=\d{11}$)/, "");
+  return /^\d{11}$/.test(digits) ? null : "请填写 11 位收货手机号";
+}

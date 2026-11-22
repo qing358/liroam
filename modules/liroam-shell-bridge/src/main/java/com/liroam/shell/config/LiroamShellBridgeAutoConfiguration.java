@@ -14,6 +14,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.liroam.catalog.SkuBindings;
+import com.liroam.channel.MemberPhones;
+import com.liroam.commission.AgentDirectory;
+import com.liroam.commission.config.LiroamCommissionAutoConfiguration;
 import com.liroam.common.setting.Settings;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.FulfillmentEntry;
@@ -24,17 +27,21 @@ import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
 import com.liroam.fulfillment.courier.CourierTracking;
 import com.liroam.fulfillment.delivery.CardShipments;
 import com.liroam.fulfillment.task.ManualTasks;
+import com.liroam.ops.recon.ShellPayments;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
 import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.price.ShellPriceWriter;
 import com.liroam.pricing.snapshot.OrderLineSnapshots;
+import com.liroam.shell.distribution.ShellAgentDirectory;
 import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
 import com.liroam.shell.logistics.ShellCourierTracking;
+import com.liroam.shell.member.ShellMemberPhones;
 import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
 import com.liroam.shell.order.PaidOrderFulfillment;
+import com.liroam.shell.order.ShellPaidOrders;
 import com.liroam.shell.order.TradeIntoDbListener;
 import com.liroam.shell.order.TradeOrderPreparation;
 import com.liroam.shell.security.ShellCurrentActor;
@@ -42,16 +49,18 @@ import com.liroam.shell.security.ShellCurrentActor;
 import cn.lili.cache.Cache;
 import cn.lili.modules.goods.service.GoodsService;
 import cn.lili.modules.goods.service.GoodsSkuService;
+import cn.lili.modules.member.service.MemberService;
 import cn.lili.modules.order.order.service.OrderItemService;
 import cn.lili.modules.order.order.service.OrderPackageService;
 import cn.lili.modules.order.order.service.OrderService;
 import cn.lili.modules.system.service.LogisticsService;
 
 /**
- * 壳挂接点（domain-design §5）：H1/H1′ 支付收单与补偿扫描、H2 交易落库校验与快照、H5 发货回写与物流轨迹、H7 售价写回，以及操作人端口。
+ * 壳挂接点（domain-design §5）：H1/H1′ 支付收单与补偿扫描、H2 交易落库校验与快照、H5 发货回写与物流轨迹、H7 售价写回、H9 代理（分销员）只读、支付日对账读已支付订单，以及操作人、会员手机号端口。
  * worker 类任务只在 {@code liroam.worker.enabled=true} 的进程（manager-api）开。
  */
-@AutoConfiguration(after = { LiroamFulfillmentAutoConfiguration.class, LiroamPricingAutoConfiguration.class })
+@AutoConfiguration(after = { LiroamFulfillmentAutoConfiguration.class, LiroamPricingAutoConfiguration.class },
+        before = LiroamCommissionAutoConfiguration.class)
 public class LiroamShellBridgeAutoConfiguration {
 
     @Bean
@@ -61,8 +70,23 @@ public class LiroamShellBridgeAutoConfiguration {
     }
 
     @Bean
+    AgentDirectory liroamShellAgentDirectory(JdbcClient liroamJdbcClient) {
+        return new ShellAgentDirectory(liroamJdbcClient);
+    }
+
+    @Bean
+    ShellPayments liroamShellPaidOrders(JdbcClient liroamJdbcClient) {
+        return new ShellPaidOrders(liroamJdbcClient);
+    }
+
+    @Bean
     ShellPriceWriter liroamShellSkuPriceWriter(GoodsSkuService goodsSkuService, GoodsService goodsService, Cache<?> cache) {
         return new ShellSkuPriceWriter(goodsSkuService, goodsService, cache);
+    }
+
+    @Bean
+    MemberPhones liroamShellMemberPhones(MemberService memberService) {
+        return new ShellMemberPhones(memberService);
     }
 
     @Bean

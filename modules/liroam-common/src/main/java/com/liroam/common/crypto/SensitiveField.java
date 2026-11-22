@@ -5,5 +5,6 @@ public enum SensitiveField {
     ICCID,
     CREDENTIAL,
     PHONE,
-    BUYER_CONTACT
+    BUYER_CONTACT,
+    PAYEE
 }

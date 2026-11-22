@@ -24,10 +24,26 @@
             <groupId>com.liroam</groupId>
             <artifactId>liroam-refund</artifactId>
         </dependency>
-        <!-- 只在 dev/test profile 装配；生产 profile 装到即启动失败（ProductionSafetyGate / SupplierWiringCheck） -->
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-commission</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-ops</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-channel</artifactId>
+        </dependency>
+        <!-- 只在 dev/test profile 装配；生产 profile 装到即启动失败（ProductionSafetyGate / SupplierWiringCheck / ChannelWiringCheck） -->
         <dependency>
             <groupId>com.liroam</groupId>
             <artifactId>liroam-supplier-mock</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-channel-jd</artifactId>
         </dependency>
         <dependency>
             <groupId>com.liroam</groupId>

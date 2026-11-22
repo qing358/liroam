@@ -103,6 +103,17 @@ public class CardActions {
         });
     }
 
+    /** 渠道卡认领：属主从空写成会员，只能一次（与不可转号一致，DB 触发器兜底）。 */
+    public void claimOwner(long cardAssetId, String memberId, String actor) {
+        tx.executeWithoutResult(status -> {
+            Card card = requireCard(cardAssetId);
+            if (card.ownerMemberId() != null || !cards.bindOwner(card.id(), memberId)) {
+                throw new UserFacingException("这张卡已被认领");
+            }
+            audit.record(actor, "CARD_CLAIM", "CARD", Long.toString(card.id()), null, "{\"owner\":\"" + memberId + "\"}");
+        });
+    }
+
     /** 请求上游改状态。终止按 终止 → 停用 → 本地终止 降级；停用/恢复不支持直接拒绝。 */
     public StatusRequest requestStatus(long cardAssetId, StatusOp op, String actor) {
         return tx.execute(status -> {

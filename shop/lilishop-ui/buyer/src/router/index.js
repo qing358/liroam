@@ -358,6 +358,12 @@ export const router = createRouter({
           component: () => import("@/pages/liroam/CardDetail.vue"),
           meta: { title: "卡详情" },
         },
+        {
+          path: "MyCommission",
+          name: "LiroamCommission",
+          component: () => import("@/pages/liroam/MyCommission.vue"),
+          meta: { title: "我的佣金" },
+        },
       ],
     },
     {

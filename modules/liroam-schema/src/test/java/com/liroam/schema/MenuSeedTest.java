@@ -36,11 +36,11 @@ class MenuSeedTest {
 
         LiroamMigrations.migrate(ds);
 
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM li_menu", Integer.class)).isEqualTo(16);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM li_menu", Integer.class)).isEqualTo(25);
         assertThat(jdbc.queryForList("SELECT level, COUNT(*) c FROM li_menu WHERE " + OURS + " GROUP BY level ORDER BY level"))
-                .extracting(r -> ((Number) r.get("c")).intValue()).containsExactly(1, 5, 9);
+                .extracting(r -> ((Number) r.get("c")).intValue()).containsExactly(1, 8, 15);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM li_menu c JOIN li_menu p ON c.parent_id = CAST(p.id AS CHAR) "
-                + "WHERE c." + OURS + " AND p.level = c.level - 1", Integer.class)).isEqualTo(14);
+                + "WHERE c." + OURS + " AND p.level = c.level - 1", Integer.class)).isEqualTo(23);
         List<Map<String, Object>> leaves = jdbc.queryForList("SELECT name, path, front_route, permission FROM li_menu WHERE " + OURS + " AND level = 2");
         assertThat(leaves).allSatisfy(leaf -> {
             assertThat((String) leaf.get("front_route")).startsWith("liroam/");
@@ -48,7 +48,10 @@ class MenuSeedTest {
             assertThat((String) leaf.get("permission")).startsWith("/manager/liroam/");
         });
         assertThat(jdbc.queryForObject("SELECT title FROM li_menu WHERE id = 9100000000000000100", String.class)).isEqualTo("旅行卡");
-        assertThat(leaves).extracting(r -> r.get("front_route")).contains("liroam/catalog/TravelCardSkus", "liroam/ops/OpsAlerts");
+        assertThat(leaves).extracting(r -> r.get("front_route")).contains("liroam/catalog/TravelCardSkus", "liroam/ops/OpsAlerts",
+                "liroam/commission/CommissionPolicies", "liroam/commission/CommissionLedger", "liroam/ops/OpsReports", "liroam/ops/Reconciliation");
+        assertThat(jdbc.queryForObject("SELECT permission FROM li_menu WHERE name = 'liroamCommissionPolicies'", String.class)).as("底价要选 SKU")
+                .contains("/manager/liroam/catalog/skus*");
         assertThat(jdbc.queryForObject("SELECT permission FROM li_menu WHERE name = 'liroamCards'", String.class)).as("录物流要读壳物流公司")
                 .contains("/manager/other/logistics*");
 
@@ -57,7 +60,7 @@ class MenuSeedTest {
             ScriptUtils.executeSqlScript(connection, new EncodedResource(new ClassPathResource(SCRIPT), StandardCharsets.UTF_8));
         }
 
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM li_menu", Integer.class)).isEqualTo(16);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM li_menu", Integer.class)).isEqualTo(25);
         assertThat(jdbc.queryForObject("SELECT CONCAT(title, '/', delete_flag + 0) FROM li_menu WHERE id = 9100000000000000111", String.class))
                 .isEqualTo("卡台账/0");
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'lr\\_tmp%'",

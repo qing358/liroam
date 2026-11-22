@@ -54,6 +54,17 @@ export function applyCardRefund(id, reason) {
   });
 }
 
+/** 认领外部渠道订单：渠道订单号 + 收货手机号（须是当前账号绑定的手机号），认领后整单的卡进「我的卡」 */
+export function claimChannelOrder(orderNo, phone) {
+  return request({
+    url: "/buyer/liroam/channel-orders/claim",
+    method: Method.POST,
+    needToken: true,
+    headers: JSON_HEADERS,
+    data: { orderNo, phone },
+  });
+}
+
 /** 商品详情页「使用区域说明」（公开接口；无说明时 result 为 null） */
 export function getUsageRegion(skuId) {
   return request({
@@ -64,4 +75,30 @@ export function getUsageRegion(skuId) {
     skipMessage: true,
     params: { skuId },
   });
+}
+
+/** 我的佣金（仅已审核通过的分销员有数据） */
+export function getAgentSummary() {
+  return request({ url: "/buyer/liroam/agent/summary", method: Method.GET, needToken: true, skipMessage: true });
+}
+
+export function listAgentEntries(params) {
+  return request({ url: "/buyer/liroam/agent/entries", method: Method.GET, needToken: true, params });
+}
+
+export function listMyWithdrawals(params) {
+  return request({ url: "/buyer/liroam/agent/withdrawals", method: Method.GET, needToken: true, params });
+}
+
+export function applyWithdrawal(body) {
+  return request({ url: "/buyer/liroam/agent/withdrawals", method: Method.POST, needToken: true, headers: JSON_HEADERS, data: body });
+}
+
+/** 站内通知（到期提醒等） */
+export function listMyNotifications() {
+  return request({ url: "/buyer/liroam/notifications", method: Method.GET, needToken: true, skipMessage: true });
+}
+
+export function markNotificationsRead() {
+  return request({ url: "/buyer/liroam/notifications/read", method: Method.POST, needToken: true, headers: JSON_HEADERS, data: {} });
 }

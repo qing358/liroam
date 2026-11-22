@@ -9,6 +9,7 @@ import com.liroam.archfixture.bad.SimulatedOutsideMock;
 import com.liroam.archfixture.bad.TouchesLedgerStore;
 import com.liroam.archfixture.bad.UsesMockFxSource;
 import com.liroam.archfixture.bad.UsesVendorAdapter;
+import com.liroam.channel.adapter.archfixture.ChannelAdapterWithStorage;
 import com.liroam.pricing.mock.archfixture.FakeMockFxSource;
 import com.liroam.supplier.adapter.archfixture.FakeVendorAdapter;
 import com.liroam.supplier.archfixture.AdapterWithStorage;
@@ -40,6 +41,11 @@ class RulesCatchViolationsTest {
     @Test
     void storageInSupplierCodeIsCaught() {
         assertCatches(LiroamRules.SUPPLIER_CODE_HAS_NO_STORAGE, AdapterWithStorage.class);
+    }
+
+    @Test
+    void storageInChannelAdapterIsCaught() {
+        assertCatches(LiroamRules.CHANNEL_ADAPTER_HAS_NO_STORAGE, ChannelAdapterWithStorage.class);
     }
 
     @Test

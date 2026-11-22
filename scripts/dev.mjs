@@ -329,10 +329,14 @@ async function health() {
 
 
 // 本机演示目录：两家模拟供应商、资费表导入启用、全卡型旅行卡 SKU 绑定（纯流量 / 语音短信 / 实名 / 实体卡 / 纯软卡）与定价、池卡，
-// 物流轨迹来源切到模拟快递。幂等，可重复执行；要求 up 已起好后端。
+// 物流轨迹来源切到模拟快递、模拟渠道 JD 与 SKU 映射、演示分销员与佣金策略。幂等，可重复执行；要求 up 已起好后端。
 const DEMO_SHEET = 'docs/media/202611-资费报价-想象智能-202611(20261117）.xlsx';
 const DEMO_SOFT = { supplier: 'SUP_B', cardType: '45412_C' };
 const DEMO_POOL_SIZE = 20;
+const DEMO_COMMISSION_POLICY = {
+  code: 'DEFAULT', mode: 'PAID_RATE', scopeType: 'GLOBAL', poolRate: 0.1, directRate: 0.8, inviteRate: 0.2,
+  includeChannelOrders: false, settleDays: 0, settleAnchor: 'DELIVERED', withdrawApproval: true,
+};
 
 async function demo() {
   const config = buildConfig(loadEnv());
@@ -380,6 +384,14 @@ async function demo() {
     form.append('file', new Blob([csv.join('\n')]), 'demo-pool.csv');
     const report = await api.post(`/manager/liroam/cards/pool/import?supplierId=${sku.supplier_id}&cardProductId=${sku.card_product_id}`, form);
     console.log(`- SUP_A 卡产品 #${sku.card_product_id} 池卡导入：${JSON.stringify(report)}`);
+  }
+  const channel = parseTsv(runSql('deploy/dev-demo-channel.sql'));
+  for (const row of channel) console.log(`- 渠道 ${row.code}（${row.adapter_key}）：${row.external_sku_id} → SKU ${row.li_goods_sku_id}`);
+  const [agent] = parseTsv(runSql('deploy/dev-demo-commission.sql'));
+  console.log(agent && agent.agent !== 'NULL' ? `- 分销：演示买家为分销员 ${agent.agent}（邀请人 ${agent.inviter}）` : '- 分销：演示买家没有分销员记录，跳过');
+  if (!(await api.get('/manager/liroam/commission/policies')).length) {
+    await api.post('/manager/liroam/commission/policies', DEMO_COMMISSION_POLICY);
+    console.log('- 佣金策略 DEFAULT：实付 10%，一级 80% / 二级 20%，交码当时可提现（演示值，正式比例向客户要）');
   }
   compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });
   console.log('\n演示目录就绪。买家端商品页：');

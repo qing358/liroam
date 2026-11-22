@@ -48,9 +48,27 @@ INSERT INTO lr_tmp_menu_seed (id, level, name, title, parent_id, path, front_rou
     (9100000000000000141, 2, 'liroamTravelCardSkus', '旅行卡商品', '9100000000000000140', 'liroam-travel-card-skus', 'liroam/catalog/TravelCardSkus', 'md-pricetag', 1,
         '/manager/liroam/catalog*,/manager/liroam/sku-bindings*,/manager/liroam/card-products*', '卡产品、套餐模板与映射、SKU 绑定、售价与上下架'),
 
+    (9100000000000000160, 1, 'liroam-commission', '佣金', '9100000000000000100', '/', 'Main', 'md-people', 2.5, NULL, 'liroam 分销佣金'),
+    (9100000000000000161, 2, 'liroamCommissionPolicies', '佣金策略', '9100000000000000160', 'liroam-commission-policies', 'liroam/commission/CommissionPolicies', 'md-people', 1,
+        '/manager/liroam/commission/modes*,/manager/liroam/commission/policies*,/manager/liroam/catalog/skus*', '佣金模式、比例、结算窗口、底价'),
+    (9100000000000000162, 2, 'liroamCommissionLedger', '佣金与提现', '9100000000000000160', 'liroam-commission-ledger', 'liroam/commission/CommissionLedger', 'md-people', 2,
+        '/manager/liroam/commission/withdrawals*,/manager/liroam/commission/balances*,/manager/liroam/commission/entries*', '提现审批、打款登记、分销员余额、佣金流水'),
+
+    (9100000000000000180, 1, 'liroam-report', '报表与对账', '9100000000000000100', '/', 'Main', 'md-analytics', 3.8, NULL, 'liroam 报表与对账'),
+    (9100000000000000181, 2, 'liroamOpsReports', '经营报表', '9100000000000000180', 'liroam-ops-reports', 'liroam/ops/OpsReports', 'md-analytics', 1,
+        '/manager/liroam/reports*', '按日订单、实付、退款、成本、佣金、毛利'),
+    (9100000000000000182, 2, 'liroamReconciliation', '日对账', '9100000000000000180', 'liroam-reconciliation', 'liroam/ops/Reconciliation', 'md-analytics', 2,
+        '/manager/liroam/recon*', '支付渠道与供应商日对账、差异处理'),
+
     (9100000000000000150, 1, 'liroam-ops', '运维', '9100000000000000100', '/', 'Main', 'md-warning', 4, NULL, 'liroam 运维'),
     (9100000000000000151, 2, 'liroamOpsAlerts', '运营告警', '9100000000000000150', 'liroam-ops-alerts', 'liroam/ops/OpsAlerts', 'md-warning', 1,
-        '/manager/liroam/ops*', '指令重试、限流、人工积压、交码超时、轮询滞后、回写失败、汇率过期');
+        '/manager/liroam/ops*', '指令重试、限流、人工积压、交码超时、轮询滞后、回写失败、汇率过期'),
+
+    (9100000000000000170, 1, 'liroam-channel', '渠道', '9100000000000000100', '/', 'Main', 'md-git-network', 3.5, NULL, 'liroam 外部渠道'),
+    (9100000000000000171, 2, 'liroamChannels', '渠道与 SKU 映射', '9100000000000000170', 'liroam-channels', 'liroam/channels/Channels', 'md-git-network', 1,
+        '/manager/liroam/channels*', '渠道启停、拉单间隔、计佣、买家看用量与渠道 SKU 映射'),
+    (9100000000000000172, 2, 'liroamChannelOrders', '渠道订单', '9100000000000000170', 'liroam-channel-orders', 'liroam/channels/ChannelOrders', 'md-git-network', 2,
+        '/manager/liroam/channels*,/manager/liroam/dev/channel-mock*', '渠道单入单 / 回传 / 对账标记、立即拉单、日对账');
 
 SET @liroam_has_menu := (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'li_menu');
 SET @liroam_menu_sql := IF(@liroam_has_menu > 0,

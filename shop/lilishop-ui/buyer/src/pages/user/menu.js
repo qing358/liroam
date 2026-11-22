@@ -96,6 +96,11 @@ const member = [{
     icon: 'Present',
     title: '我的礼品卡',
     path: 'MyGiftCards'
+  },
+  {
+    icon: 'Wallet',
+    title: '我的佣金',
+    path: 'LiroamCommission'
   }
   ],
   display: true

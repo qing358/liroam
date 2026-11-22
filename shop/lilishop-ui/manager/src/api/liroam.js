@@ -79,3 +79,47 @@ export const listTariffSheets = (params) => getRequest("/liroam/tariff-sheets", 
 export const uploadTariffSheet = (file, supplierId) => upload("/liroam/tariff-sheets", file, { supplierId });
 export const activateTariffSheet = (id) => postRequest(`/liroam/tariff-sheets/${encodeURIComponent(id)}/activate`, {}, JSON_HEADERS);
 export const listCardProductRegions = (id) => getRequest(`/liroam/card-products/${encodeURIComponent(id)}/regions`);
+
+// 佣金
+export const listCommissionModes = () => getRequest("/liroam/commission/modes");
+export const listCommissionPolicies = () => getRequest("/liroam/commission/policies");
+export const saveCommissionPolicy = (policy) => postRequest("/liroam/commission/policies", policy, JSON_HEADERS);
+export const saveCommissionFloorPrice = (code, floor) => postRequest(`/liroam/commission/policies/${encodeURIComponent(code)}/floor-prices`, floor, JSON_HEADERS);
+export const listCommissionEntries = (params) => getRequest("/liroam/commission/entries", params);
+export const listAgentBalances = () => getRequest("/liroam/commission/balances");
+export const listWithdrawals = (params) => getRequest("/liroam/commission/withdrawals", params);
+export const viewWithdrawalPayee = (id) => getRequest(`/liroam/commission/withdrawals/${encodeURIComponent(id)}/payee`);
+export const approveWithdrawal = (id) => postRequest(`/liroam/commission/withdrawals/${encodeURIComponent(id)}/approve`, {}, JSON_HEADERS);
+export const rejectWithdrawal = (id, note) => postRequest(`/liroam/commission/withdrawals/${encodeURIComponent(id)}/reject`, { note }, JSON_HEADERS);
+export const markWithdrawalPaid = (id, voucher, note) => postRequest(`/liroam/commission/withdrawals/${encodeURIComponent(id)}/paid`, { voucher, note }, JSON_HEADERS);
+
+// 报表与对账
+export const getOpsOverview = (params) => getRequest("/liroam/reports/overview", params);
+export const listReconRuns = (params) => getRequest("/liroam/recon/runs", params);
+export const listReconDiffs = (id) => getRequest(`/liroam/recon/runs/${encodeURIComponent(id)}/diffs`);
+export const runPaymentRecon = (day, csv) => postRequest("/liroam/recon/payment", { day, csv }, JSON_HEADERS);
+export const runSupplierRecon = (supplierId, day, csv) => postRequest("/liroam/recon/supplier", { supplierId, day, csv }, JSON_HEADERS);
+export const resolveReconDiff = (id, status, resolution) => postRequest(`/liroam/recon/diffs/${encodeURIComponent(id)}/resolve`, { status, resolution }, JSON_HEADERS);
+
+// 渠道
+export const listChannels = () => getRequest("/liroam/channels");
+export const updateChannel = (id, config) => putRequest(`/liroam/channels/${encodeURIComponent(id)}`, config, JSON_HEADERS);
+export const listChannelSkuMappings = (id) => getRequest(`/liroam/channels/${encodeURIComponent(id)}/sku-mappings`);
+export const createChannelSkuMapping = (id, body) => postRequest(`/liroam/channels/${encodeURIComponent(id)}/sku-mappings`, body, JSON_HEADERS);
+export const updateChannelSkuMapping = (mappingId, body) =>
+  putRequest(`/liroam/channels/sku-mappings/${encodeURIComponent(mappingId)}`, body, JSON_HEADERS);
+export const deleteChannelSkuMapping = (mappingId) => deleteRequest(`/liroam/channels/sku-mappings/${encodeURIComponent(mappingId)}`);
+export const listChannelOrders = (params) => getRequest("/liroam/channels/orders", params);
+export const pullChannelNow = (id) => postRequest(`/liroam/channels/${encodeURIComponent(id)}/pull`, {}, JSON_HEADERS);
+export const replayChannelOrder = (orderId) => postRequest(`/liroam/channels/orders/${encodeURIComponent(orderId)}/replay`, {}, JSON_HEADERS);
+export const retryChannelWriteBack = (lineId) =>
+  postRequest(`/liroam/channels/order-lines/${encodeURIComponent(lineId)}/writeback-retry`, {}, JSON_HEADERS);
+export const runChannelRecon = (id, day) => postRequest(`/liroam/channels/${encodeURIComponent(id)}/recon`, { day });
+export const listChannelReconDiffs = (runId) => getRequest(`/liroam/channels/recon-runs/${encodeURIComponent(runId)}/diffs`);
+
+// 模拟渠道（仅 dev/test 进程有这些接口）
+export const listMockChannelOrders = () => getRequest("/liroam/dev/channel-mock/orders");
+export const createMockChannelOrder = (body) => postRequest("/liroam/dev/channel-mock/orders", body, JSON_HEADERS);
+export const adjustMockStatement = (orderId, paidYuan) => postRequest("/liroam/dev/channel-mock/statement/adjust", { orderId, paidYuan }, JSON_HEADERS);
+export const dropMockStatement = (orderId) => postRequest("/liroam/dev/channel-mock/statement/drop", { orderId }, JSON_HEADERS);
+export const failMockWriteBacks = (count, rejected) => postRequest("/liroam/dev/channel-mock/writeback-faults", { count, rejected }, JSON_HEADERS);

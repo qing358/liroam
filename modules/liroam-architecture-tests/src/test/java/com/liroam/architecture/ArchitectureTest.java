@@ -32,8 +32,10 @@ class ArchitectureTest {
     void importsEveryModule() {
         Set<String> roots = production.stream().map(JavaClass::getPackageName)
                 .map(p -> p.split("\\.").length > 2 ? p.split("\\.")[2] : p).collect(Collectors.toSet());
-        assertThat(roots).contains("common", "schema", "supplier", "catalog", "pricing", "fulfillment", "refund", "shell");
+        assertThat(roots).contains("common", "schema", "supplier", "catalog", "pricing", "fulfillment", "refund", "channel", "shell");
         assertThat(production.stream().map(JavaClass::getPackageName)).as("mock 供应商受规则约束").contains("com.liroam.supplier.mock");
+        assertThat(production.stream().map(JavaClass::getPackageName)).as("模拟渠道受规则约束").contains("com.liroam.channel.adapter.jd.mock");
+        assertThat(production.stream().map(JavaClass::getPackageName)).as("佣金与运营模块受规则约束").contains("com.liroam.commission", "com.liroam.ops.recon");
         assertThat(production.stream().map(JavaClass::getName)).noneMatch(n -> n.contains(".contract."));
     }
 
@@ -50,6 +52,11 @@ class ArchitectureTest {
     @Test
     void ct_sup_09_supplierCodeHasNoStorage() {
         LiroamRules.SUPPLIER_CODE_HAS_NO_STORAGE.check(production);
+    }
+
+    @Test
+    void channelAdapterHasNoStorage() {
+        LiroamRules.CHANNEL_ADAPTER_HAS_NO_STORAGE.check(production);
     }
 
     @Test

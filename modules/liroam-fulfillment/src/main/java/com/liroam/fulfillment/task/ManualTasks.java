@@ -30,7 +30,13 @@ public class ManualTasks {
         /** 退款流程中需人工处理（如未开始的加包无法撤销）。 */
         REFUND_EXCEPTION,
         /** 旅行卡已全部交码，但壳订单含实体卡或其它商品，需运营录物流发货。 */
-        SHELL_SHIPPING
+        SHELL_SHIPPING,
+        /** 渠道单有 SKU 未映射到本站旅行卡 SKU；补映射后在渠道订单页重放。 */
+        UNMAPPED_CHANNEL_SKU,
+        /** 渠道单映射到的 SKU 不可收单（下架、不可售等）。 */
+        CHANNEL_ORDER_REJECTED,
+        /** 渠道回传交码/发货超过最大次数或被渠道拒绝。 */
+        CHANNEL_WRITEBACK_FAILED
     }
 
     public enum Status { OPEN, DONE, IGNORED }

@@ -13,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.liroam.common.web.UserFacingException;
+import com.liroam.fulfillment.FulfillmentEntry;
+import com.liroam.fulfillment.FulfillmentRequest;
+import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.card.CardActions.PoolDisposition;
 import com.liroam.fulfillment.card.CardActions.RefundEnd;
 import com.liroam.fulfillment.card.CardActions.StatusRequest;
@@ -57,6 +60,27 @@ class CardActionsTest {
 
     private int reconTasks(long card) {
         return h.count("lr_manual_task WHERE kind = 'RECON_DIFF' AND ref_type = 'CARD' AND ref_id = ?", Long.toString(card));
+    }
+
+    @Test
+    void claimOwnerWritesTheOwnerOfAnOwnerlessCardOnlyOnce() {
+        h.importPoolA(1, true);
+        long line = h.bean(FulfillmentEntry.class).accept(new FulfillmentRequest(SourceType.CHANNEL, "X-1", "CH:X-1:1", c.skuANew, 1, null, null, null))
+                .fulfillmentLineId();
+        h.drain();
+        long card = h.cardOfLine(line);
+
+        actions.claimOwner(card, "m9", "member:m9");
+
+        assertThat(h.jdbc.queryForObject("SELECT owner_member_id FROM lr_card_asset WHERE id = ?", String.class, card)).isEqualTo("m9");
+        assertThat(h.jdbc.queryForObject("SELECT owner_bound_at IS NOT NULL FROM lr_card_asset WHERE id = ?", Boolean.class, card)).isTrue();
+        assertThat(h.count("lr_audit_log WHERE action = 'CARD_CLAIM' AND target_id = ?", Long.toString(card))).isEqualTo(1);
+        assertThatThrownBy(() -> actions.claimOwner(card, "m8", "member:m8")).isInstanceOf(UserFacingException.class).hasMessage("这张卡已被认领");
+        assertThat(h.jdbc.queryForObject("SELECT owner_member_id FROM lr_card_asset WHERE id = ?", String.class, card)).isEqualTo("m9");
+
+        long shopCard = deliveredCardA("O-OWNED");
+        assertThatThrownBy(() -> actions.claimOwner(shopCard, "m9", "member:m9")).isInstanceOf(UserFacingException.class).hasMessage("这张卡已被认领");
+        assertThat(h.jdbc.queryForObject("SELECT owner_member_id FROM lr_card_asset WHERE id = ?", String.class, shopCard)).isEqualTo("m1");
     }
 
     @Test

@@ -38,6 +38,26 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-commission</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-ops</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-channel</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-channel-jd</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>cn.lili</groupId>
             <artifactId>framework</artifactId>
             <scope>test</scope>

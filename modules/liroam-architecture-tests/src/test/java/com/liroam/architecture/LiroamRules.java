@@ -34,6 +34,13 @@ final class LiroamRules {
                     "com.baomidou..", "org.apache.ibatis..", "com.liroam.catalog..", "com.liroam.fulfillment..")
             .because("适配器只翻译上游调用，不读写台账（CT-SUP-09）");
 
+    static final ArchRule CHANNEL_ADAPTER_HAS_NO_STORAGE = noClasses()
+            .that().resideInAPackage("com.liroam.channel.adapter..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "java.sql..", "javax.sql..", "org.springframework.jdbc..", "org.springframework.transaction..",
+                    "com.baomidou..", "org.apache.ibatis..", "com.liroam.catalog..", "com.liroam.fulfillment..")
+            .because("渠道适配器只翻译渠道报文，入单、回传、对账由 liroam-channel 落库（domain-design §11）");
+
     static final ArchRule ONLY_FULFILLMENT_USES_LEDGER_STORE = classes()
             .that().resideInAPackage("com.liroam.fulfillment.store..")
             .should().onlyHaveDependentClassesThat().resideInAPackage("com.liroam.fulfillment..")

@@ -41,6 +41,10 @@ public class CardQueries {
         }
     }
 
+    /** 履约行内一张已交码的卡；{@code toString} 不含交码内容。 */
+    public record LineCredential(long cardAssetId, String cardNo, String form, CredentialView credential) {
+    }
+
     /** @param skuId 壳 {@code li_goods_sku.id}，下单用 */
     public record TopUpOption(String skuId, String goodsId, String name, long priceFen) {
     }
@@ -112,6 +116,23 @@ public class CardQueries {
                     """).params(memberId, Long.toString(cardAssetId)).update();
             return view(c);
         }));
+    }
+
+    /**
+     * 渠道回传用：一条履约行里已交码的卡及其当前交码内容（按 {@code unit_seq}）。每读一张写一条 {@code lr_sensitive_access_log}（SYSTEM）。
+     *
+     * @param operatorId 留痕用的系统操作人
+     */
+    public List<LineCredential> credentialsOfLine(long fulfillmentLineId, String operatorId) {
+        return tx.execute(status -> cards.byLine(fulfillmentLineId).stream()
+                .flatMap(card -> credentials.current(card.id()).stream().map(c -> {
+                    jdbc.sql("""
+                            INSERT INTO lr_sensitive_access_log (operator_type, operator_id, target_type, target_id, field, reason)
+                            VALUES ('SYSTEM', ?, 'CARD', ?, 'CREDENTIAL', '渠道回传交码')
+                            """).params(operatorId, Long.toString(card.id())).update();
+                    return new LineCredential(card.id(), card.cardNo(), card.form(), view(c));
+                }))
+                .toList());
     }
 
     public PageResult<AdminCardView> page(CardFilter filter) {

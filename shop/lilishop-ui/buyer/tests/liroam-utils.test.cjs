@@ -8,10 +8,10 @@ const path = require('node:path');
 
 function load() {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/liroam.js'), 'utf8').replace(/^export /gm, '');
-  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows };')();
+  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows, claimInputError };')();
 }
 
-const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows } = load();
+const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows, claimInputError } = load();
 
 test('结算方式：旅行卡一律立即购买（普通订单），其它虚拟商品沿用壳的核销型 VIRTUAL，实物为 BUY_NOW', () => {
   assert.equal(checkoutCartType({ goodsType: 'VIRTUAL_GOODS', travelCard: true }), 'BUY_NOW');
@@ -117,4 +117,14 @@ test('额度行：流量总在，语音短信只在产品有该能力（后端�
     { label: '流量剩余', value: '4 GB' }, { label: '语音剩余', value: '45 分钟' }, { label: '短信剩余', value: '47 条' },
   ]);
   assert.deepEqual(quotaRows({}), [{ label: '流量剩余', value: '—' }]);
+});
+
+test('认领渠道订单：订单号与手机号必填，手机号允许 +86、空格与横线', () => {
+  assert.equal(claimInputError('', '13800138000'), '请填写渠道订单号');
+  assert.equal(claimInputError('  ', '13800138000'), '请填写渠道订单号');
+  assert.equal(claimInputError('300000000001', ''), '请填写收货手机号');
+  assert.equal(claimInputError('300000000001', '1380013'), '请填写 11 位收货手机号');
+  assert.equal(claimInputError('300000000001', 'abc'), '请填写 11 位收货手机号');
+  assert.equal(claimInputError('300000000001', '13800138000'), null);
+  assert.equal(claimInputError(' 300000000001 ', '+86 138-0013-8000'), null);
 });

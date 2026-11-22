@@ -164,6 +164,12 @@ public class CardAssets {
         jdbc.sql("UPDATE lr_card_asset SET refund_hold = 0, version = version + 1 WHERE id = ?").param(id).update();
     }
 
+    /** 属主从空写成会员（触发器补 {@code owner_bound_at}）。@return false = 已有属主 */
+    public boolean bindOwner(long id, String memberId) {
+        return jdbc.sql("UPDATE lr_card_asset SET owner_member_id = ?, version = version + 1 WHERE id = ? AND owner_member_id IS NULL")
+                .params(memberId, id).update() == 1;
+    }
+
     /** {@code tier} 为空 = 停止轮询。 */
     public void schedulePoll(long id, String tier, Instant nextPollAt) {
         jdbc.sql("UPDATE lr_card_asset SET poll_tier = ?, next_poll_at = ? WHERE id = ?")

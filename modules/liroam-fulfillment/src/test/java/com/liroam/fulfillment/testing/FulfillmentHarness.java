@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -62,13 +63,16 @@ public final class FulfillmentHarness implements AutoCloseable {
     public final NarrowableAdapter capsA;
     public final TestCatalog catalog;
     private final Map<String, Object> properties;
+    private final Consumer<AnnotationConfigApplicationContext> extras;
     private final AnnotationConfigApplicationContext context;
 
     private FulfillmentHarness(String module, DataSource ds, Map<String, Object> properties, MutableClock clock, RecordingShellOrderDelivery shell,
-            StubUpstream upstreamA, StubUpstream upstreamB, ContractStubAdapter adapterA, ContractStubAdapter adapterB, TestCatalog catalog) {
+            StubUpstream upstreamA, StubUpstream upstreamB, ContractStubAdapter adapterA, ContractStubAdapter adapterB, TestCatalog catalog,
+            Consumer<AnnotationConfigApplicationContext> extras) {
         this.module = module;
         this.jdbc = new JdbcTemplate(ds);
         this.properties = properties;
+        this.extras = extras;
         this.clock = clock;
         this.shell = shell;
         this.upstreamA = upstreamA;
@@ -86,6 +90,7 @@ public final class FulfillmentHarness implements AutoCloseable {
         context.registerBean(ShellOrderDelivery.class, () -> shell);
         context.registerBean(RecordingCredentialEvents.class);
         context.register(LiroamCommonAutoConfiguration.class, LiroamCatalogAutoConfiguration.class, LiroamFulfillmentAutoConfiguration.class);
+        extras.accept(context);
         context.refresh();
         this.catalog = catalog != null ? catalog : TestCatalog.seed(jdbc);
     }
@@ -95,6 +100,11 @@ public final class FulfillmentHarness implements AutoCloseable {
     }
 
     public static FulfillmentHarness start(String module, Map<String, Object> extraProperties) {
+        return start(module, extraProperties, context -> { });
+    }
+
+    /** @param extras 在刷新前往同一容器追加 Bean 或下游模块的自动配置（如定价、渠道） */
+    public static FulfillmentHarness start(String module, Map<String, Object> extraProperties, Consumer<AnnotationConfigApplicationContext> extras) {
         DataSource ds = ItSchema.migrated(module);
         Map<String, Object> props = new HashMap<>();
         for (String kv : TestKeys.properties()) {
@@ -109,12 +119,12 @@ public final class FulfillmentHarness implements AutoCloseable {
         }
         a.reset();
         return new FulfillmentHarness(module, ds, props, new MutableClock(), new RecordingShellOrderDelivery(), a, b,
-                new ContractStubAdapter(StubShape.POOL_IMPORT, a), new ContractStubAdapter(StubShape.CREATE_API, b), null);
+                new ContractStubAdapter(StubShape.POOL_IMPORT, a), new ContractStubAdapter(StubShape.CREATE_API, b), null, extras);
     }
 
     /** 同一测试库上的第二个应用实例（各自连接源与 Bean），共享假上游、时钟与数据密钥。 */
     public FulfillmentHarness secondInstance() {
-        return new FulfillmentHarness(module, ItDatabase.reopen(module), properties, clock, shell, upstreamA, upstreamB, adapterA, adapterB, catalog);
+        return new FulfillmentHarness(module, ItDatabase.reopen(module), properties, clock, shell, upstreamA, upstreamB, adapterA, adapterB, catalog, extras);
     }
 
     public <T> T bean(Class<T> type) {
