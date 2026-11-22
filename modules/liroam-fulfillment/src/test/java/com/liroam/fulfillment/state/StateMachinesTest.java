@@ -75,7 +75,7 @@ class StateMachinesTest {
         assertExactly(CardPlanStatus.class, CardPlanStatus.MACHINE, table(
                 "PENDING: PROVISIONING CANCELLED FAILED",
                 "PROVISIONING: READY CANCELLED FAILED",
-                "READY: IN_USE",
+                "READY: IN_USE EXPIRED",
                 "IN_USE: DEPLETED EXPIRED"));
     }
 
@@ -95,6 +95,6 @@ class StateMachinesTest {
                 "EXPANDED: IN_PROGRESS PARTIAL CANCELLED PARTIAL_REFUNDED",
                 "IN_PROGRESS: COMPLETED PARTIAL CANCELLED PARTIAL_REFUNDED",
                 "COMPLETED: CANCELLED PARTIAL_REFUNDED",
-                "PARTIAL: CANCELLED PARTIAL_REFUNDED"));
+                "PARTIAL: COMPLETED CANCELLED PARTIAL_REFUNDED"));
     }
 }
