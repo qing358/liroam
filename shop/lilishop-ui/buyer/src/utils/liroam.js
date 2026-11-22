@@ -30,16 +30,18 @@ function parseLpa(text) {
   return { smdpAddress: parts[1] || "", activationCode: parts[2] || "", confirmationCode: parts[4] || "" };
 }
 
-/** 激活码结果容错：字符串当 LPA 原文；对象字段优先，缺的从 lpa 拆。无内容返回 null。 */
+/** 激活码：接口 CredentialView `{kind, payload}`，kind 为 LPA / QR（完整激活信息）或 ACTIVATION_CODE（裸激活码）；字符串当 LPA 原文。无内容返回 null。 */
 export function normalizeCredential(result) {
-  const raw = typeof result === "string" ? { lpa: result } : result && typeof result === "object" ? result : {};
-  const lpa = String(raw.lpa || raw.lpaString || raw.qrCode || "").trim();
+  const raw = typeof result === "string" ? { kind: "LPA", payload: result } : result && typeof result === "object" ? result : {};
+  const payload = String(raw.payload || "").trim();
+  const bareCode = raw.kind === "ACTIVATION_CODE";
+  const lpa = bareCode ? "" : payload;
   const parsed = lpa ? parseLpa(lpa) : {};
   const credential = {
     lpa,
-    smdpAddress: String(raw.smdpAddress || parsed.smdpAddress || ""),
-    activationCode: String(raw.activationCode || raw.matchingId || parsed.activationCode || ""),
-    confirmationCode: String(raw.confirmationCode || parsed.confirmationCode || ""),
+    smdpAddress: parsed.smdpAddress || "",
+    activationCode: bareCode ? payload : parsed.activationCode || "",
+    confirmationCode: parsed.confirmationCode || "",
   };
   return credential.lpa || credential.activationCode ? credential : null;
 }

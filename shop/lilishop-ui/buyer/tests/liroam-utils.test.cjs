@@ -56,13 +56,18 @@ test('激活码：字符串按 LPA 原文并拆出地址与激活码', () => {
   });
 });
 
-test('激活码：对象字段优先，缺的从 lpa 补', () => {
-  assert.deepEqual(normalizeCredential({ lpa: 'LPA:1$a.b$XYZ', activationCode: 'OVERRIDE' }), {
-    lpa: 'LPA:1$a.b$XYZ', smdpAddress: 'a.b', activationCode: 'OVERRIDE', confirmationCode: '',
+test('激活码：接口 CredentialView 按 kind 解读 payload（LPA / QR 为完整激活信息，ACTIVATION_CODE 为裸激活码）', () => {
+  const view = (kind, payload) => ({ kind, payload, channel: 'MANUAL', deliveredText: '2026-11-23 00:00' });
+  assert.deepEqual(normalizeCredential(view('LPA', 'LPA:1$a.b$XYZ')), {
+    lpa: 'LPA:1$a.b$XYZ', smdpAddress: 'a.b', activationCode: 'XYZ', confirmationCode: '',
   });
-  assert.deepEqual(normalizeCredential({ smdpAddress: 's.c', activationCode: 'K1', confirmationCode: '9' }), {
-    lpa: '', smdpAddress: 's.c', activationCode: 'K1', confirmationCode: '9',
+  assert.deepEqual(normalizeCredential(view('QR', ' LPA:1$q.r$QR1 ')), {
+    lpa: 'LPA:1$q.r$QR1', smdpAddress: 'q.r', activationCode: 'QR1', confirmationCode: '',
   });
+  assert.deepEqual(normalizeCredential(view('ACTIVATION_CODE', 'K1')), {
+    lpa: '', smdpAddress: '', activationCode: 'K1', confirmationCode: '',
+  });
+  assert.equal(normalizeCredential(view('LPA', '')), null);
 });
 
 test('激活码：非 LPA 文本只保留原文；空结果为 null', () => {
