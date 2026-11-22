@@ -51,7 +51,7 @@
 
 ## 运营闭环（P5 已落地，mock 渠道 / 假支付对账单）
 
-- `liroam-commission`：佣金策略版本化（`PAID_RATE` 实付抽成 / `FLOOR_DIFF` 底价差价 / `NONE`；SKU > 代理等级 > 全局；两级分成、T+N 结算、提现是否审批），比例只在后台配置。自建台账 `lr_commission_entry`（不用壳分销商品），分销员与订单归属只读壳 `li_distribution` / `li_order.distribution_id`（H9）。交码后计提，到期转可提现；退款按比例冲回（已结算可为负，后续抵扣）；提现 = 申请 → 审批 → 线下打款登记凭证。买家「我的佣金」、后台「佣金」菜单（`li_menu` 160–162）。
+- `liroam-commission`：佣金策略版本化（`PAID_RATE` 实付抽成 / `FLOOR_DIFF` 底价差价 / `NONE`；SKU > 代理等级 > 全局；两级分成、T+N 结算、提现是否审批），比例只在后台配置。自建台账 `lr_commission_entry`（不用壳分销商品），分销员与订单归属只读壳 `li_distribution` / `li_order.distribution_id`（H9）。交码后计提（按交付时刻生效的策略版本；交付时还没有生效策略的行不回补），到期转可提现；退款按比例冲回（已结算可为负，后续抵扣）；提现 = 申请 → 审批 → 线下打款登记凭证。买家「我的佣金」、后台「佣金」菜单（`li_menu` 160–162）。
 - `liroam-ops`：卡到期站内提醒（阈值 `notify.expiry_remind_before`，买家「我的卡」顶部提示；短信端口 `MemberSms` 未接，开关默认关）；日对账共用 `lr_recon_run` / `lr_recon_diff`（支付日对账 = 上传支付渠道 CSV 对壳已支付订单，供应商日对账 = 上传账单对成功开卡/加包成本，渠道日对账见下节），差异可标已处理/忽略；按日经营报表；后台「报表与对账」菜单（`li_menu` 180–182）。真实对账单格式【待核实】。
 
 ## 卡型与履约扩展（P6 已落地，mock 上游 / mock 快递）

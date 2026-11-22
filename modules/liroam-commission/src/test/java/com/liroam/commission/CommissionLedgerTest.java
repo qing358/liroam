@@ -104,6 +104,42 @@ class CommissionLedgerTest {
     }
 
     @Test
+    void lineDeliveredBeforePolicyTakesEffectIsNotBackfilled() {
+        long before = f.deliveredCard("O-BEFORE", 10_000, CHAIN);
+        pinDelivery(before, f.now());
+        f.advance(Duration.ofHours(1));
+        f.paidRate("0.10", "0.8", "0.2", 1);
+
+        assertThat(f.accruals.runOnce(50)).isEqualTo(1);
+        assertThat(f.h.jdbc.queryForObject("SELECT outcome FROM lr_commission_accrual", String.class)).isEqualTo("NO_POLICY");
+        assertThat(f.h.count("lr_commission_entry")).isZero();
+
+        long after = f.deliveredCard("O-AFTER", 10_000, CHAIN);
+        pinDelivery(after, f.now());
+        assertThat(f.accruals.runOnce(50)).isEqualTo(1);
+        assertThat(f.amounts("D1", "ACCRUE")).containsExactly(800L);
+    }
+
+    @Test
+    void versionInForceAtDeliveryAppliesEvenIfChangedBeforeScan() {
+        f.paidRate("0.10", "0.8", "0.2", 1);
+        long card = f.deliveredCard("O-V1", 10_000, CHAIN);
+        pinDelivery(card, f.now());
+        f.advance(Duration.ofHours(1));
+        f.paidRate("0.20", "0.8", "0.2", 1);
+
+        f.accruals.runOnce(50);
+        assertThat(f.amounts("D1", "ACCRUE")).containsExactly(800L);
+        assertThat(f.h.jdbc.queryForList("SELECT DISTINCT policy_version FROM lr_commission_entry", Integer.class)).containsExactly(1);
+    }
+
+    /** 交码时间取库默认（真实时钟），钉到测试时钟。 */
+    private static void pinDelivery(long card, Instant at) {
+        f.h.jdbc.update("UPDATE lr_card_credential SET delivered_at = ? WHERE card_asset_id = ?",
+                java.time.LocalDateTime.ofInstant(at, java.time.ZoneOffset.UTC), card);
+    }
+
+    @Test
     void inviterIsOptional() {
         f.paidRate("0.10", "0.8", "0.2", 1);
         f.deliveredCard("O-SOLO", 10_000, new AgentChain(A1, null));

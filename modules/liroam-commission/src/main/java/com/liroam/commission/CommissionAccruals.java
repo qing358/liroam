@@ -106,7 +106,7 @@ public class CommissionAccruals {
             return mark(c, Outcome.NO_AGENT, null, 0, 0, null);
         }
         Agent direct = chain.get().direct();
-        Optional<CommissionPolicy> found = policies.select(c.skuBindingId(), direct);
+        Optional<CommissionPolicy> found = policies.select(c.skuBindingId(), direct, anchor(c, SettleAnchor.DELIVERED));
         if (found.isEmpty()) {
             return mark(c, Outcome.NO_POLICY, null, 0, 0, null);
         }

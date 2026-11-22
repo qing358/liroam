@@ -97,16 +97,23 @@ public class CommissionPolicies {
 
     /** 当前生效的各策略版本。 */
     public List<CommissionPolicy> active() {
-        LocalDateTime now = UtcColumns.toColumn(clock.instant());
-        return jdbc.sql(SELECT + """
-                 WHERE p.version = (SELECT MAX(q.version) FROM lr_commission_policy q WHERE q.code = p.code AND q.effective_from <= ?)
-                """).param(now).query(CommissionPolicies::map).list();
+        return activeAt(clock.instant());
     }
 
-    /** 选一个订单行适用的策略：SKU > 一级代理等级 > 全局；同级多条取最近生效的。 */
-    public Optional<CommissionPolicy> select(long skuBindingId, Agent direct) {
+    /** 某一时刻生效的各策略版本。 */
+    public List<CommissionPolicy> activeAt(Instant at) {
+        return jdbc.sql(SELECT + """
+                 WHERE p.version = (SELECT MAX(q.version) FROM lr_commission_policy q WHERE q.code = p.code AND q.effective_from <= ?)
+                """).param(UtcColumns.toColumn(at)).query(CommissionPolicies::map).list();
+    }
+
+    /**
+     * 选一个订单行适用的策略：按交付时刻生效的版本，SKU > 一级代理等级 > 全局；同级多条取最近生效的。
+     * 交付时还没有生效策略的行不回补。
+     */
+    public Optional<CommissionPolicy> select(long skuBindingId, Agent direct, Instant deliveredAt) {
         String sku = Long.toString(skuBindingId);
-        return active().stream()
+        return activeAt(deliveredAt).stream()
                 .filter(p -> switch (p.scopeType()) {
                     case SKU -> sku.equals(p.scopeRef());
                     case AGENT_GRADE -> direct != null && Objects.equals(direct.grade(), p.scopeRef());
