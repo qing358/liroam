@@ -3,9 +3,12 @@ package com.liroam.fulfillment.config;
 import java.time.Clock;
 import java.util.Optional;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -16,6 +19,7 @@ import com.liroam.catalog.SupplierAdapterRegistry;
 import com.liroam.catalog.SupplierDirectory;
 import com.liroam.catalog.config.LiroamCatalogAutoConfiguration;
 import com.liroam.common.audit.AuditLog;
+import com.liroam.common.crypto.SensitiveCipher;
 import com.liroam.common.setting.Settings;
 import com.liroam.fulfillment.FulfillmentEntry;
 import com.liroam.fulfillment.FulfillmentRules;
@@ -23,13 +27,25 @@ import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.credential.CredentialTimeouts;
 import com.liroam.fulfillment.delivery.ShellDeliveries;
+import com.liroam.fulfillment.credential.CredentialDeliveries;
+import com.liroam.fulfillment.delivery.DeliveryProgress;
+import com.liroam.fulfillment.delivery.LineProgress;
+import com.liroam.fulfillment.poll.PollTiers;
+import com.liroam.fulfillment.poll.UsageMirror;
+import com.liroam.fulfillment.pool.CardPool;
+import com.liroam.fulfillment.store.CallLogs;
 import com.liroam.fulfillment.store.CardAssets;
+import com.liroam.fulfillment.store.CardCredentials;
 import com.liroam.fulfillment.store.CardPlans;
+import com.liroam.fulfillment.store.Offerings;
+import com.liroam.fulfillment.store.PoolItems;
 import com.liroam.fulfillment.store.FulfillmentLines;
 import com.liroam.fulfillment.store.ShellDeliveryQueue;
 import com.liroam.fulfillment.store.SupplierCommands;
 import com.liroam.fulfillment.task.ManualTasks;
+import com.liroam.fulfillment.worker.CommandExecutor;
 import com.liroam.fulfillment.worker.FulfillmentWorker;
+import com.liroam.fulfillment.worker.SupplierRateLimiter;
 
 @AutoConfiguration(after = LiroamCatalogAutoConfiguration.class)
 public class LiroamFulfillmentAutoConfiguration {
@@ -98,6 +114,68 @@ public class LiroamFulfillmentAutoConfiguration {
     CredentialTimeouts liroamCredentialTimeouts(JdbcClient liroamJdbcClient, Settings liroamSettings, ManualTasks liroamManualTasks,
             Clock liroamFulfillmentClock) {
         return new CredentialTimeouts(liroamJdbcClient, liroamSettings, liroamManualTasks, liroamFulfillmentClock);
+    }
+
+    @Bean
+    PoolItems liroamPoolItems(JdbcClient liroamJdbcClient) {
+        return new PoolItems(liroamJdbcClient);
+    }
+
+    @Bean
+    CardCredentials liroamCardCredentials(JdbcClient liroamJdbcClient) {
+        return new CardCredentials(liroamJdbcClient);
+    }
+
+    @Bean
+    CardPool liroamCardPool(TransactionTemplate liroamFulfillmentTx, JdbcClient liroamJdbcClient, PoolItems liroamPoolItems,
+            SensitiveCipher liroamSensitiveCipher, AuditLog liroamAuditLog) {
+        return new CardPool(liroamFulfillmentTx, liroamJdbcClient, liroamPoolItems, liroamSensitiveCipher, liroamAuditLog);
+    }
+
+    @Bean
+    PollTiers liroamPollTiers(CardAssets liroamCardAssets, Settings liroamSettings) {
+        return new PollTiers(liroamCardAssets, liroamSettings);
+    }
+
+    @Bean
+    UsageMirror liroamUsageMirror(CardAssets liroamCardAssets, CardPlans liroamCardPlans, PollTiers liroamPollTiers) {
+        return new UsageMirror(liroamCardAssets, liroamCardPlans, liroamPollTiers);
+    }
+
+    @Bean
+    CredentialDeliveries liroamCredentialDeliveries(CardCredentials liroamCardCredentials, SensitiveCipher liroamSensitiveCipher,
+            ApplicationEventPublisher events, Clock liroamFulfillmentClock) {
+        return new CredentialDeliveries(liroamCardCredentials, liroamSensitiveCipher, events, liroamFulfillmentClock);
+    }
+
+    @Bean
+    LineProgress liroamLineProgress(FulfillmentLines liroamFulfillmentLines, CardAssets liroamCardAssets, CardPlans liroamCardPlans,
+            ShellDeliveries liroamShellDeliveries) {
+        return new LineProgress(liroamFulfillmentLines, liroamCardAssets, liroamCardPlans, liroamShellDeliveries);
+    }
+
+    @Bean
+    DeliveryProgress liroamDeliveryProgress(CardAssets liroamCardAssets, FulfillmentLines liroamFulfillmentLines, LineProgress liroamLineProgress,
+            PollTiers liroamPollTiers, Clock liroamFulfillmentClock) {
+        return new DeliveryProgress(liroamCardAssets, liroamFulfillmentLines, liroamLineProgress, liroamPollTiers, liroamFulfillmentClock);
+    }
+
+    @Bean
+    SupplierRateLimiter liroamSupplierRateLimiter(DataSource dataSource, Settings liroamSettings, Clock liroamFulfillmentClock) {
+        return new SupplierRateLimiter(dataSource, liroamSettings, liroamFulfillmentClock);
+    }
+
+    @Bean
+    CommandExecutor liroamCommandExecutor(TransactionTemplate liroamFulfillmentTx, JdbcClient liroamJdbcClient, SupplierCommands liroamSupplierCommands,
+            CardAssets liroamCardAssets, CardPlans liroamCardPlans, SupplierDirectory liroamSupplierDirectory,
+            SupplierAdapterRegistry liroamSupplierAdapterRegistry, SupplierRateLimiter liroamSupplierRateLimiter, CardPool liroamCardPool,
+            CredentialDeliveries liroamCredentialDeliveries, LineProgress liroamLineProgress, UsageMirror liroamUsageMirror,
+            PollTiers liroamPollTiers, ManualTasks liroamManualTasks, Settings liroamSettings, SensitiveCipher liroamSensitiveCipher,
+            Clock liroamFulfillmentClock) {
+        return new CommandExecutor(liroamFulfillmentTx, liroamSupplierCommands, liroamCardAssets, liroamCardPlans, new Offerings(liroamJdbcClient),
+                liroamSupplierDirectory, liroamSupplierAdapterRegistry, liroamSupplierRateLimiter, liroamCardPool, liroamCredentialDeliveries,
+                liroamLineProgress, liroamUsageMirror, liroamPollTiers, liroamManualTasks, new CallLogs(liroamJdbcClient), liroamSettings,
+                liroamSensitiveCipher, liroamFulfillmentClock);
     }
 
     @Bean

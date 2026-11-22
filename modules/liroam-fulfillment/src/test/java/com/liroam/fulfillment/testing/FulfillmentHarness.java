@@ -1,6 +1,7 @@
 package com.liroam.fulfillment.testing;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,10 @@ import com.liroam.fulfillment.FulfillmentRequest;
 import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
+import com.liroam.fulfillment.pool.CardPool;
+import com.liroam.fulfillment.pool.CardPool.PoolItemRow;
+import com.liroam.fulfillment.worker.CommandExecutor;
+import com.liroam.fulfillment.worker.FulfillmentWorker;
 import com.liroam.schema.testing.ItSchema;
 import com.liroam.supplier.spi.SupplierAdapter;
 import com.liroam.supplier.spi.contract.stub.ContractStubAdapter;
@@ -126,6 +131,39 @@ public final class FulfillmentHarness implements AutoCloseable {
     public long acceptTopUp(String orderSn, String itemSn, long skuBindingId, String memberId, long cardAssetId) {
         return bean(FulfillmentEntry.class).accept(new FulfillmentRequest(SourceType.TOPUP, orderSn, itemSn, skuBindingId, 1, memberId, cardAssetId, null))
                 .fulfillmentLineId();
+    }
+
+    /** 拆卡 + 指令执行反复跑到没有到期的活（推迟到未来的指令不等）。 */
+    public void drain() {
+        FulfillmentWorker worker = bean(FulfillmentWorker.class);
+        CommandExecutor executor = bean(CommandExecutor.class);
+        for (int i = 0; i < 30; i++) {
+            if (worker.runOnce(50) + executor.runOnce(50, "test-worker") == 0) {
+                return;
+            }
+        }
+        throw new IllegalStateException("drain 30 轮仍未收敛");
+    }
+
+    /** 往供应商 A 的卡池导入 n 张上游空闲卡；{@code withLpa} 时随批带交码内容。 */
+    public List<String> importPoolA(int n, boolean withLpa) {
+        List<String> iccids = new ArrayList<>();
+        List<PoolItemRow> rows = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            String iccid = upstreamA.idleIccid();
+            iccids.add(iccid);
+            rows.add(new PoolItemRow(iccid, withLpa ? "LPA:1$pool.example$" + iccid : null));
+        }
+        bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, rows, "op-test");
+        return iccids;
+    }
+
+    public long cardOfLine(long lineId) {
+        return jdbc.queryForObject("SELECT id FROM lr_card_asset WHERE fulfillment_line_id = ? ORDER BY unit_seq LIMIT 1", Long.class, lineId);
+    }
+
+    public Map<String, Object> command(String type, long cardId) {
+        return jdbc.queryForMap("SELECT * FROM lr_supplier_command WHERE type = ? AND card_asset_id = ? ORDER BY id DESC LIMIT 1", type, cardId);
     }
 
     public int count(String sql, Object... args) {

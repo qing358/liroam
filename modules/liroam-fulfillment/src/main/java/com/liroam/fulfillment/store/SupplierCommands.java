@@ -2,6 +2,7 @@ package com.liroam.fulfillment.store;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +48,8 @@ public class SupplierCommands {
               FROM lr_supplier_command
             """;
     private static final String OPEN = "('PENDING', 'RUNNING', 'LOOKUP_PENDING', 'MANUAL')";
+    private static final List<String> LOOKUP_TYPES = Arrays.stream(CommandType.values())
+            .filter(t -> t.lookupOperation().isPresent()).map(Enum::name).toList();
 
     private final JdbcClient jdbc;
 
@@ -100,6 +103,7 @@ public class SupplierCommands {
     /**
      * 事务内认领：到期的 PENDING / LOOKUP_PENDING，以及持有者租约过期（崩溃）的 RUNNING。
      * 写 {@code locked_by/locked_until}，提交后其他实例看不到它，直到租约过期。
+     * 回收的写指令可能已发到上游，转 LOOKUP_PENDING 先查档；读与本地分配直接重跑。
      */
     public List<Command> claim(int batch, String workerId, Instant now, Instant lockedUntil) {
         LocalDateTime at = UtcColumns.toColumn(now);
@@ -116,10 +120,14 @@ public class SupplierCommands {
         }
         jdbc.sql("""
                 UPDATE lr_supplier_command
-                   SET status = IF(status = 'PENDING', 'RUNNING', status), locked_by = :worker, locked_until = :until,
+                   SET status = CASE
+                                  WHEN status = 'PENDING' THEN 'RUNNING'
+                                  WHEN status = 'RUNNING' AND type IN (:writes) THEN 'LOOKUP_PENDING'
+                                  ELSE status END,
+                       locked_by = :worker, locked_until = :until,
                        version = version + 1, updated_at = :now
                  WHERE id IN (:ids)
-                """).param("worker", workerId).param("until", UtcColumns.toColumn(lockedUntil)).param("now", at).param("ids", ids).update();
+                """).param("writes", LOOKUP_TYPES).param("worker", workerId).param("until", UtcColumns.toColumn(lockedUntil)).param("now", at).param("ids", ids).update();
         return jdbc.sql(SELECT + " WHERE id IN (:ids) ORDER BY priority, next_attempt_at, id").param("ids", ids).query(Command.class).list();
     }
 
@@ -138,12 +146,23 @@ public class SupplierCommands {
         finish(c, CommandStatus.PENDING, countAttempt ? c.attempts() + 1 : c.attempts(), errorClass, errorCode, errorMsg, null, next, now);
     }
 
+    /** 不计失败的推迟（本地限流、退款冻结）；待查档的仍待查档。 */
+    public void postpone(Command c, String errorClass, String errorCode, String errorMsg, Instant next, Instant now) {
+        CommandStatus to = c.status() == CommandStatus.LOOKUP_PENDING ? CommandStatus.LOOKUP_PENDING : CommandStatus.PENDING;
+        finish(c, to, c.attempts(), errorClass, errorCode, errorMsg, null, next, now);
+    }
+
     public void lookupPending(Command c, String errorMsg, Instant next, Instant now) {
         finish(c, CommandStatus.LOOKUP_PENDING, c.attempts() + 1, "UNKNOWN", null, errorMsg, null, next, now);
     }
 
     public void manual(Command c, boolean countAttempt, String errorClass, String errorCode, String errorMsg, Instant now) {
         finish(c, CommandStatus.MANUAL, countAttempt ? c.attempts() + 1 : c.attempts(), errorClass, errorCode, errorMsg, null, now, now);
+    }
+
+    /** 轮询查询失败到顶直接放弃本次（不转人工、不占住后续轮询），按分层重排下次。 */
+    public void abandon(Command c, String errorClass, String errorCode, String errorMsg, Instant now) {
+        finish(c, CommandStatus.CANCELLED, c.attempts() + 1, errorClass, errorCode, errorMsg, null, now, now);
     }
 
     private void finish(Command c, CommandStatus to, int attempts, String errorClass, String errorCode, String errorMsg, String upstreamRef,

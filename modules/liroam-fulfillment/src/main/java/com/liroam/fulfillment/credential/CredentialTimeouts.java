@@ -42,6 +42,7 @@ public class CredentialTimeouts {
         List<Waiting> waiting = jdbc.sql("""
                 SELECT c.id, c.supplier_id, c.provisioned_at FROM lr_card_asset c
                  WHERE c.status = 'PROVISIONED' AND c.provisioned_at IS NOT NULL
+                   AND NOT EXISTS (SELECT 1 FROM lr_card_credential k WHERE k.card_asset_id = c.id)
                    AND NOT EXISTS (SELECT 1 FROM lr_manual_task t WHERE t.kind = 'CREDENTIAL_TIMEOUT' AND t.ref_type = 'CARD' AND t.ref_id = c.id)
                  ORDER BY c.provisioned_at LIMIT ?
                 """).param(batch).query(Waiting.class).list();
