@@ -1,9 +1,0 @@
-com/liroam/catalog/SkuBinding$SkuKind.class
-com/liroam/catalog/SkuBinding.class
-com/liroam/catalog/SupplierDirectory.class
-com/liroam/catalog/SkuBinding$ListingState.class
-com/liroam/catalog/SupplierAdapterRegistry.class
-com/liroam/catalog/Supplier.class
-com/liroam/catalog/config/LiroamCatalogAutoConfiguration.class
-com/liroam/catalog/SkuBindings.class
-com/liroam/catalog/SupplierWiringCheck.class

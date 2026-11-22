@@ -1,6 +1,0 @@
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/crypto/SensitiveCipherTest.java
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/safety/ProductionSafetyGateTest.java
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/state/StateMachineTest.java
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/testing/ItDatabase.java
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/testing/ItDatabaseTest.java
-/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/test/java/com/liroam/common/testing/TestKeys.java
