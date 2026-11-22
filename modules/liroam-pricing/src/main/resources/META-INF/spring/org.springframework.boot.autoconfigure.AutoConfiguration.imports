@@ -1,0 +1,2 @@
+com.liroam.pricing.config.LiroamPricingAutoConfiguration
+com.liroam.pricing.mock.MockFxAutoConfiguration

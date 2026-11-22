@@ -23,6 +23,7 @@
         <module>liroam-supplier-spi</module>
         <module>liroam-catalog</module>
         <module>liroam-supplier-mock</module>
+        <module>liroam-pricing</module>
         <module>liroam-fulfillment</module>
         <module>liroam-shell-bridge</module>
         <module>liroam-architecture-tests</module>
@@ -74,6 +75,11 @@
             <dependency>
                 <groupId>com.liroam</groupId>
                 <artifactId>liroam-supplier-mock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-pricing</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
