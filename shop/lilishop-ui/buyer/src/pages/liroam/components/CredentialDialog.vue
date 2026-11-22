@@ -1,7 +1,16 @@
 <template>
-  <el-dialog :model-value="modelValue" title="eSIM 激活码" width="460px" @update:model-value="emit('update:modelValue', $event)" @open="load">
+  <el-dialog :model-value="modelValue" :title="physical ? '物流信息' : 'eSIM 激活码'" width="460px" @update:model-value="emit('update:modelValue', $event)" @open="load">
     <el-skeleton v-if="loading" :rows="4" animated />
     <div v-else-if="errorText" class="credential-empty">{{ errorText }}</div>
+    <div v-else-if="shipment" class="credential">
+      <dl class="credential-fields">
+        <dt>物流公司</dt>
+        <dd><span>{{ shipment.company }}</span></dd>
+        <dt>运单号</dt>
+        <dd><span>{{ shipment.no }}</span><el-button link type="primary" @click="copy(shipment.no)">复制</el-button></dd>
+      </dl>
+      <p class="credential-tip">实体卡已寄出，可凭运单号在物流公司官网查询；收到后按卡附说明插卡使用。</p>
+    </div>
     <div v-else-if="credential" class="credential">
       <div v-if="credential.lpa && isLpa" class="credential-qr">
         <vue-qr :text="credential.lpa" :margin="0" colorDark="#000" colorLight="#fff" :size="200" />
@@ -35,30 +44,34 @@ import { computed, ref } from "vue";
 import vueQr from "vue-qr";
 import { Message } from "@/utils/message";
 import { getCardCredential } from "@/api/liroam";
-import { normalizeCredential, failureMessage } from "@/utils/liroam";
+import { normalizeCredential, failureMessage, shipmentOf } from "@/utils/liroam";
 
 defineOptions({ name: "LiroamCredentialDialog" });
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
   cardId: { type: [String, Number], required: true },
+  physical: { type: Boolean, default: false },
 });
 const emit = defineEmits(["update:modelValue"]);
 
 const loading = ref(false);
 const credential = ref(null);
+const shipment = ref(null);
 const errorText = ref("");
 const isLpa = computed(() => /^LPA:/i.test(credential.value?.lpa || ""));
 
 async function load() {
   loading.value = true;
   credential.value = null;
+  shipment.value = null;
   errorText.value = "";
   try {
     const res = await getCardCredential(props.cardId);
     if (res && res.success) {
-      credential.value = normalizeCredential(res.result);
-      if (!credential.value) errorText.value = "激活码尚未发放，请稍后再看";
+      shipment.value = shipmentOf(res.result);
+      credential.value = shipment.value ? null : normalizeCredential(res.result);
+      if (!credential.value && !shipment.value) errorText.value = props.physical ? "实体卡尚未寄出，请稍后再看" : "激活码尚未发放，请稍后再看";
     } else {
       errorText.value = failureMessage(res, "暂时无法查看激活码");
     }

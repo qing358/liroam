@@ -13,7 +13,7 @@ import com.liroam.supplier.spi.CredentialResult;
 import com.liroam.supplier.spi.SupplierCapabilities.CredentialChannel;
 
 /**
- * 三通道交码的唯一落库点：写 {@code lr_card_credential}（加密）后在同一事务内发布 {@link CredentialDelivered}；
+ * 三通道交码的唯一落库点：写 {@code lr_card_credential}（激活码加密；实体卡记物流）后在同一事务内发布 {@link CredentialDelivered}；
  * 卡状态、履约行、壳发货回写都只订阅事件推进。调用方须已开事务。
  */
 public class CredentialDeliveries {
@@ -36,6 +36,12 @@ public class CredentialDeliveries {
 
     public void deliverSealed(long cardAssetId, CredentialResult.Kind kind, Sealed payload, CredentialChannel channel, String operatorId) {
         credentials.insert(cardAssetId, kind.name(), payload, channel.name(), operatorId, clock.instant());
+        events.publishEvent(new CredentialDelivered(cardAssetId, channel));
+    }
+
+    public void deliverShipment(long cardAssetId, Shipment shipment, CredentialChannel channel, String operatorId) {
+        credentials.insertShipment(cardAssetId, shipment.logisticsRef(), shipment.logisticsCompany(), shipment.logisticsNo(), channel.name(),
+                operatorId, clock.instant());
         events.publishEvent(new CredentialDelivered(cardAssetId, channel));
     }
 

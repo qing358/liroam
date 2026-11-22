@@ -40,4 +40,17 @@ public final class FulfillmentSettings {
 
     public static final SettingKey<Duration> CREDENTIAL_TIMEOUT = SettingKey.scoped("credential.timeout", Duration.class, Duration.ofHours(2),
             "开通后多久未交码转人工待办", Type.SUPPLIER);
+
+    public static final SettingKey<Integer> ALERT_COMMAND_RETRY_ATTEMPTS = SettingKey.global("alert.command_retry_attempts", Integer.class, 3,
+            "指令重试到第几次仍未成功即告警");
+    public static final SettingKey<Integer> ALERT_RATE_LIMITED_PER_HOUR = SettingKey.global("alert.rate_limited_per_hour", Integer.class, 20,
+            "一小时内被本地限流推迟的指令数达到即告警");
+    public static final SettingKey<Integer> ALERT_MANUAL_BACKLOG = SettingKey.global("alert.manual_backlog", Integer.class, 20,
+            "人工待办积压条数达到即告警");
+    public static final SettingKey<Duration> ALERT_MANUAL_TASK_AGE = SettingKey.global("alert.manual_task_age", Duration.class, Duration.ofHours(24),
+            "人工待办超过此时长未处理即告警");
+    public static final SettingKey<Duration> ALERT_POLL_LAG = SettingKey.global("alert.poll_lag", Duration.class, Duration.ofMinutes(30),
+            "卡的用量查询晚于计划超过此时长即告警");
+    public static final SettingKey<Integer> ALERT_SHELL_DELIVERY_ATTEMPTS = SettingKey.global("alert.shell_delivery_attempts", Integer.class, 3,
+            "壳发货回写失败到第几次即告警");
 }

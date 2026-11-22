@@ -94,7 +94,7 @@ final class SmokeHarness implements AutoCloseable {
 
     /** 运营往供应商 A 的卡池导入空白卡（不带交码，交码之后走导入或人工录入）。 */
     void importPoolA(List<String> iccids) {
-        bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, iccids.stream().map(i -> new PoolItemRow(i, null)).toList(), "op-smoke");
+        bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, null, iccids.stream().map(i -> new PoolItemRow(i, null)).toList(), "op-smoke");
     }
 
     /**

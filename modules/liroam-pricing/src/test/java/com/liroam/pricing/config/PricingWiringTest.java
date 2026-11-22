@@ -2,6 +2,8 @@ package com.liroam.pricing.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Optional;
+
 import javax.sql.DataSource;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -16,6 +18,7 @@ import com.liroam.common.config.LiroamCommonAutoConfiguration;
 import com.liroam.common.testing.ItDatabase;
 import com.liroam.common.testing.TestKeys;
 import com.liroam.common.web.CurrentActor;
+import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.fx.FxSync;
 import com.liroam.pricing.fx.FxSyncJob;
 import com.liroam.pricing.mock.MockFxAutoConfiguration;
@@ -26,6 +29,7 @@ import com.liroam.pricing.price.ShellPriceWriter;
 import com.liroam.pricing.region.UsageRegionDescriber;
 import com.liroam.pricing.snapshot.OrderLineSnapshots;
 import com.liroam.pricing.tariff.TariffImports;
+import com.liroam.pricing.web.CatalogManagerController;
 import com.liroam.pricing.web.PricingBuyerController;
 import com.liroam.pricing.web.PricingManagerController;
 import com.liroam.schema.LiroamSchemaAutoConfiguration;
@@ -47,6 +51,7 @@ class PricingWiringTest {
                 .withBean(DataSource.class, () -> dataSource)
                 .withBean(PlatformTransactionManager.class, () -> new DataSourceTransactionManager(dataSource))
                 .withBean(ShellPriceWriter.class, () -> (sku, price) -> { })
+                .withBean(ShellSkuDirectory.class, () -> id -> Optional.empty())
                 .withBean(CurrentActor.class, () -> new CurrentActor() {
                     @Override
                     public String requireMemberId() {
@@ -76,7 +81,8 @@ class PricingWiringTest {
     @Test
     void managerSurfaceRegistersManagerControllerOnly() {
         runner().withPropertyValues("liroam.web.surface=manager").run(ctx -> assertThat(ctx).hasNotFailed()
-                .hasSingleBean(PricingManagerController.class).doesNotHaveBean(PricingBuyerController.class));
+                .hasSingleBean(PricingManagerController.class).hasSingleBean(CatalogManagerController.class)
+                .doesNotHaveBean(PricingBuyerController.class));
     }
 
     @Test

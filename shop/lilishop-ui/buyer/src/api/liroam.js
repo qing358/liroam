@@ -17,6 +17,11 @@ export function getCardCredential(id) {
   return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/credential`, method: Method.GET, needToken: true });
 }
 
+/** 买家自报已完成实名（实名后交付的卡随即发放），返回最新 CardView */
+export function declareCardKyc(id) {
+  return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/kyc-declaration`, method: Method.POST, needToken: true, headers: JSON_HEADERS, data: {} });
+}
+
 /** 可加的套餐 [{skuId, goodsId, name, priceFen}] */
 export function getTopUpOptions(id) {
   return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/topup-options`, method: Method.GET, needToken: true });

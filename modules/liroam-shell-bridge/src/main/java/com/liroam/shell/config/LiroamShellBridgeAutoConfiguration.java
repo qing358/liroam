@@ -20,12 +20,15 @@ import com.liroam.fulfillment.FulfillmentRules;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
+import com.liroam.fulfillment.delivery.CardShipments;
 import com.liroam.fulfillment.task.ManualTasks;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
+import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.price.ShellPriceWriter;
 import com.liroam.pricing.snapshot.OrderLineSnapshots;
+import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
-import com.liroam.shell.order.NoDeliveryShipping;
+import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
 import com.liroam.shell.order.PaidOrderFulfillment;
@@ -58,9 +61,14 @@ public class LiroamShellBridgeAutoConfiguration {
     }
 
     @Bean
-    ShellOrderDelivery liroamNoDeliveryShipping(OrderService orderService, OrderItemService orderItemService, SkuBindings liroamSkuBindings,
-            ManualTasks liroamManualTasks) {
-        return new NoDeliveryShipping(orderService, orderItemService, liroamSkuBindings, liroamManualTasks);
+    ShellSkuDirectory liroamShellGoodsSkus(GoodsSkuService goodsSkuService) {
+        return new ShellGoodsSkus(goodsSkuService);
+    }
+
+    @Bean
+    ShellOrderDelivery liroamShellShipping(OrderService orderService, OrderItemService orderItemService, SkuBindings liroamSkuBindings,
+            CardShipments liroamCardShipments, ManualTasks liroamManualTasks) {
+        return new ShellShipping(orderService, orderItemService, liroamSkuBindings, liroamCardShipments, liroamManualTasks);
     }
 
     @Bean

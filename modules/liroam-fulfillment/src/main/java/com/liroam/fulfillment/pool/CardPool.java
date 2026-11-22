@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -55,8 +57,9 @@ public class CardPool {
         this.audit = audit;
     }
 
-    public ImportReport importItems(long supplierId, long cardProductId, List<PoolItemRow> rows, String actor) {
-        String form = poolForm(supplierId, cardProductId);
+    /** @param form 池卡形态（实体卡库存为 PHYSICAL）；null = 卡产品允许形态里 eSIM 优先 */
+    public ImportReport importItems(long supplierId, long cardProductId, String form, List<PoolItemRow> rows, String actor) {
+        String poolForm = poolForm(supplierId, cardProductId, form);
         return tx.execute(status -> {
             int imported = 0;
             int duplicates = 0;
@@ -77,7 +80,7 @@ public class CardPool {
                 }
                 Sealed sealedIccid = cipher.seal(SensitiveField.ICCID, iccid);
                 byte[] credential = row.lpa() == null || row.lpa().isBlank() ? null : cipher.seal(SensitiveField.CREDENTIAL, row.lpa().trim()).bytes();
-                items.insert(supplierId, cardProductId, form, sealedIccid, hash, SensitiveCipher.last4(iccid), credential, null);
+                items.insert(supplierId, cardProductId, poolForm, sealedIccid, hash, SensitiveCipher.last4(iccid), credential, null);
                 imported++;
             }
             audit.record(actor, "POOL_IMPORT", "CARD_PRODUCT", Long.toString(cardProductId), null,
@@ -132,11 +135,17 @@ public class CardPool {
         return jdbc.sql("SELECT COUNT(*) FROM lr_card_asset WHERE iccid_hash = ?").param(hash).query(Integer.class).single() > 0;
     }
 
-    /** 池卡形态取卡产品允许形态里的第一个（eSIM 优先）。 */
-    private String poolForm(long supplierId, long cardProductId) {
+    private String poolForm(long supplierId, long cardProductId, String requested) {
         String forms = jdbc.sql("SELECT allowed_forms FROM lr_card_product WHERE id = ? AND supplier_id = ?").params(cardProductId, supplierId)
                 .query(String.class).optional().orElseThrow(() -> new UserFacingException("卡产品不存在或不属于该供应商"));
-        List<String> allowed = List.of(forms.split(","));
-        return allowed.contains("ESIM") ? "ESIM" : allowed.getFirst().trim();
+        List<String> allowed = Arrays.stream(forms.split(",")).map(String::trim).toList();
+        if (requested == null || requested.isBlank()) {
+            return allowed.contains("ESIM") ? "ESIM" : allowed.getFirst();
+        }
+        String form = requested.trim().toUpperCase(Locale.ROOT);
+        if (!allowed.contains(form)) {
+            throw new UserFacingException("该卡产品不支持这种卡形态");
+        }
+        return form;
     }
 }

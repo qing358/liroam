@@ -26,9 +26,9 @@ INSERT INTO lr_tmp_menu_seed (id, level, name, title, parent_id, path, front_rou
 
     (9100000000000000110, 1, 'liroam-fulfillment', '卡与履约', '9100000000000000100', '/', 'Main', 'ios-card', 1, NULL, 'liroam 卡与履约'),
     (9100000000000000111, 2, 'liroamCards', '卡台账', '9100000000000000110', 'liroam-cards', 'liroam/cards/CardLedger', 'ios-card', 1,
-        '/manager/liroam/cards*,/manager/liroam/credentials*,/manager/liroam/pool*', '卡资产台账、交码录入与导入'),
+        '/manager/liroam/cards*,/manager/other/logistics*', '卡资产台账、交码 / 物流录入、实名核验与导入'),
     (9100000000000000112, 2, 'liroamManualTasks', '人工待办', '9100000000000000110', 'liroam-manual-tasks', 'liroam/manual-tasks/ManualTasks', 'md-alert', 2,
-        '/manager/liroam/manual-tasks*', '履约异常人工处理'),
+        '/manager/liroam/cards/manual-tasks*', '履约异常人工处理'),
 
     (9100000000000000120, 1, 'liroam-refund', '退款', '9100000000000000100', '/', 'Main', 'md-list', 2, NULL, 'liroam 退款'),
     (9100000000000000121, 2, 'liroamRefunds', '退款单', '9100000000000000120', 'liroam-refunds', 'liroam/refunds/RefundCases', 'md-list', 1,
@@ -42,7 +42,15 @@ INSERT INTO lr_tmp_menu_seed (id, level, name, title, parent_id, path, front_rou
     (9100000000000000132, 2, 'liroamPricingSettings', '定价与汇率', '9100000000000000130', 'liroam-pricing-settings', 'liroam/pricing/PricingSettings', 'md-stats', 2,
         '/manager/liroam/settings/pricing*,/manager/liroam/fx*', '调价开关、阈值与汇率'),
     (9100000000000000133, 2, 'liroamTariffSheets', '资费表与区域', '9100000000000000130', 'liroam-tariff-sheets', 'liroam/pricing/TariffSheets', 'md-stats', 3,
-        '/manager/liroam/tariff-sheets*,/manager/liroam/card-products*', '供应商资费表导入与卡产品使用区域');
+        '/manager/liroam/tariff-sheets*,/manager/liroam/card-products*', '供应商资费表导入与卡产品使用区域'),
+
+    (9100000000000000140, 1, 'liroam-catalog', '商品', '9100000000000000100', '/', 'Main', 'md-pricetag', 0.5, NULL, 'liroam 旅行卡商品'),
+    (9100000000000000141, 2, 'liroamTravelCardSkus', '旅行卡商品', '9100000000000000140', 'liroam-travel-card-skus', 'liroam/catalog/TravelCardSkus', 'md-pricetag', 1,
+        '/manager/liroam/catalog*,/manager/liroam/sku-bindings*,/manager/liroam/card-products*', '卡产品、套餐模板与映射、SKU 绑定、售价与上下架'),
+
+    (9100000000000000150, 1, 'liroam-ops', '运维', '9100000000000000100', '/', 'Main', 'md-warning', 4, NULL, 'liroam 运维'),
+    (9100000000000000151, 2, 'liroamOpsAlerts', '运营告警', '9100000000000000150', 'liroam-ops-alerts', 'liroam/ops/OpsAlerts', 'md-warning', 1,
+        '/manager/liroam/ops*', '指令重试、限流、人工积压、交码超时、轮询滞后、回写失败、汇率过期');
 
 SET @liroam_has_menu := (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'li_menu');
 SET @liroam_menu_sql := IF(@liroam_has_menu > 0,

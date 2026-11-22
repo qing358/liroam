@@ -59,9 +59,9 @@ class CardPoolTest {
     void importEncryptsDedupesByHashAndStoresLpaCipherOnlyWhenGiven() {
         String first = h.upstreamA.idleIccid();
         String second = h.upstreamA.idleIccid();
-        pool.importItems(c.supplierA, c.productA, List.of(new PoolItemRow(first, null)), "op1");
+        pool.importItems(c.supplierA, c.productA, null, List.of(new PoolItemRow(first, null)), "op1");
 
-        ImportReport report = pool.importItems(c.supplierA, c.productA, List.of(
+        ImportReport report = pool.importItems(c.supplierA, c.productA, null, List.of(
                 new PoolItemRow(first.toLowerCase(), "LPA:1$dup$"),
                 new PoolItemRow(second.substring(0, 5) + " " + second.substring(5), "LPA:1$pool.example$X"),
                 new PoolItemRow(second, null),
@@ -93,7 +93,7 @@ class CardPoolTest {
         String iccid = h.bean(SensitiveCipher.class).open(SensitiveField.ICCID,
                 new Sealed(((Number) card.get("key_version")).intValue(), (byte[]) card.get("iccid_cipher")));
 
-        ImportReport report = pool.importItems(c.supplierA, c.productA, List.of(new PoolItemRow(iccid, null)), "op1");
+        ImportReport report = pool.importItems(c.supplierA, c.productA, null, List.of(new PoolItemRow(iccid, null)), "op1");
 
         assertThat(report.duplicates()).isEqualTo(1);
         assertThat(h.count("lr_card_pool_item")).isZero();
@@ -101,7 +101,18 @@ class CardPoolTest {
 
     @Test
     void productMustBelongToSupplier() {
-        assertThatThrownBy(() -> pool.importItems(c.supplierA, c.productB, List.of(), "op1")).isInstanceOf(UserFacingException.class);
+        assertThatThrownBy(() -> pool.importItems(c.supplierA, c.productB, null, List.of(), "op1")).isInstanceOf(UserFacingException.class);
+    }
+
+    @Test
+    void physicalStockIsSeparateFromEsimStockAndFormMustBeAllowed() {
+        pool.importItems(c.supplierA, c.productA, "physical", List.of(new PoolItemRow(h.upstreamA.idleIccid(), null)), "op1");
+
+        assertThat(h.jdbc.queryForList("SELECT form FROM lr_card_pool_item", String.class)).containsExactly("PHYSICAL");
+        h.acceptCard("O-P3", c.skuANew, "m1");
+        assertThat(h.count("lr_card_pool_item WHERE status = 'IN_STOCK'")).as("eSIM 单不占实体卡库存").isEqualTo(1);
+        assertThatThrownBy(() -> pool.importItems(c.supplierA, c.productA, "SOFT", List.of(), "op1")).isInstanceOf(UserFacingException.class)
+                .hasMessage("该卡产品不支持这种卡形态");
     }
 
     @Test

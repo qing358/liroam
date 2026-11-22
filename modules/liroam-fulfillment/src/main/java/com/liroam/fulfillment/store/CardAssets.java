@@ -11,6 +11,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import com.liroam.common.crypto.SensitiveCipher.Sealed;
 import com.liroam.common.time.UtcColumns;
 import com.liroam.fulfillment.state.CardAssetStatus;
+import com.liroam.fulfillment.state.KycStatus;
 
 /**
  * 卡资产仓储；只允许 fulfillment 模块使用（架构检查）。
@@ -131,6 +132,13 @@ public class CardAssets {
                        activated_at = IF(? = 'IN_USE' AND activated_at IS NULL, ?, activated_at)
                  WHERE id = ? AND status = ?
                 """).params(to.name(), exceptionFrom, at, to.name(), at, to.name(), at, card.id(), from.name()).update() == 1;
+    }
+
+    /** 实名状态迁移（CAS）；@return false = 并发下已被他人改动 */
+    public boolean moveKyc(long id, KycStatus from, KycStatus to) {
+        KycStatus.MACHINE.requireMove(from, to);
+        return jdbc.sql("UPDATE lr_card_asset SET kyc_status = ?, version = version + 1 WHERE id = ? AND kyc_status = ?")
+                .params(to.name(), id, from.name()).update() == 1;
     }
 
     public void setIccid(long id, Sealed sealed, byte[] hash, String last4) {

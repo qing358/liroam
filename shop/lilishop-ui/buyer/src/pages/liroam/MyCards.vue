@@ -2,7 +2,7 @@
   <div class="wrapper liroam-my-cards">
     <UserCenterLayout>
       <div class="cards-heading">
-        <div><h2>我的卡</h2><p>每张旅行卡的剩余流量、到期时间与激活码</p></div>
+        <div><h2>我的卡</h2><p>每张旅行卡的剩余额度、到期时间与激活码 / 物流</p></div>
         <el-button :loading="loading" @click="load">刷新</el-button>
       </div>
 
@@ -26,7 +26,9 @@
             </div>
           </div>
           <div class="travel-card__body">
-            <div class="travel-card__row"><label>剩余</label><span class="travel-card__strong">{{ card.remainingText || "—" }}</span></div>
+            <div v-for="(row, i) in quotaRows(card)" :key="row.label" class="travel-card__row">
+              <label>{{ row.label }}</label><span :class="{ 'travel-card__strong': i === 0 }">{{ row.value }}</span>
+            </div>
             <div class="travel-card__row"><label>到期</label><span>{{ card.expiresText || "—" }}</span></div>
             <div v-if="card.updatedText" class="travel-card__updated">更新于 {{ card.updatedText }}</div>
           </div>
@@ -49,7 +51,7 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@/utils/message";
 import { listMyCards } from "@/api/liroam";
-import { cardFormText, failureMessage, listOf } from "@/utils/liroam";
+import { cardFormText, failureMessage, listOf, quotaRows } from "@/utils/liroam";
 import TopUpDialog from "./components/TopUpDialog.vue";
 import RefundDialog from "./components/RefundDialog.vue";
 

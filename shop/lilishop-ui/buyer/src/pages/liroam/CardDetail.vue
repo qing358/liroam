@@ -16,13 +16,18 @@
           <el-descriptions :column="2" class="detail-fields">
             <el-descriptions-item label="使用区域">{{ card.usageRegionName || "—" }}</el-descriptions-item>
             <el-descriptions-item label="形态">{{ cardFormText(card) || "—" }}</el-descriptions-item>
-            <el-descriptions-item label="剩余">{{ card.remainingText || "—" }}</el-descriptions-item>
+            <el-descriptions-item v-if="card.capabilityText" label="能力">{{ card.capabilityText }}</el-descriptions-item>
+            <el-descriptions-item v-for="row in quotaRows(card)" :key="row.label" :label="row.label">{{ row.value }}</el-descriptions-item>
             <el-descriptions-item label="到期">{{ card.expiresText || "—" }}</el-descriptions-item>
             <el-descriptions-item label="卡号尾号">{{ card.iccidLast4 || "—" }}</el-descriptions-item>
             <el-descriptions-item label="更新于">{{ card.updatedText || "—" }}</el-descriptions-item>
           </el-descriptions>
+          <div v-if="kyc" :class="['detail-kyc', `detail-kyc--${kyc.type}`]">
+            <span>{{ kyc.text }}</span>
+            <el-button v-if="kyc.action" type="primary" size="small" :loading="declaring" @click="declareKyc">我已完成实名</el-button>
+          </div>
           <div class="detail-actions">
-            <el-button type="primary" plain @click="credentialVisible = true">查看激活码</el-button>
+            <el-button v-if="!card.kycBlocking" type="primary" plain @click="credentialVisible = true">{{ credentialLabel(card) }}</el-button>
             <el-button v-if="card.canTopUp" type="primary" @click="topUpVisible = true">加包</el-button>
             <el-button v-if="card.canRefund" @click="refundVisible = true">申请退款</el-button>
             <el-button :loading="loading" @click="load">刷新</el-button>
@@ -35,8 +40,14 @@
           <el-table-column label="状态" width="120">
             <template #default="{ row }">{{ row.statusText || row.status }}</template>
           </el-table-column>
-          <el-table-column label="剩余" min-width="140">
+          <el-table-column label="流量剩余" min-width="120">
             <template #default="{ row }">{{ row.remainingText || "—" }}</template>
+          </el-table-column>
+          <el-table-column v-if="card.voiceRemainingText" label="语音剩余" min-width="100">
+            <template #default="{ row }">{{ row.voiceRemainingText || "—" }}</template>
+          </el-table-column>
+          <el-table-column v-if="card.smsRemainingText" label="短信剩余" min-width="100">
+            <template #default="{ row }">{{ row.smsRemainingText || "—" }}</template>
           </el-table-column>
           <el-table-column label="到期" min-width="160">
             <template #default="{ row }">{{ row.expiresText || "—" }}</template>
@@ -46,7 +57,7 @@
     </UserCenterLayout>
 
     <template v-if="card">
-      <CredentialDialog v-model="credentialVisible" :card-id="card.id" />
+      <CredentialDialog v-model="credentialVisible" :card-id="card.id" :physical="card.form === 'PHYSICAL'" />
       <TopUpDialog v-model="topUpVisible" :card="card" />
       <RefundDialog v-model="refundVisible" :card="card" @done="load" />
     </template>
@@ -59,8 +70,9 @@ import { useRoute, useRouter } from "vue-router";
 import { ElDescriptions, ElDescriptionsItem } from "element-plus";
 import "element-plus/es/components/descriptions/style/css";
 import "element-plus/es/components/descriptions-item/style/css";
-import { getMyCard } from "@/api/liroam";
-import { cardFormText, failureMessage, listOf } from "@/utils/liroam";
+import { Message } from "@/utils/message";
+import { declareCardKyc, getMyCard } from "@/api/liroam";
+import { cardFormText, credentialLabel, failureMessage, kycNotice, listOf, quotaRows } from "@/utils/liroam";
 import CredentialDialog from "./components/CredentialDialog.vue";
 import TopUpDialog from "./components/TopUpDialog.vue";
 import RefundDialog from "./components/RefundDialog.vue";
@@ -76,6 +88,26 @@ const credentialVisible = ref(false);
 const topUpVisible = ref(false);
 const refundVisible = ref(false);
 const plans = computed(() => listOf(card.value?.plans));
+const kyc = computed(() => kycNotice(card.value));
+const declaring = ref(false);
+
+async function declareKyc() {
+  declaring.value = true;
+  try {
+    const res = await declareCardKyc(card.value.id);
+    if (res && res.success) {
+      Message.success("已提交实名");
+      if (res.result) card.value = res.result;
+      load();
+    } else {
+      Message.error(failureMessage(res, "提交失败，请稍后重试"));
+    }
+  } catch {
+    Message.error("提交失败，请稍后重试");
+  } finally {
+    declaring.value = false;
+  }
+}
 
 let requestId = 0;
 async function load() {
@@ -116,6 +148,10 @@ watch(() => route.query.id, (id) => { if (id) { card.value = null; load(); } }, 
   .detail-status { padding: 1px 7px; border-radius: 4px; background: #e8f1ff; color: #3a6fd8; font-size: 12px; }
   .detail-hold { padding: 1px 7px; border-radius: 4px; background: #fdf6ec; color: #e6a23c; font-size: 12px; }
   .detail-actions { margin-top: 8px; }
+  .detail-kyc { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; padding: 10px 14px; border-radius: 6px; font-size: 13px; }
+  .detail-kyc--warning { background: #fdf6ec; color: #b88230; }
+  .detail-kyc--info { background: #f4f4f5; color: #606266; }
+  .detail-kyc--error { background: #fef0f0; color: #c45656; }
   .detail-section-title { margin: 24px 0 12px; font-size: 15px; font-weight: 600; color: #303133; }
 }
 </style>

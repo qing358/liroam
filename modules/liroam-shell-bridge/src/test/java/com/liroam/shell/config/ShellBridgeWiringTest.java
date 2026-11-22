@@ -20,11 +20,13 @@ import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
+import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.price.ShellPriceWriter;
 import com.liroam.refund.config.LiroamRefundAutoConfiguration;
 import com.liroam.schema.LiroamSchemaAutoConfiguration;
+import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
-import com.liroam.shell.order.NoDeliveryShipping;
+import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
 import com.liroam.shell.order.TradeIntoDbListener;
@@ -73,8 +75,9 @@ class ShellBridgeWiringTest {
     void shellHooksFillThePortsOfOwnModules() {
         runner().run(ctx -> {
             assertThat(ctx).hasNotFailed().hasSingleBean(TradeIntoDbListener.class);
-            assertThat(ctx.getBean(ShellOrderDelivery.class)).isInstanceOf(NoDeliveryShipping.class);
+            assertThat(ctx.getBean(ShellOrderDelivery.class)).isInstanceOf(ShellShipping.class);
             assertThat(ctx.getBean(ShellPriceWriter.class)).isInstanceOf(ShellSkuPriceWriter.class);
+            assertThat(ctx.getBean(ShellSkuDirectory.class)).isInstanceOf(ShellGoodsSkus.class);
             assertThat(ctx.getBean(CurrentActor.class)).isInstanceOf(ShellCurrentActor.class);
         });
     }

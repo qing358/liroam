@@ -69,7 +69,8 @@ class PaidOrderCompensationScannerTest {
                 }, inv.getArgument(0, String.class)));
         JdbcClient client = JdbcClient.create(ds);
         SkuBindings bindings = new SkuBindings(client);
-        FulfillmentRules rules = new FulfillmentRules(bindings, new SupplierDirectory(client), new CardAssets(client));
+        FulfillmentRules rules = new FulfillmentRules(bindings, new SupplierDirectory(client), new CardAssets(client),
+                new com.liroam.common.setting.Settings(client, new com.liroam.common.audit.AuditLog(client)));
         FulfillmentEntry entry = new FulfillmentEntry(rules, new FulfillmentLines(client));
         TransactionTemplate tx = new TransactionTemplate(new DataSourceTransactionManager(ds));
         scanner = new PaidOrderCompensationScanner(client,

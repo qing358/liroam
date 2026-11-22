@@ -32,7 +32,8 @@ public class CardQueries {
     public record CardFilter(String status, String supplierCode, String keyword, int pageNumber, int pageSize) {
     }
 
-    public record CredentialView(String kind, String payload, String channel, String deliveredText) {
+    /** 实体卡（{@code kind = SHIPMENT}）无 {@code payload}，给物流公司与运单号。 */
+    public record CredentialView(String kind, String payload, String channel, String deliveredText, String logisticsCompany, String logisticsNo) {
 
         @Override
         public String toString() {
@@ -47,17 +48,19 @@ public class CardQueries {
     private static final String CARD_SELECT = """
             SELECT c.id, c.card_no, p.name AS product_name, COALESCE(r.name_zh, g.name_zh) AS usage_region_name, c.form, c.status, c.refund_hold,
                    c.iccid_last4, s.code AS supplier_code, c.owner_member_id, l.source_ref AS order_sn, c.expires_at, c.last_polled_at,
-                   c.updated_at, c.created_at
+                   c.updated_at, c.created_at, p.cap_data, p.cap_voice, p.cap_sms, c.kyc_status, b.kyc_gate_mode
               FROM lr_card_asset c
               JOIN lr_card_product p ON p.id = c.card_product_id
               JOIN lr_supplier s ON s.id = c.supplier_id
               JOIN lr_fulfillment_line l ON l.id = c.fulfillment_line_id
+              JOIN lr_sku_binding b ON b.id = l.sku_binding_id
               LEFT JOIN lr_usage_region r ON r.id = c.region_id
               LEFT JOIN lr_region_group g ON g.id = c.region_group_id
             """;
     private static final String PLAN_SELECT = """
             SELECT cp.id, cp.card_asset_id, t.name, cp.status, cp.remaining_bytes, cp.expires_at, t.data_quota_bytes AS template_quota_bytes,
-                   t.validity_days
+                   t.validity_days, cp.voice_remaining_seconds, t.voice_seconds AS template_voice_seconds, cp.sms_remaining,
+                   t.sms_count AS template_sms_count
               FROM lr_card_plan cp JOIN lr_plan_template t ON t.id = cp.plan_template_id
             """;
 
@@ -199,6 +202,7 @@ public class CardQueries {
 
     private CredentialView view(Credential c) {
         String payload = c.sealedPayload().map(s -> cipher.open(SensitiveField.CREDENTIAL, s)).orElse(null);
-        return new CredentialView(c.kind(), payload, c.channel(), DisplayTime.format(UtcColumns.fromColumn(c.deliveredAt())));
+        return new CredentialView(c.kind(), payload, c.channel(), DisplayTime.format(UtcColumns.fromColumn(c.deliveredAt())), c.logisticsCompany(),
+                c.logisticsNo());
     }
 }

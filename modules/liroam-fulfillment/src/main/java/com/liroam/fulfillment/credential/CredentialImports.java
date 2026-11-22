@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.transaction.support.TransactionOperations;
 
+import com.liroam.catalog.CardForm;
 import com.liroam.common.audit.AuditLog;
 import com.liroam.common.crypto.SensitiveCipher;
 import com.liroam.common.crypto.SensitiveField;
@@ -88,6 +89,9 @@ public class CredentialImports {
         byte[] hash = cipher.hash(SensitiveField.ICCID, iccid);
         Optional<Card> card = cards.findByIccidHash(hash).flatMap(c -> cards.lock(c.id()));
         if (card.isPresent()) {
+            if (CardForm.shipsPhysically(card.get().form())) {
+                return "实体卡请录入物流单号";
+            }
             if (!CredentialEntry.accepts(card.get())) {
                 return "卡当前状态 " + card.get().status() + " 不能交码";
             }

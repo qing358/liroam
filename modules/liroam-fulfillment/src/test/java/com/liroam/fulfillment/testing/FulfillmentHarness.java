@@ -124,7 +124,7 @@ public final class FulfillmentHarness implements AutoCloseable {
     public void reset() {
         LEDGER_TABLES.forEach(t -> jdbc.update("DELETE FROM " + t));
         jdbc.update("UPDATE lr_supplier SET rate_limit_per_min = NULL, enabled = 1, listing_enabled = 1");
-        jdbc.update("UPDATE lr_sku_binding SET listing_state = 'LISTED', kyc_gate_mode = 'NONE'");
+        jdbc.update("UPDATE lr_sku_binding SET listing_state = 'LISTED', kyc_gate_mode = 'NONE', numbered_gate = 0");
         upstreamA.reset();
         upstreamB.reset();
         capsA.reset();
@@ -158,6 +158,11 @@ public final class FulfillmentHarness implements AutoCloseable {
 
     /** 往供应商 A 的卡池导入 n 张上游空闲卡；{@code withLpa} 时随批带交码内容。 */
     public List<String> importPoolA(int n, boolean withLpa) {
+        return importPoolA(n, withLpa, null);
+    }
+
+    /** @param form null = eSIM；实体卡库存传 PHYSICAL */
+    public List<String> importPoolA(int n, boolean withLpa, String form) {
         List<String> iccids = new ArrayList<>();
         List<PoolItemRow> rows = new ArrayList<>();
         for (int i = 0; i < n; i++) {
@@ -165,7 +170,7 @@ public final class FulfillmentHarness implements AutoCloseable {
             iccids.add(iccid);
             rows.add(new PoolItemRow(iccid, withLpa ? "LPA:1$pool.example$" + iccid : null));
         }
-        bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, rows, "op-test");
+        bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, form, rows, "op-test");
         return iccids;
     }
 

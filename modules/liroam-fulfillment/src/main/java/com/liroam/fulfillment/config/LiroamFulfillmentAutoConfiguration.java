@@ -36,12 +36,15 @@ import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.credential.CredentialTimeouts;
 import com.liroam.fulfillment.delivery.ShellDeliveries;
 import com.liroam.fulfillment.card.CardActions;
+import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.credential.CredentialDeliveries;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
+import com.liroam.fulfillment.delivery.CardShipments;
 import com.liroam.fulfillment.delivery.DeliveryProgress;
 import com.liroam.fulfillment.delivery.LineProgress;
+import com.liroam.fulfillment.ops.FulfillmentAlerts;
 import com.liroam.fulfillment.poll.CardRefresh;
 import com.liroam.fulfillment.poll.PollScheduler;
 import com.liroam.fulfillment.poll.PollTiers;
@@ -105,8 +108,9 @@ public class LiroamFulfillmentAutoConfiguration {
     }
 
     @Bean
-    FulfillmentRules liroamFulfillmentRules(SkuBindings liroamSkuBindings, SupplierDirectory liroamSupplierDirectory, CardAssets liroamCardAssets) {
-        return new FulfillmentRules(liroamSkuBindings, liroamSupplierDirectory, liroamCardAssets);
+    FulfillmentRules liroamFulfillmentRules(SkuBindings liroamSkuBindings, SupplierDirectory liroamSupplierDirectory, CardAssets liroamCardAssets,
+            Settings liroamSettings) {
+        return new FulfillmentRules(liroamSkuBindings, liroamSupplierDirectory, liroamCardAssets, liroamSettings);
     }
 
     @Bean
@@ -190,6 +194,22 @@ public class LiroamFulfillmentAutoConfiguration {
     CredentialEntry liroamCredentialEntry(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets,
             CredentialDeliveries liroamCredentialDeliveries, AuditLog liroamAuditLog) {
         return new CredentialEntry(liroamFulfillmentTx, liroamCardAssets, liroamCredentialDeliveries, liroamAuditLog);
+    }
+
+    @Bean
+    CardKyc liroamCardKyc(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, CredentialDeliveries liroamCredentialDeliveries,
+            AuditLog liroamAuditLog) {
+        return new CardKyc(liroamFulfillmentTx, liroamCardAssets, liroamCredentialDeliveries, liroamAuditLog);
+    }
+
+    @Bean
+    FulfillmentAlerts liroamFulfillmentAlerts(JdbcClient liroamJdbcClient, Settings liroamSettings) {
+        return new FulfillmentAlerts(liroamJdbcClient, liroamSettings);
+    }
+
+    @Bean
+    CardShipments liroamCardShipments(JdbcClient liroamJdbcClient) {
+        return new CardShipments(liroamJdbcClient);
     }
 
     @Bean
@@ -278,8 +298,8 @@ public class LiroamFulfillmentAutoConfiguration {
 
         @Bean
         BuyerCardController liroamBuyerCardController(CurrentActor actor, CardQueries liroamCardQueries, CardRefresh liroamCardRefresh,
-                TopUpIntents liroamTopUpIntents) {
-            return new BuyerCardController(actor, liroamCardQueries, liroamCardRefresh, liroamTopUpIntents);
+                TopUpIntents liroamTopUpIntents, CardKyc liroamCardKyc) {
+            return new BuyerCardController(actor, liroamCardQueries, liroamCardRefresh, liroamTopUpIntents, liroamCardKyc);
         }
     }
 
@@ -290,9 +310,9 @@ public class LiroamFulfillmentAutoConfiguration {
 
         @Bean
         ManagerCardController liroamManagerCardController(CurrentActor actor, CardQueries liroamCardQueries, CredentialEntry liroamCredentialEntry,
-                CredentialImports liroamCredentialImports, CardPool liroamCardPool, ManualTasks liroamManualTasks) {
+                CredentialImports liroamCredentialImports, CardPool liroamCardPool, ManualTasks liroamManualTasks, CardKyc liroamCardKyc) {
             return new ManagerCardController(actor, liroamCardQueries, liroamCredentialEntry, liroamCredentialImports, liroamCardPool,
-                    liroamManualTasks);
+                    liroamManualTasks, liroamCardKyc);
         }
     }
 }

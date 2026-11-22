@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.springframework.transaction.support.TransactionOperations;
 
+import com.liroam.catalog.CardForm;
 import com.liroam.common.audit.AuditLog;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.state.CardAssetStatus;
@@ -13,7 +14,7 @@ import com.liroam.fulfillment.store.CardAssets.Card;
 import com.liroam.supplier.spi.CredentialResult;
 import com.liroam.supplier.spi.SupplierCapabilities.CredentialChannel;
 
-/** MANUAL 通道：运营在后台给一张卡录入激活码（首次交付或替换）。 */
+/** MANUAL 通道：运营在后台给一张卡录入激活码，或给实体卡录入物流（首次交付或替换）。 */
 public class CredentialEntry {
 
     private static final Set<CardAssetStatus> ACCEPTS_CREDENTIAL = EnumSet.of(CardAssetStatus.ALLOCATED, CardAssetStatus.PROVISIONED,
@@ -43,11 +44,33 @@ public class CredentialEntry {
         }
         tx.executeWithoutResult(status -> {
             Card card = cards.lock(cardAssetId).orElseThrow(() -> new UserFacingException("找不到这张卡"));
+            if (CardForm.shipsPhysically(card.form())) {
+                throw new UserFacingException("实体卡请录入物流单号");
+            }
             if (!accepts(card)) {
                 throw new UserFacingException("这张卡当前状态不能录入激活码");
             }
             deliveries.deliver(card.id(), CredentialResult.Kind.LPA, lpa.trim(), CredentialChannel.MANUAL, actor);
             audit.record(actor, "CREDENTIAL_ENTER", "CARD", Long.toString(card.id()), null, null);
+        });
+    }
+
+    public void enterShipment(long cardAssetId, Shipment shipment, String actor) {
+        if (shipment == null || !shipment.complete()) {
+            throw new UserFacingException("请选择物流公司并填写运单号");
+        }
+        Shipment s = shipment.trimmed();
+        tx.executeWithoutResult(status -> {
+            Card card = cards.lock(cardAssetId).orElseThrow(() -> new UserFacingException("找不到这张卡"));
+            if (!CardForm.shipsPhysically(card.form())) {
+                throw new UserFacingException("eSIM 卡无需物流，请录入激活码");
+            }
+            if (!accepts(card)) {
+                throw new UserFacingException("这张卡当前状态不能录入物流");
+            }
+            deliveries.deliverShipment(card.id(), s, CredentialChannel.MANUAL, actor);
+            audit.record(actor, "SHIPMENT_ENTER", "CARD", Long.toString(card.id()), null,
+                    "{\"logisticsRef\":\"" + s.logisticsRef().replace("\"", "") + "\"}");
         });
     }
 }

@@ -7,14 +7,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.liroam.catalog.CardForm;
+
 /**
  * 卡资费表「卡类型」原文 ↔ 卡形态。可售形态只从有卡费报价的 eSIM / 实体卡导出；
  * 「纯软件卡 Profile」要买家自备软卡设备，是否开卖由运营另定，不自动放开。
  */
 public final class CardForms {
 
-    public static final String ESIM = "ESIM";
-    public static final String PHYSICAL = "PHYSICAL";
+    public static final String ESIM = CardForm.ESIM.name();
+    public static final String PHYSICAL = CardForm.PHYSICAL.name();
     private static final String DEFAULT_FORMS = ESIM + "," + PHYSICAL;
 
     private static final Map<String, String> ITEM_WORDS = Map.of("ESIM", ESIM, "实体卡", PHYSICAL);

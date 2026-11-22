@@ -8,10 +8,10 @@ const path = require('node:path');
 
 function load() {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/liroam.js'), 'utf8').replace(/^export /gm, '');
-  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType };')();
+  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows };')();
 }
 
-const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType } = load();
+const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType, shipmentOf, credentialLabel, kycNotice, quotaRows } = load();
 
 test('结算方式：旅行卡一律立即购买（普通订单），其它虚拟商品沿用壳的核销型 VIRTUAL，实物为 BUY_NOW', () => {
   assert.equal(checkoutCartType({ goodsType: 'VIRTUAL_GOODS', travelCard: true }), 'BUY_NOW');
@@ -81,4 +81,39 @@ test('失败提示：优先后端 message，其次兜底文案', () => {
   assert.equal(failureMessage({ success: false, message: '不能跨供应商加包' }, '操作失败'), '不能跨供应商加包');
   assert.equal(failureMessage({ success: false }, '操作失败'), '操作失败');
   assert.equal(failureMessage(undefined, '操作失败'), '操作失败');
+});
+
+test('实体卡交付内容是物流：SHIPMENT 取物流公司与运单号，其它返回 null；激活码解析不把物流当激活码', () => {
+  const shipment = { kind: 'SHIPMENT', payload: null, logisticsCompany: '顺丰速运', logisticsNo: 'SF001' };
+  assert.deepEqual(shipmentOf(shipment), { company: '顺丰速运', no: 'SF001' });
+  assert.equal(shipmentOf({ kind: 'LPA', payload: 'LPA:1$a$b' }), null);
+  assert.equal(shipmentOf(null), null);
+  assert.equal(normalizeCredential(shipment), null);
+});
+
+test('交付入口文案：实体卡看物流，其它看激活码', () => {
+  assert.equal(credentialLabel({ form: 'PHYSICAL' }), '查看物流');
+  assert.equal(credentialLabel({ form: 'ESIM' }), '查看激活码');
+  assert.equal(credentialLabel(null), '查看激活码');
+});
+
+test('实名提示：挡交付时强提示，提示模式可选提交，已提交/无需实名不提示', () => {
+  assert.deepEqual(kycNotice({ kycBlocking: true, canDeclareKyc: true }), {
+    type: 'warning', text: '该卡使用地区要求实名登记，完成实名并提交后才会发放。', action: true,
+  });
+  assert.deepEqual(kycNotice({ kycBlocking: false, canDeclareKyc: true }), {
+    type: 'info', text: '该卡使用地区建议实名登记，完成后可在此提交。', action: true,
+  });
+  assert.deepEqual(kycNotice({ kycBlocking: true, canDeclareKyc: true, kycStatus: 'REJECTED' }), {
+    type: 'error', text: '实名未通过，请按要求重新完成实名后再次提交。', action: true,
+  });
+  assert.equal(kycNotice({ kycBlocking: false, canDeclareKyc: false }), null);
+});
+
+test('额度行：流量总在，语音短信只在产品有该能力（后端给非空）时出现', () => {
+  assert.deepEqual(quotaRows({ remainingText: '3 GB' }), [{ label: '流量剩余', value: '3 GB' }]);
+  assert.deepEqual(quotaRows({ remainingText: '4 GB', voiceRemainingText: '45 分钟', smsRemainingText: '47 条' }), [
+    { label: '流量剩余', value: '4 GB' }, { label: '语音剩余', value: '45 分钟' }, { label: '短信剩余', value: '47 条' },
+  ]);
+  assert.deepEqual(quotaRows({}), [{ label: '流量剩余', value: '—' }]);
 });

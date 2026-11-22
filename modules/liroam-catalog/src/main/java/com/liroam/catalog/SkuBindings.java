@@ -14,7 +14,8 @@ public class SkuBindings {
 
     private static final String SELECT = """
             SELECT id, li_goods_sku_id AS shell_sku_id, li_goods_id AS shell_goods_id, sku_kind, supplier_id, card_product_id,
-                   region_id, region_group_id, form, plan_template_id, offering_id, listing_state, numbered_gate
+                   region_id, region_group_id, form, plan_template_id, offering_id, listing_state, numbered_gate,
+                   kyc_gate_mode
               FROM lr_sku_binding
             """;
 

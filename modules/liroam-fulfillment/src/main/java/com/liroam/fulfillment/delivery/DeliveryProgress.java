@@ -5,9 +5,11 @@ import java.time.Instant;
 
 import org.springframework.context.event.EventListener;
 
+import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.fulfillment.CredentialDelivered;
 import com.liroam.fulfillment.poll.PollTiers;
 import com.liroam.fulfillment.state.CardAssetStatus;
+import com.liroam.fulfillment.state.KycStatus;
 import com.liroam.fulfillment.store.CardAssets;
 import com.liroam.fulfillment.store.CardAssets.Card;
 import com.liroam.fulfillment.store.FulfillmentLines;
@@ -49,7 +51,7 @@ public class DeliveryProgress {
     }
 
     private boolean blockedByKyc(Card card) {
-        return "BLOCK_DELIVERY".equals(lines.kycGateMode(card.fulfillmentLineId()))
-                && !"NOT_REQUIRED".equals(card.kycStatus()) && !"APPROVED".equals(card.kycStatus());
+        return lines.kycGateMode(card.fulfillmentLineId()) == KycGateMode.BLOCK_DELIVERY
+                && !KycStatus.valueOf(card.kycStatus()).passesGate();
     }
 }

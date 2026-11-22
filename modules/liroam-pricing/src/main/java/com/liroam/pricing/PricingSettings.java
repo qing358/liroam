@@ -1,6 +1,7 @@
 package com.liroam.pricing;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 
 import com.liroam.common.setting.SettingKey;
 import com.liroam.common.setting.SettingScope;
@@ -33,4 +34,7 @@ public final class PricingSettings {
 
     public static final SettingKey<CarrierRule> TARIFF_CARRIER_RULE = SettingKey.scoped("tariff.carrier_rule", CarrierRule.class,
             CarrierRule.MAX, "同国多运营商折成一条区域资费的规则", SettingScope.Type.SUPPLIER);
+
+    public static final SettingKey<Duration> ALERT_REPRICE_PENDING_AGE = SettingKey.global("alert.reprice_pending_age", Duration.class,
+            Duration.ofHours(24), "调价建议待确认超过此时长即告警");
 }

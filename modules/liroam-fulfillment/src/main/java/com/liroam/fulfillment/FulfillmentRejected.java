@@ -14,6 +14,7 @@ public class FulfillmentRejected extends RuntimeException {
         SKU_NOT_LISTED("该商品已下架"),
         SKU_KIND_MISMATCH("该商品不能用于当前操作"),
         SUPPLIER_NOT_LISTABLE("该商品暂不可售"),
+        NUMBERED_SKU_DISABLED("该商品暂不可售"),
         TOPUP_CARD_REQUIRED("请先选择要加包的卡"),
         TOPUP_QTY_NOT_ONE("加包每次只能购买 1 份，请分多次下单"),
         TOPUP_CARD_NOT_FOUND("找不到这张卡"),

@@ -7,7 +7,7 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 
 /**
- * 两家供应商的最小目录种子：A 卖日本、B 卖美国，各一个新卡 SKU 与一个加包 SKU（均已上架、有 ACTIVE 售价）。
+ * 两家供应商的最小目录种子：A 卖日本、B 卖美国（B 的卡产品带语音短信），各一个 eSIM 新卡 SKU、一个实体卡新卡 SKU 与一个加包 SKU（均已上架、有 ACTIVE 售价）。
  * 壳 SKU id 形如 {@code SKU-A} / {@code SKU-A-TOP}。供应商指向哪两个适配器、各套餐的上游套餐码由 {@link Upstreams} 定。
  */
 public final class TestCatalog {
@@ -29,6 +29,8 @@ public final class TestCatalog {
     public final long skuBNew;
     public final long skuATopUp;
     public final long skuBTopUp;
+    public final long skuAPhysical;
+    public final long skuBPhysical;
     public final long templateATopUp;
 
     private TestCatalog(JdbcTemplate jdbc, Upstreams up) {
@@ -39,12 +41,13 @@ public final class TestCatalog {
         supplierB = insert(jdbc, "INSERT INTO lr_supplier (code, name, adapter_key, enabled, listing_enabled) VALUES ('SUP_B', '供应商乙', '"
                 + up.adapterB() + "', 1, 1)");
         productA = insert(jdbc, "INSERT INTO lr_card_product (supplier_id, home_location, card_type_code, name, allowed_forms) VALUES ("
-                + supplierA + ", 'HK', 'A_T1', '亚洲漫游卡', 'ESIM')");
+                + supplierA + ", 'HK', 'A_T1', '亚洲漫游卡', 'ESIM,PHYSICAL')");
         productB = insert(jdbc, "INSERT INTO lr_card_product (supplier_id, home_location, card_type_code, name, allowed_forms, cap_voice, cap_sms) VALUES ("
-                + supplierB + ", 'US', 'B_T1', '美国畅游卡', 'ESIM', 1, 1)");
+                + supplierB + ", 'US', 'B_T1', '美国畅游卡', 'ESIM,PHYSICAL', 1, 1)");
         long tplA = template(jdbc, "日本 5 天 3GB", 3L << 30, 5);
         templateATopUp = template(jdbc, "日本加油包 1GB", 1L << 30, 5);
         long tplB = template(jdbc, "美国 7 天 5GB", 5L << 30, 7);
+        jdbc.update("UPDATE lr_plan_template SET voice_seconds = 6000, sms_count = 50 WHERE id = ?", tplB);
         long tplBTop = template(jdbc, "美国加油包 2GB", 2L << 30, 7);
         long offA = offering(jdbc, supplierA, productA, regionJp, tplA, "BASE", up.baseA());
         long offATop = offering(jdbc, supplierA, productA, regionJp, templateATopUp, "TOP_UP", up.topUpA());
@@ -54,10 +57,15 @@ public final class TestCatalog {
         skuATopUp = sku(jdbc, "SKU-A-TOP", "G-A-TOP", "TOP_UP", supplierA, productA, regionJp, templateATopUp, offATop);
         skuBNew = sku(jdbc, "SKU-B", "G-B", "NEW_CARD", supplierB, productB, regionUs, tplB, offB);
         skuBTopUp = sku(jdbc, "SKU-B-TOP", "G-B-TOP", "TOP_UP", supplierB, productB, regionUs, tplBTop, offBTop);
+        skuAPhysical = sku(jdbc, "SKU-A-SIM", "G-A-SIM", "NEW_CARD", supplierA, productA, regionJp, tplA, offA);
+        skuBPhysical = sku(jdbc, "SKU-B-SIM", "G-B-SIM", "NEW_CARD", supplierB, productB, regionUs, tplB, offB);
+        jdbc.update("UPDATE lr_sku_binding SET form = 'PHYSICAL' WHERE id IN (?, ?)", skuAPhysical, skuBPhysical);
         price(jdbc, skuANew, 4900);
         price(jdbc, skuATopUp, 1990);
         price(jdbc, skuBNew, 9900);
         price(jdbc, skuBTopUp, 2990);
+        price(jdbc, skuAPhysical, 5900);
+        price(jdbc, skuBPhysical, 10900);
     }
 
     static TestCatalog seed(JdbcTemplate jdbc) {

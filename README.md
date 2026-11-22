@@ -24,6 +24,8 @@ node scripts/dev.mjs up --ui=manager,buyer  # 按需只起列出的前端（mana
 node scripts/dev.mjs health      # 健康检查（前端只查本次 up 起过的），全部通过退出码 0，否则 1
 node scripts/dev.mjs status      # 地址与进程
 node scripts/dev.mjs down        # 停进程与容器，保留数据卷
+node scripts/dev.mjs backup      # 本机库逻辑全量备份到 temp/backups/lilishop-<UTC时间>.sql.gz（含触发器）
+node scripts/dev.mjs restore-drill [文件]  # 恢复演练：默认取最新备份，恢复到临时库 lilishop_restore_drill，逐表行数 + 触发器数比对后删除临时库
 ```
 
 首次 `up` 会在仓根生成 `.env`（本机随机口令，不入库，权限 600）。重建空库：`docker compose --env-file deploy/ports.env --env-file .env -f deploy/compose.yaml down -v` 后再 `up`。日志在 `.run/logs/`。
@@ -46,7 +48,7 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 
 - 上游基线 SQL（`shop/docker/init/mysql/lilishop.sql`，只在空数据卷首次启动时导入）：平台管理端 `admin` / `123456`；商家端 `13011111111` / `111111`（店铺「家家乐」）。
 - `deploy/dev-seed.sql`（每次 `up` 幂等执行，只针对本机 liroam 库，不进任何正式迁移）：补登录滑块素材（上游基线为空，否则三端登录页滑块无法生成）；打开上游的本机验收开关 `loginBypassEnabled`，服务端跳过 LOGIN 滑块校验，便于接口脚本直接登录。
-- 旅行卡演示目录（P2）：`up` 之后执行 `node scripts/dev.mjs demo`（幂等，可重复）。写 `deploy/dev-demo.sql`：两家模拟供应商 `SUP_A`（`mock-shape-a`，池卡 + 导入/人工交码）与 `SUP_B`（`mock-shape-b`，下单即建、接口交码）、套餐模板、5 个壳虚拟商品及旅行卡 SKU 绑定（A：日本/中国内地各一张新卡 + 日本加油包；B：日本新卡 + 加油包）；再经后台接口为两家各导入并启用 `docs/media` 里的资费表、同步模拟汇率、逐个手工定价（写回壳售价）、给 A 导 20 张池卡。商品页入口在命令输出末行。模拟适配器只在 dev/test 装配。
+- 旅行卡演示目录：`up` 之后执行 `node scripts/dev.mjs demo`（幂等，可重复）。写 `deploy/dev-demo.sql`：两家模拟供应商 `SUP_A`（`mock-shape-a`，池卡 + 导入/人工交码）与 `SUP_B`（`mock-shape-b`，下单即建、接口交码）、套餐模板、8 个壳商品及旅行卡 SKU 绑定（A：日本/中国内地各一张新卡 + 日本加油包；B：日本新卡 + 加油包、日本语音短信卡、香港实名后交付卡、日本实体卡〔实物商品、包邮，后台卡台账「录入物流」交付〕）；再经后台接口为两家各导入并启用 `docs/media` 里的资费表、同步模拟汇率、逐个手工定价（写回壳售价）、给 A 导 20 张池卡。四类卡的商品页入口在命令输出末尾。模拟适配器只在 dev/test 装配。
 - 买家端：在买家 PC 端「立即注册」自建账号。基线 `SMS_SETTING.isTestModel=true`，短信不真发，验证码固定 `111111`（上游演示约定）。
 
 ## 密钥与环境变量（只写变量名）
@@ -95,5 +97,7 @@ mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-arch
 自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。
 
 上游根 pom 默认跳过测试，不要加 `-DskipTests=false` 跑上游测试：有过时失败，且整上下文测试会直连本机 `localhost:6379`（见 `docs/upstream.md`）。
+
+运营告警看后台「旅行卡 › 运维 › 运营告警」（`/manager/liroam/ops/alerts`）；worker 进程每 5 分钟把当前告警逐条写 WARN 日志（`运维告警[级别][编码] ...`）。
 
 CI 同样两步（后端带 MySQL 服务容器，映射到 39306），见 `.github/workflows/ci.yml`。

@@ -19,10 +19,13 @@ import com.liroam.common.audit.AuditLog;
 import com.liroam.common.setting.Settings;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.WebSurface;
+import com.liroam.pricing.catalog.CatalogAdmin;
+import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.fx.FxRateSource;
 import com.liroam.pricing.fx.FxRates;
 import com.liroam.pricing.fx.FxSync;
 import com.liroam.pricing.fx.FxSyncJob;
+import com.liroam.pricing.ops.PricingAlerts;
 import com.liroam.pricing.price.CostCalculator;
 import com.liroam.pricing.price.CostVersions;
 import com.liroam.pricing.price.PriceVersions;
@@ -33,11 +36,12 @@ import com.liroam.pricing.region.RegionDictionary;
 import com.liroam.pricing.region.UsageRegionDescriber;
 import com.liroam.pricing.snapshot.OrderLineSnapshots;
 import com.liroam.pricing.tariff.TariffImports;
+import com.liroam.pricing.web.CatalogManagerController;
 import com.liroam.pricing.web.PricingBuyerController;
 import com.liroam.pricing.web.PricingManagerController;
 
 /**
- * 定价服务。{@link ShellPriceWriter}（H7）与 {@link CurrentActor} 由 {@code liroam-shell-bridge} 提供；
+ * 定价与旅行卡商品配置。{@link ShellPriceWriter}（H7）、{@link ShellSkuDirectory} 与 {@link CurrentActor} 由 {@code liroam-shell-bridge} 提供；
  * 汇率来源按 {@link FxRateSource} Bean 收集（mock 在 {@code ..pricing.mock..}，只 dev/test 装配）。
  */
 @AutoConfiguration(after = LiroamCatalogAutoConfiguration.class)
@@ -118,6 +122,23 @@ public class LiroamPricingAutoConfiguration {
     @ConditionalOnProperty(name = "liroam.worker.enabled", havingValue = "true")
     FxSyncJob liroamFxSyncJob(FxSync liroamFxSync, Settings liroamSettings, Environment env) {
         return new FxSyncJob(liroamFxSync, liroamSettings, ZoneId.of(env.getProperty("liroam.shell.zone", "Asia/Shanghai")));
+    }
+
+    @Bean
+    PricingAlerts liroamPricingAlerts(FxSync liroamFxSync, JdbcClient liroamJdbcClient, Settings liroamSettings) {
+        return new PricingAlerts(liroamFxSync, liroamJdbcClient, liroamSettings);
+    }
+
+    @Bean
+    CatalogAdmin liroamCatalogAdmin(JdbcClient liroamJdbcClient, TransactionTemplate liroamPricingTx, SkuBindings liroamSkuBindings,
+            PriceVersions liroamPriceVersions, ShellSkuDirectory shellSkuDirectory, AuditLog liroamAuditLog) {
+        return new CatalogAdmin(liroamJdbcClient, liroamPricingTx, liroamSkuBindings, liroamPriceVersions, shellSkuDirectory, liroamAuditLog);
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = WebSurface.PROPERTY, havingValue = WebSurface.MANAGER)
+    CatalogManagerController liroamCatalogManagerController(CurrentActor currentActor, CatalogAdmin liroamCatalogAdmin) {
+        return new CatalogManagerController(currentActor, liroamCatalogAdmin);
     }
 
     @Bean

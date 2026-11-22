@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 // liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件]
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
+import { pipeline } from 'node:stream/promises';
 import { fileURLToPath } from 'node:url';
+import zlib from 'node:zlib';
 
 import {
   backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava, selectFrontends,
 } from './lib/config.mjs';
+import { backupFileName, compareCounts, latestBackup, parseCounts } from './lib/backup.mjs';
 import { renderPcConfig } from '../shop/docker/scripts/dev-env-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -22,6 +25,7 @@ const composeFile = path.join(rootDir, 'deploy/compose.yaml');
 const runDir = path.join(rootDir, '.run');
 const logsDir = path.join(runDir, 'logs');
 const pidPath = path.join(runDir, 'pids.json');
+const backupDir = path.join(rootDir, 'temp/backups');
 
 const BACKENDS = [
   { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl', worker: true },
@@ -324,7 +328,7 @@ async function health() {
 }
 
 
-// 本机演示目录（P2 竖切）：两家模拟供应商、资费表导入启用、旅行卡 SKU 绑定与定价、池卡。幂等，可重复执行；要求 up 已起好后端。
+// 本机演示目录：两家模拟供应商、资费表导入启用、全卡型旅行卡 SKU 绑定（纯流量 / 语音短信 / 实名 / 实体卡）与定价、池卡。幂等，可重复执行；要求 up 已起好后端。
 const DEMO_SHEET = 'docs/media/202611-资费报价-想象智能-202611(20261117）.xlsx';
 const DEMO_POOL_SIZE = 20;
 
@@ -365,7 +369,10 @@ async function demo() {
     console.log(`- SUP_A 卡产品 #${sku.card_product_id} 池卡导入：${JSON.stringify(report)}`);
   }
   compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });
-  console.log(`\n演示目录就绪。买家端商品页：${config.buyerPcUrl}/goodsDetail?skuId=9100000000000001001&goodsId=9100000000000000001`);
+  console.log('\n演示目录就绪。买家端商品页：');
+  for (const [label, n] of [['纯流量 eSIM', 1], ['语音短信 eSIM', 6], ['实名后交付 eSIM', 7], ['实体卡（寄送）', 8]]) {
+    console.log(`- ${label}：${config.buyerPcUrl}/goodsDetail?skuId=910000000000000100${n}&goodsId=910000000000000000${n}`);
+  }
 }
 
 function parseTsv(out) {
@@ -405,10 +412,86 @@ function managerClient(baseUrl) {
   };
 }
 
+// 备份与恢复演练（§3.6）：本机演练用逻辑全量备份；生产按上线清单由 DBA 做全量 + binlog 增量，同一套演练口径。
+const DB = 'lilishop';
+const DRILL_DB = 'lilishop_restore_drill';
+// 不带 --databases：备份里没有 CREATE DATABASE / USE，恢复目标库由执行人指定，演练不会误写源库
+const DUMP_ARGS = '--single-transaction --routines --triggers --events --hex-blob --no-tablespaces --set-gtid-purged=OFF';
+
+function mysqlSh(command, { stdin = 'ignore' } = {}) {
+  return spawn('docker', ['compose', '--env-file', portsPath, '--env-file', secretsPath, '-f', composeFile,
+    'exec', '-T', 'mysql', 'sh', '-c', `MYSQL_PWD="$MYSQL_ROOT_PASSWORD" ${command}`], { cwd: rootDir, stdio: [stdin, 'pipe', 'pipe'] });
+}
+
+function finished(child, label) {
+  let stderr = '';
+  child.stderr.on('data', (d) => { stderr += d; });
+  return new Promise((resolve, reject) => child.on('close', (code) => (code === 0 ? resolve() : reject(new Error(`${label} 失败：${stderr.trim()}`)))));
+}
+
+function query(db, sql) {
+  const result = spawnSync('docker', ['compose', '--env-file', portsPath, '--env-file', secretsPath, '-f', composeFile,
+    'exec', '-T', 'mysql', 'sh', '-c', `MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --batch ${db}`], { cwd: rootDir, input: sql, encoding: 'utf8' });
+  if (result.status !== 0) throw new Error(`${db} 查询失败：${result.stderr}`);
+  return result.stdout;
+}
+
+function tableCounts(db) {
+  const tables = query(db, `SELECT table_name FROM information_schema.tables WHERE table_schema = '${db}' AND table_type = 'BASE TABLE' ORDER BY table_name;`)
+    .trim().split('\n').slice(1).filter(Boolean);
+  if (!tables.length) return {};
+  return parseCounts(query(db, `${tables.map((t) => `SELECT '${t}' AS t, COUNT(*) AS n FROM \`${t}\``).join(' UNION ALL ')};`));
+}
+
+async function backup() {
+  fs.mkdirSync(backupDir, { recursive: true });
+  const file = path.join(backupDir, backupFileName(new Date()));
+  const dump = mysqlSh(`mysqldump -uroot ${DUMP_ARGS} ${DB}`);
+  const done = finished(dump, 'mysqldump');
+  try {
+    await Promise.all([pipeline(dump.stdout, zlib.createGzip(), fs.createWriteStream(file)), done]);
+  } catch (error) {
+    fs.rmSync(file, { force: true });
+    throw error;
+  }
+  console.log(`备份完成：${path.relative(rootDir, file)}（${(fs.statSync(file).size / 1024).toFixed(0)} KB）`);
+  return file;
+}
+
+async function restoreDrill() {
+  const arg = process.argv[3];
+  const name = arg ? path.resolve(arg) : latestBackup(fs.existsSync(backupDir) ? fs.readdirSync(backupDir) : []);
+  if (!name) throw new Error('temp/backups 下没有备份，先执行 node scripts/dev.mjs backup');
+  const file = arg ? name : path.join(backupDir, name);
+  console.log(`演练：把 ${path.relative(rootDir, file)} 恢复到临时库 ${DRILL_DB}，逐表比对行数`);
+  query('', `DROP DATABASE IF EXISTS ${DRILL_DB}; CREATE DATABASE ${DRILL_DB} DEFAULT CHARACTER SET utf8mb4;`);
+  try {
+    const started = Date.now();
+    const restore = mysqlSh(`mysql -uroot ${DRILL_DB}`, { stdin: 'pipe' });
+    const done = finished(restore, '恢复');
+    await Promise.all([pipeline(fs.createReadStream(file), zlib.createGunzip(), restore.stdin), done]);
+    const source = tableCounts(DB);
+    const restored = tableCounts(DRILL_DB);
+    const diffs = compareCounts(source, restored);
+    const triggers = (db) => query(db, `SELECT COUNT(*) FROM information_schema.triggers WHERE trigger_schema = '${db}';`).trim().split('\n')[1];
+    console.log(`恢复用时 ${((Date.now() - started) / 1000).toFixed(1)} 秒；表 ${Object.keys(restored).length} 张；触发器 源 ${triggers(DB)} / 恢复 ${triggers(DRILL_DB)}`);
+    if (triggers(DB) !== triggers(DRILL_DB)) diffs.push('触发器数量不一致');
+    if (diffs.length) {
+      console.log('行数差异（备份之后源库有写入时属正常，需人工判断）：');
+      for (const d of diffs) console.log(`- ${d}`);
+      process.exitCode = 1;
+    } else {
+      console.log('演练通过：逐表行数一致');
+    }
+  } finally {
+    query('', `DROP DATABASE IF EXISTS ${DRILL_DB};`);
+  }
+}
+
 const command = process.argv[2] || 'status';
-const handlers = { up, down, status, health, demo };
+const handlers = { up, down, status, health, demo, backup, 'restore-drill': restoreDrill };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件]`);
   process.exit(2);
 }
 try {

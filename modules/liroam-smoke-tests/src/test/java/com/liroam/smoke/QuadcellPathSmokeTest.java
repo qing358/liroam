@@ -14,8 +14,11 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import com.liroam.fulfillment.TopUpIntents;
+import com.liroam.fulfillment.card.CardKyc;
+import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.poll.CardRefresh;
+import com.liroam.fulfillment.state.KycStatus;
 import com.liroam.fulfillment.testing.TestCatalog;
 import com.liroam.fulfillment.testing.TestCatalog.Upstreams;
 import com.liroam.supplier.adapter.quadcell.QuadcellAdapter;
@@ -152,5 +155,31 @@ class QuadcellPathSmokeTest {
                 String.class, c.supplierA)).endsWith("THROTTLED", "OK");
         assertThat(h.jdbc.queryForObject("SELECT status FROM lr_supplier_command WHERE card_asset_id = ? AND type = 'QUERY' ORDER BY id DESC LIMIT 1",
                 String.class, a2)).isEqualTo("SUCCEEDED");
+    }
+
+    @Test
+    @Order(5)
+    void realNameCardHoldsTheCodeUntilOperatorVerifies() {
+        String iccid = upstream.idleIccid();
+        h.importPoolA(List.of(iccid));
+        h.jdbc.update("UPDATE lr_sku_binding SET kyc_gate_mode = 'BLOCK_DELIVERY' WHERE id = ?", c.skuANew);
+        h.acceptShop("LO-QC-KYC", "LO-QC-KYC-A", c.skuANew, 1, MEMBER);
+        h.drain();
+        long card = h.jdbc.queryForObject("SELECT c.id FROM lr_card_asset c JOIN lr_fulfillment_line l ON l.id = c.fulfillment_line_id "
+                + "WHERE l.source_ref = 'LO-QC-KYC'", Long.class);
+        assertThat(upstream.status(iccid)).as("上游照常开订阅").isEqualTo(3);
+
+        h.bean(CredentialEntry.class).enter(card, "LPA:1$qc.example$KYC", "op-qc");
+        h.drain();
+        assertThat(status(card)).as("码已入库但实名未过，不交付").isEqualTo("PROVISIONED");
+        assertThat(h.bean(CardQueries.class).credentialForMember(card, MEMBER)).isEmpty();
+        assertThat(h.shell.calls()).doesNotContain("LO-QC-KYC");
+
+        h.bean(CardKyc.class).review(card, KycStatus.VERIFIED, "证件核验通过", "op-qc");
+        h.drain();
+
+        assertThat(status(card)).isEqualTo("DELIVERED");
+        assertThat(h.bean(CardQueries.class).credentialForMember(card, MEMBER)).isPresent();
+        assertThat(h.shell.calls()).containsOnlyOnce("LO-QC-KYC");
     }
 }

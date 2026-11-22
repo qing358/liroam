@@ -21,6 +21,11 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
         </dependency>
+        <!-- 运维告警日志 -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
         <!-- 自有接口返回包与异常处理；壳进程自带 Web 栈 -->
         <dependency>
             <groupId>org.springframework</groupId>

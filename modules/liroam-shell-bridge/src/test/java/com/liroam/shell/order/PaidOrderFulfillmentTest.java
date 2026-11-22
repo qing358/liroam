@@ -46,7 +46,7 @@ class PaidOrderFulfillmentTest {
     }
 
     private static SkuBinding binding(long id, String sku, SkuKind kind) {
-        return new SkuBinding(id, sku, "G", kind, 1, 10, 100L, null, "ESIM", 1, 1, ListingState.LISTED, false);
+        return new SkuBinding(id, sku, "G", kind, 1, 10, 100L, null, "ESIM", 1, 1, ListingState.LISTED, false, SkuBinding.KycGateMode.NONE);
     }
 
     @Test

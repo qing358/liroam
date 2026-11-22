@@ -15,13 +15,14 @@ import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.FulfillmentRejected;
 import com.liroam.fulfillment.TopUpIntents;
+import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.card.CardQueries.CredentialView;
 import com.liroam.fulfillment.card.CardQueries.TopUpOption;
 import com.liroam.fulfillment.card.CardView;
 import com.liroam.fulfillment.poll.CardRefresh;
 
-/** 买家「我的卡」：列表、详情（顺带按需刷新用量）、查看激活码、加包选项与选卡。 */
+/** 买家「我的卡」：列表、详情（顺带按需刷新用量）、查看激活码/物流、加包选项与选卡、实名自报。 */
 @RestController
 @RequestMapping("/buyer/liroam/cards")
 public class BuyerCardController {
@@ -33,12 +34,14 @@ public class BuyerCardController {
     private final CardQueries queries;
     private final CardRefresh refresh;
     private final TopUpIntents intents;
+    private final CardKyc kyc;
 
-    public BuyerCardController(CurrentActor actor, CardQueries queries, CardRefresh refresh, TopUpIntents intents) {
+    public BuyerCardController(CurrentActor actor, CardQueries queries, CardRefresh refresh, TopUpIntents intents, CardKyc kyc) {
         this.actor = actor;
         this.queries = queries;
         this.refresh = refresh;
         this.intents = intents;
+        this.kyc = kyc;
     }
 
     @GetMapping
@@ -71,6 +74,14 @@ public class BuyerCardController {
             throw new UserFacingException("请选择加包");
         }
         return ApiResult.ok(intents.open(actor.requireMemberId(), id, body.skuId().trim()));
+    }
+
+    /** 买家承诺已按供应商要求完成实名（本站不收证件）；返回更新后的卡。 */
+    @PostMapping("/{id}/kyc-declaration")
+    public ApiResult<CardView> declareKyc(@PathVariable long id) {
+        String memberId = actor.requireMemberId();
+        kyc.declare(id, memberId);
+        return ApiResult.ok(queries.getForMember(id, memberId).orElseThrow(() -> new UserFacingException("找不到这张卡")));
     }
 
     @ExceptionHandler(FulfillmentRejected.class)

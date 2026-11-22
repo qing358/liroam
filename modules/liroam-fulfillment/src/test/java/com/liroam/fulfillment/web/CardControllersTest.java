@@ -27,6 +27,7 @@ import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.LiroamApiExceptionHandler;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.TopUpIntents;
+import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
@@ -73,9 +74,9 @@ class CardControllersTest {
         h = FulfillmentHarness.start("fulfillment_web");
         c = h.catalog;
         buyer = MockMvcBuilders.standaloneSetup(new BuyerCardController(actor, h.bean(CardQueries.class), h.bean(CardRefresh.class),
-                h.bean(TopUpIntents.class))).setControllerAdvice(new LiroamApiExceptionHandler()).build();
+                h.bean(TopUpIntents.class), h.bean(CardKyc.class))).setControllerAdvice(new LiroamApiExceptionHandler()).build();
         manager = MockMvcBuilders.standaloneSetup(new ManagerCardController(actor, h.bean(CardQueries.class), h.bean(CredentialEntry.class),
-                h.bean(CredentialImports.class), h.bean(CardPool.class), h.bean(ManualTasks.class)))
+                h.bean(CredentialImports.class), h.bean(CardPool.class), h.bean(ManualTasks.class), h.bean(CardKyc.class)))
                 .setControllerAdvice(new LiroamApiExceptionHandler()).build();
     }
 
@@ -264,5 +265,45 @@ class CardControllersTest {
         ok(manager.perform(get("/manager/liroam/cards/manual-tasks").param("status", "OPEN"))).andExpect(jsonPath("$.result.length()").value(0));
         ok(manager.perform(get("/manager/liroam/cards/manual-tasks"))).andExpect(jsonPath("$.result[0].status").value("DONE"))
                 .andExpect(jsonPath("$.result[0].note").value("请核对\n已与供应商核对"));
+    }
+
+    @Test
+    void buyerDeclaresKycAndManagerReviewsAndEntersShipment() throws Exception {
+        h.jdbc.update("UPDATE lr_sku_binding SET kyc_gate_mode = 'BLOCK_DELIVERY' WHERE id = ?", c.skuBNew);
+        long blocked = h.acceptCard("O-9", c.skuBNew, "m1");
+        h.drain();
+
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}", blocked)))
+                .andExpect(jsonPath("$.result.statusText").value("待实名"))
+                .andExpect(jsonPath("$.result.capabilityText").value("流量 · 语音 · 短信"))
+                .andExpect(jsonPath("$.result.voiceRemainingText").value("100 分钟"))
+                .andExpect(jsonPath("$.result.smsRemainingText").value("50 条"))
+                .andExpect(jsonPath("$.result.kycBlocking").value(true))
+                .andExpect(jsonPath("$.result.canDeclareKyc").value(true));
+        ok(buyer.perform(post("/buyer/liroam/cards/{id}/kyc-declaration", blocked)))
+                .andExpect(jsonPath("$.result.kycText").value("已提交实名"))
+                .andExpect(jsonPath("$.result.canDeclareKyc").value(false));
+        h.drain();
+        assertThat(h.status("lr_card_asset", blocked)).isEqualTo("DELIVERED");
+
+        refused(manager.perform(post("/manager/liroam/cards/{id}/kyc", blocked).contentType(MediaType.APPLICATION_JSON).content("{}")),
+                "核验结果只能是通过或驳回");
+        ok(manager.perform(post("/manager/liroam/cards/{id}/kyc", blocked).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"result\":\"VERIFIED\",\"note\":\"供应商回执已核\"}")));
+        assertThat(h.jdbc.queryForObject("SELECT kyc_status FROM lr_card_asset WHERE id = ?", String.class, blocked)).isEqualTo("VERIFIED");
+
+        h.importPoolA(1, false, "PHYSICAL");
+        long sim = h.acceptCard("O-10", c.skuAPhysical, "m1");
+        h.drain();
+        refused(manager.perform(post("/manager/liroam/cards/{id}/shipment", sim).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"logisticsId\":\"LOG-SF\",\"logisticsName\":\"顺丰速运\"}")), "请选择物流公司并填写运单号");
+        ok(manager.perform(post("/manager/liroam/cards/{id}/shipment", sim).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"logisticsId\":\"LOG-SF\",\"logisticsName\":\"顺丰速运\",\"logisticsNo\":\"SF1\"}")));
+        h.drain();
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}/credential", sim)))
+                .andExpect(jsonPath("$.result.kind").value("SHIPMENT"))
+                .andExpect(jsonPath("$.result.payload").doesNotExist())
+                .andExpect(jsonPath("$.result.logisticsCompany").value("顺丰速运"))
+                .andExpect(jsonPath("$.result.logisticsNo").value("SF1"));
     }
 }

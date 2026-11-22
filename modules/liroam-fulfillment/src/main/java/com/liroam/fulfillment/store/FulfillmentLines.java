@@ -7,6 +7,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 
+import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.fulfillment.FulfillmentRequest;
 import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.state.FulfillmentLineStatus;
@@ -94,10 +95,10 @@ public class FulfillmentLines {
                 .params(to.name(), id, from.name()).update() == 1;
     }
 
-    /** 行所属 SKU 的实名交付门（NONE/PROMPT/BLOCK_DELIVERY）。 */
-    public String kycGateMode(long lineId) {
-        return jdbc.sql("SELECT b.kyc_gate_mode FROM lr_fulfillment_line l JOIN lr_sku_binding b ON b.id = l.sku_binding_id WHERE l.id = ?")
-                .param(lineId).query(String.class).single();
+    /** 行所属 SKU 的实名闸。 */
+    public KycGateMode kycGateMode(long lineId) {
+        return KycGateMode.valueOf(jdbc.sql("SELECT b.kyc_gate_mode FROM lr_fulfillment_line l JOIN lr_sku_binding b ON b.id = l.sku_binding_id WHERE l.id = ?")
+                .param(lineId).query(String.class).single());
     }
 
     public void failedAttempt(long id, String error) {

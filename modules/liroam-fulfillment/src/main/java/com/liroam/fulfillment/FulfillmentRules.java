@@ -3,11 +3,13 @@ package com.liroam.fulfillment;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.liroam.catalog.CatalogSettings;
 import com.liroam.catalog.SkuBinding;
 import com.liroam.catalog.SkuBinding.ListingState;
 import com.liroam.catalog.SkuBinding.SkuKind;
 import com.liroam.catalog.SkuBindings;
 import com.liroam.catalog.SupplierDirectory;
+import com.liroam.common.setting.Settings;
 import com.liroam.fulfillment.FulfillmentRejected.Reason;
 import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.state.CardAssetStatus;
@@ -16,18 +18,20 @@ import com.liroam.fulfillment.store.CardAssets.TopUpView;
 
 /**
  * 履约入口的一次性校验（domain-design §7.1）。加包页（{@code TopUpIntents.open}、卡投影的 {@code canTopUp}）、
- * 下单校验（H2）与 {@link FulfillmentEntry} 调同一份规则。含号码 SKU 的全局可售开关随 H2 接入。
+ * 下单校验（H2）与 {@link FulfillmentEntry} 调同一份规则；含号码 SKU 另受全局开关 {@link CatalogSettings#NUMBERED_SKU_ENABLED}。
  */
 public class FulfillmentRules {
 
     private final SkuBindings bindings;
     private final SupplierDirectory suppliers;
     private final CardAssets cards;
+    private final Settings settings;
 
-    public FulfillmentRules(SkuBindings bindings, SupplierDirectory suppliers, CardAssets cards) {
+    public FulfillmentRules(SkuBindings bindings, SupplierDirectory suppliers, CardAssets cards, Settings settings) {
         this.bindings = bindings;
         this.suppliers = suppliers;
         this.cards = cards;
+        this.settings = settings;
     }
 
     public void verify(FulfillmentRequest r) {
@@ -67,6 +71,9 @@ public class FulfillmentRules {
         }
         suppliers.find(sku.supplierId()).filter(s -> s.enabled() && s.listingEnabled())
                 .orElseThrow(() -> new FulfillmentRejected(Reason.SUPPLIER_NOT_LISTABLE, "supplier_id=" + sku.supplierId()));
+        if (sku.numberedGate() && !settings.get(CatalogSettings.NUMBERED_SKU_ENABLED)) {
+            throw new FulfillmentRejected(Reason.NUMBERED_SKU_DISABLED, "sku=" + sku.shellSkuId());
+        }
         return sku;
     }
 

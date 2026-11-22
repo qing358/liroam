@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionOperations;
 
 import com.liroam.catalog.SkuBinding;
+import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.catalog.SkuBindings;
 import com.liroam.catalog.Supplier;
 import com.liroam.catalog.SupplierAdapterRegistry;
@@ -22,6 +23,7 @@ import com.liroam.fulfillment.delivery.ShellDeliveries;
 import com.liroam.fulfillment.state.CommandPriority;
 import com.liroam.fulfillment.state.CommandType;
 import com.liroam.fulfillment.state.FulfillmentLineStatus;
+import com.liroam.fulfillment.state.KycStatus;
 import com.liroam.fulfillment.store.CardAssets;
 import com.liroam.fulfillment.store.CardAssets.NewCard;
 import com.liroam.fulfillment.store.CardPlans;
@@ -137,7 +139,7 @@ public class FulfillmentWorker {
         } else {
             CommandType first = adapters.require(supplier).capabilities().inventoryMode() == InventoryMode.POOL_REQUIRED
                     ? CommandType.ALLOCATE : CommandType.PROVISION;
-            String kyc = "NONE".equals(lines.kycGateMode(line.id())) ? "NOT_REQUIRED" : "PENDING";
+            String kyc = (lines.kycGateMode(line.id()) == KycGateMode.NONE ? KycStatus.NOT_REQUIRED : KycStatus.PENDING).name();
             for (int unit = 1; unit <= line.qty(); unit++) {
                 long cardId = cards.insert(new NewCard(line.id(), unit, supplier.id(), sku.cardProductId(), sku.regionId(), sku.regionGroupId(),
                         sku.form(), line.ownerMemberId(), kyc));

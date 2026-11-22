@@ -9,12 +9,14 @@ const path = require('node:path');
 function load() {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/liroam.js'), 'utf8').replace(/^export /gm, '');
   return new Function(source + '; return { fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf, '
-    + 'REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome };')();
+    + 'REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome, '
+    + 'KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag };')();
 }
 
 const {
   fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf,
   REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome,
+  KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag,
 } = load();
 
 test('枚举标签：已知值翻译，未知原样，缺失为空串', () => {
@@ -107,4 +109,44 @@ test('取字段：按顺序取第一个非空值，都没有为空串', () => {
   assert.equal(pick({ statusText: '使用中', status: 'IN_USE' }, 'statusText', 'status'), '使用中');
   assert.equal(pick({}, 'x'), '');
   assert.equal(pick(null, 'x'), '');
+});
+
+test('旅行卡商品枚举：实名闸与上架状态', () => {
+  assert.equal(labelOf(KYC_GATE_MODES, 'NONE'), '不要求');
+  assert.equal(labelOf(KYC_GATE_MODES, 'PROMPT'), '提示实名');
+  assert.equal(labelOf(KYC_GATE_MODES, 'BLOCK_DELIVERY'), '实名后交付');
+  assert.equal(labelOf(LISTING_STATES, 'DRAFT'), '草稿');
+  assert.equal(labelOf(LISTING_STATES, 'LISTED'), '已上架');
+  assert.equal(labelOf(LISTING_STATES, 'DELISTED'), '已下架');
+});
+
+test('套餐模板额度：只列有的项，流量按 GB，语音按分钟取整', () => {
+  assert.equal(planQuotaText({ dataQuotaBytes: 3 * 2 ** 30, voiceSeconds: 6000, smsCount: 50, validityDays: 30 }), '3 GB · 100 分钟 · 50 条 · 30 天');
+  assert.equal(planQuotaText({ dataQuotaBytes: 2 ** 29, voiceSeconds: null, smsCount: null, validityDays: 7 }), '0.5 GB · 7 天');
+  assert.equal(planQuotaText({ voiceSeconds: 90, validityDays: 1 }), '1 分钟 · 1 天');
+  assert.equal(planQuotaText(null), '');
+});
+
+test('SKU 操作：草稿/已下架有售价才可上架，已上架只能下架，只有从未上架的草稿可删', () => {
+  assert.deepEqual(skuActions({ listingState: 'DRAFT', priceFen: null, locked: false }), { list: false, delist: false, remove: true, needPrice: true });
+  assert.deepEqual(skuActions({ listingState: 'DRAFT', priceFen: 3900, locked: false }), { list: true, delist: false, remove: true, needPrice: false });
+  assert.deepEqual(skuActions({ listingState: 'LISTED', priceFen: 3900, locked: true }), { list: false, delist: true, remove: false, needPrice: false });
+  assert.deepEqual(skuActions({ listingState: 'DELISTED', priceFen: 3900, locked: true }), { list: true, delist: false, remove: false, needPrice: false });
+});
+
+test('卡台账操作：非实体卡录激活码、实体卡录物流（含交付后更正，状态口径同后端）；实名待审/已提交/驳回时可核验', () => {
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'PROVISIONED', kycStatus: 'NOT_REQUIRED' }), { credential: true, shipment: false, kycReview: false });
+  assert.deepEqual(cardActions({ form: 'PHYSICAL', status: 'PROVISIONED', kycStatus: 'NOT_REQUIRED' }), { credential: false, shipment: true, kycReview: false });
+  assert.deepEqual(cardActions({ form: 'PHYSICAL', status: 'DELIVERED', kycStatus: 'USER_DECLARED' }), { credential: false, shipment: true, kycReview: true });
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'PROVISIONED', kycStatus: 'PENDING' }), { credential: true, shipment: false, kycReview: true });
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'CREATED', kycStatus: 'PENDING' }), { credential: false, shipment: false, kycReview: true });
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'CANCELLED', kycStatus: 'REJECTED' }), { credential: false, shipment: false, kycReview: false });
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'IN_USE', kycStatus: 'VERIFIED' }), { credential: true, shipment: false, kycReview: false });
+  assert.deepEqual(cardActions({ form: 'ESIM', status: 'EXCEPTION', kycStatus: 'NOT_REQUIRED' }), { credential: true, shipment: false, kycReview: false });
+});
+
+test('告警级别映射到标签颜色', () => {
+  assert.equal(alertLevelTag('CRITICAL'), 'danger');
+  assert.equal(alertLevelTag('WARN'), 'warning');
+  assert.equal(alertLevelTag('OTHER'), 'info');
 });

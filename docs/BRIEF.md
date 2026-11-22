@@ -32,10 +32,17 @@
 - 壳挂接：H2 下单校验与快照、H5 交码后无物流发货、H7 售价写回，登记在 `upstream.md`。旅行卡只走普通订单（`NORMAL`）：前端加购用 `BUY_NOW`/购物车，后端拒绝核销型虚拟订单。
 - 演示：`node scripts/dev.mjs demo` 建两家供应商目录与 SKU（README「演示数据」）；上线前必做项见 `launch-checklist.md`。
 
-## 真供应商（P3 进行中）
+## 真供应商（P3 已落地）
 
 - `liroam-supplier-quadcell`：按 Open API v1.3.3 实现 `SupplierAdapter`（池卡开订阅 / 查档 / 加包 / 停复机 / 终止；无回调、无幂等键、无交码接口，交码走导入或人工）。只有配了 `LIROAM_SUPPLIER_QUADCELL_APIKEY` 才装配；供应商把 `lr_supplier.adapter_key` 设为 `quadcell` 即切换，履约链路不变。
 - 验证：契约套件 + 按文档报文回放的 HTTP 桩（无密钥可跑）；真沙箱测试有密钥才跑。接入参数与待供应商确认项见 README「供应商接入」。
+
+## 主路径全卡型（P4 已落地，mock 上游）
+
+- 卡型：纯流量 / 语音短信（投影出分钟、条数，无能力为空）/ 实名（`KycGateMode` NONE·PROMPT·BLOCK_DELIVERY；买家自报或后台核验后自动交付）/ 实体卡（后台录物流 = SHIPMENT 交码，同一 `CredentialDelivered`）。含号码 SKU 受全局开关 `sell.numbered_sku_enabled` 控制（默认关）。
+- 壳发货分流 `ShellShipping`：纯 eSIM/软卡 → 无物流发货；实体卡同一运单 → 壳 `WHOLE` 发货；多运单、缺物流、含非旅行卡商品 → 人工待办。
+- 后台「旅行卡商品」（`/manager/liroam/catalog`）配卡产品含号码、套餐模板、套餐映射、SKU 绑定与闸、上下架；绑定形状由映射推导，形态须与壳商品类型一致。
+- 生产基线：运营告警 `/manager/liroam/ops/alerts`（各模块 `OpsAlertSource`，阈值 `alert.*`，worker 进程每 5 分钟 WARN 日志）；版本迁移只增不改（`AdditiveMigrationsTest`）；`dev.mjs backup` / `restore-drill`。支付不改壳：本机余额支付，真沙箱待商户号（上线清单）。
 
 ## 工程方法
 

@@ -123,3 +123,69 @@ export function pick(row, ...keys) {
   }
   return "";
 }
+
+export const KYC_GATE_MODES = [
+  { value: "NONE", label: "不要求" },
+  { value: "PROMPT", label: "提示实名" },
+  { value: "BLOCK_DELIVERY", label: "实名后交付" },
+];
+
+export const LISTING_STATES = [
+  { value: "DRAFT", label: "草稿" },
+  { value: "LISTED", label: "已上架" },
+  { value: "DELISTED", label: "已下架" },
+];
+
+export const SKU_KINDS = [
+  { value: "NEW_CARD", label: "新卡" },
+  { value: "TOP_UP", label: "加油包" },
+];
+
+export const CARD_FORMS = [
+  { value: "ESIM", label: "eSIM" },
+  { value: "PHYSICAL", label: "实体卡" },
+  { value: "SOFT", label: "软卡" },
+];
+
+/** 套餐模板额度（PlanTemplateRow）→「3 GB · 100 分钟 · 50 条 · 30 天」。 */
+export function planQuotaText(tpl) {
+  if (!tpl) return "";
+  const parts = [];
+  if (tpl.dataQuotaBytes) parts.push(`${Number((tpl.dataQuotaBytes / 2 ** 30).toFixed(2))} GB`);
+  if (tpl.voiceSeconds) parts.push(`${Math.floor(tpl.voiceSeconds / 60)} 分钟`);
+  if (tpl.smsCount) parts.push(`${tpl.smsCount} 条`);
+  if (tpl.validityDays) parts.push(`${tpl.validityDays} 天`);
+  return parts.join(" · ");
+}
+
+/** 只决定按钮显隐；是否允许以后端为准（CatalogAdmin）。 */
+export function skuActions(sku) {
+  const priced = sku.priceFen !== null && sku.priceFen !== undefined;
+  return {
+    list: sku.listingState !== "LISTED" && priced,
+    delist: sku.listingState === "LISTED",
+    remove: sku.listingState === "DRAFT" && !sku.locked,
+    needPrice: !priced,
+  };
+}
+
+// 与后端 CredentialEntry 可录入状态一致（交付后可更正）
+const CREDENTIAL_STATUSES = ["ALLOCATED", "PROVISIONED", "DELIVERED", "IN_USE", "SUSPENDED", "EXCEPTION"];
+const KYC_REVIEWABLE = ["PENDING", "USER_DECLARED", "REJECTED"];
+const VOID_STATUSES = ["CANCELLED", "TERMINATED"];
+
+export function cardActions(card) {
+  const enterable = CREDENTIAL_STATUSES.includes(card.status);
+  const physical = card.form === "PHYSICAL";
+  return {
+    credential: enterable && !physical,
+    shipment: enterable && physical,
+    kycReview: KYC_REVIEWABLE.includes(card.kycStatus) && !VOID_STATUSES.includes(card.status),
+  };
+}
+
+export function alertLevelTag(level) {
+  if (level === "CRITICAL") return "danger";
+  if (level === "WARN") return "warning";
+  return "info";
+}

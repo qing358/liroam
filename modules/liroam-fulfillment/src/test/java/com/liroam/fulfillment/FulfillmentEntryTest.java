@@ -73,7 +73,8 @@ class FulfillmentEntryTest {
         card(CARD_UNOWNED_A, null, SUP_A, "PROVISIONED", false);
 
         JdbcClient client = JdbcClient.create(ds);
-        entry = new FulfillmentEntry(new FulfillmentRules(new SkuBindings(client), new SupplierDirectory(client), new CardAssets(client)),
+        entry = new FulfillmentEntry(new FulfillmentRules(new SkuBindings(client), new SupplierDirectory(client), new CardAssets(client),
+                new com.liroam.common.setting.Settings(client, new com.liroam.common.audit.AuditLog(client))),
                 new FulfillmentLines(client));
     }
 

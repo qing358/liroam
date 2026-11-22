@@ -57,3 +57,29 @@ export function cardFormText(card) {
 export function failureMessage(res, fallback) {
   return (res && res.message) || fallback;
 }
+
+/** 实体卡的交付内容是物流（CredentialView kind = SHIPMENT）；不是则 null。 */
+export function shipmentOf(result) {
+  if (!result || result.kind !== "SHIPMENT") return null;
+  return { company: result.logisticsCompany || "", no: result.logisticsNo || "" };
+}
+
+export function credentialLabel(card) {
+  return card && card.form === "PHYSICAL" ? "查看物流" : "查看激活码";
+}
+
+/** 卡详情实名提示；action 表示显示「我已完成实名」。 */
+export function kycNotice(card) {
+  if (!card || !card.canDeclareKyc) return null;
+  if (card.kycStatus === "REJECTED") return { type: "error", text: "实名未通过，请按要求重新完成实名后再次提交。", action: true };
+  if (card.kycBlocking) return { type: "warning", text: "该卡使用地区要求实名登记，完成实名并提交后才会发放。", action: true };
+  return { type: "info", text: "该卡使用地区建议实名登记，完成后可在此提交。", action: true };
+}
+
+/** 语音 / 短信字段为 null 表示产品无此能力，不展示。 */
+export function quotaRows(card) {
+  const rows = [{ label: "流量剩余", value: (card && card.remainingText) || "—" }];
+  if (card && card.voiceRemainingText) rows.push({ label: "语音剩余", value: card.voiceRemainingText });
+  if (card && card.smsRemainingText) rows.push({ label: "短信剩余", value: card.smsRemainingText });
+  return rows;
+}

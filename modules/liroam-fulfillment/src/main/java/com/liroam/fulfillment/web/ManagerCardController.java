@@ -20,15 +20,18 @@ import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.PageResult;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.card.AdminCardView;
+import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.card.CardQueries.CardFilter;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
+import com.liroam.fulfillment.credential.Shipment;
 import com.liroam.fulfillment.pool.CardPool;
+import com.liroam.fulfillment.state.KycStatus;
 import com.liroam.fulfillment.task.ManualTasks;
 import com.liroam.fulfillment.task.ManualTasks.TaskView;
 
-/** 后台卡台账：分页筛选、详情（含指令历史）、人工录码、交码导入、卡池导入、人工待办。 */
+/** 后台卡台账：分页筛选、详情（含指令历史）、人工录码、实体卡录物流、实名核验、交码导入、卡池导入、人工待办。 */
 @RestController
 @RequestMapping("/manager/liroam/cards")
 public class ManagerCardController {
@@ -44,21 +47,31 @@ public class ManagerCardController {
     public record ResolveRequest(String note) {
     }
 
+    /** @param logisticsId 壳物流公司 id（{@code li_logistics.id}） */
+    public record ShipmentRequest(String logisticsId, String logisticsName, String logisticsNo) {
+    }
+
+    /** @param result VERIFIED / REJECTED */
+    public record KycReviewRequest(KycStatus result, String note) {
+    }
+
     private final CurrentActor actor;
     private final CardQueries queries;
     private final CredentialEntry entry;
     private final CredentialImports imports;
     private final CardPool pool;
     private final ManualTasks tasks;
+    private final CardKyc kyc;
 
     public ManagerCardController(CurrentActor actor, CardQueries queries, CredentialEntry entry, CredentialImports imports, CardPool pool,
-            ManualTasks tasks) {
+            ManualTasks tasks, CardKyc kyc) {
         this.actor = actor;
         this.queries = queries;
         this.entry = entry;
         this.imports = imports;
         this.pool = pool;
         this.tasks = tasks;
+        this.kyc = kyc;
     }
 
     @GetMapping
@@ -81,6 +94,19 @@ public class ManagerCardController {
         return ApiResult.ok(null);
     }
 
+    @PostMapping("/{id}/shipment")
+    public ApiResult<Void> enterShipment(@PathVariable long id, @RequestBody ShipmentRequest body) {
+        entry.enterShipment(id, body == null ? null : new Shipment(body.logisticsId(), body.logisticsName(), body.logisticsNo()),
+                actor.requireOperator());
+        return ApiResult.ok(null);
+    }
+
+    @PostMapping("/{id}/kyc")
+    public ApiResult<Void> reviewKyc(@PathVariable long id, @RequestBody KycReviewRequest body) {
+        kyc.review(id, body == null ? null : body.result(), body == null ? null : body.note(), actor.requireOperator());
+        return ApiResult.ok(null);
+    }
+
     /** CSV：{@code iccid,lpa}，首行表头可有可无。 */
     @PostMapping("/credentials/import")
     public ApiResult<CredentialImports.ImportReport> importCredentials(@RequestParam("file") MultipartFile file) throws IOException {
@@ -90,13 +116,13 @@ public class ManagerCardController {
         }
     }
 
-    /** CSV：{@code iccid[,lpa]}，导入到指定供应商的卡产品下。 */
+    /** CSV：{@code iccid[,lpa]}，导入到指定供应商的卡产品下；{@code form} 不填按 eSIM 优先，实体卡库存传 PHYSICAL。 */
     @PostMapping("/pool/import")
     public ApiResult<CardPool.ImportReport> importPool(@RequestParam("file") MultipartFile file, @RequestParam long supplierId,
-            @RequestParam long cardProductId) throws IOException {
+            @RequestParam long cardProductId, @RequestParam(required = false) String form) throws IOException {
         String operator = actor.requireOperator();
         try (Reader csv = reader(file)) {
-            return ApiResult.ok(pool.importItems(supplierId, cardProductId, CardPool.parseCsv(csv), operator));
+            return ApiResult.ok(pool.importItems(supplierId, cardProductId, form, CardPool.parseCsv(csv), operator));
         }
     }
 

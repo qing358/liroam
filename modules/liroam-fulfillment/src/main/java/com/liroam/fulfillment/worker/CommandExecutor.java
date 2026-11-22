@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.support.TransactionOperations;
 
+import com.liroam.catalog.CardForm;
 import com.liroam.catalog.SupplierAdapterRegistry;
 import com.liroam.catalog.SupplierDirectory;
 import com.liroam.common.crypto.SensitiveCipher;
@@ -360,7 +361,9 @@ public class CommandExecutor {
         }
         cards.move(card, CardAssetStatus.PROVISIONED, now);
         plans.ready(plan(c), null);
-        if (result.credential().isPresent()) {
+        if (CardForm.shipsPhysically(card.form())) {
+            deliveries.announceExisting(card.id());
+        } else if (result.credential().isPresent()) {
             CredentialResult credential = result.credential().get();
             deliveries.deliver(card.id(), credential.kind(), credential.payload(), CredentialChannel.API, API_OPERATOR);
         } else if (deliveries.announceExisting(card.id())) {
