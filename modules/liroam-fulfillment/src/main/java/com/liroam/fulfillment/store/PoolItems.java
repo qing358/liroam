@@ -1,5 +1,6 @@
 package com.liroam.fulfillment.store;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -46,12 +47,22 @@ public class PoolItems {
                 """).params(supplierId, cardProductId, form, iccid.bytes(), iccidHash, last4, credentialCipher, iccid.keyVersion(), batchNo).update();
     }
 
-    /** 事务内取一张可分配卡并锁住；并发分配互相跳过。 */
+    /**
+     * 事务内取一张可分配卡并锁住；并发分配互相跳过。
+     * 先不加锁读一批候选 id，再按主键 {@code SKIP LOCKED} 锁：直接在二级索引上做锁定扫描时，
+     * 碰到别的事务刚改过状态的索引项会等锁而不是跳过。
+     */
     public Optional<Item> lockAvailable(long supplierId, long cardProductId, String form) {
-        return jdbc.sql(SELECT + """
+        List<Long> candidates = jdbc.sql("""
+                SELECT id FROM lr_card_pool_item
                  WHERE supplier_id = ? AND card_product_id = ? AND form = ? AND status = 'IN_STOCK'
-                 ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED
-                """).params(supplierId, cardProductId, form).query(Item.class).optional();
+                 ORDER BY id LIMIT 32
+                """).params(supplierId, cardProductId, form).query(Long.class).list();
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+        return jdbc.sql(SELECT + " WHERE id IN (:ids) AND status = 'IN_STOCK' ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED")
+                .param("ids", candidates).query(Item.class).optional();
     }
 
     public Optional<Item> byCard(long cardAssetId) {
