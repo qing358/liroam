@@ -26,8 +26,10 @@ import com.liroam.pricing.fx.FxRates;
 import com.liroam.pricing.fx.FxSync;
 import com.liroam.pricing.fx.FxSyncJob;
 import com.liroam.pricing.ops.PricingAlerts;
+import com.liroam.pricing.price.BatchRepricing;
 import com.liroam.pricing.price.CostCalculator;
 import com.liroam.pricing.price.CostVersions;
+import com.liroam.pricing.price.PriceReport;
 import com.liroam.pricing.price.PriceVersions;
 import com.liroam.pricing.price.RepriceSuggestions;
 import com.liroam.pricing.price.Repricing;
@@ -106,6 +108,19 @@ public class LiroamPricingAutoConfiguration {
     }
 
     @Bean
+    PriceReport liroamPriceReport(JdbcClient liroamJdbcClient, Settings liroamSettings, SkuBindings liroamSkuBindings, FxRates liroamFxRates,
+            FxSync liroamFxSync) {
+        return new PriceReport(liroamJdbcClient, liroamSettings, liroamSkuBindings, liroamFxRates, liroamFxSync);
+    }
+
+    @Bean
+    BatchRepricing liroamBatchRepricing(JdbcClient liroamJdbcClient, TransactionTemplate liroamPricingTx, Settings liroamSettings,
+            SkuBindings liroamSkuBindings, CostVersions liroamCostVersions, PriceVersions liroamPriceVersions, AuditLog liroamAuditLog) {
+        return new BatchRepricing(liroamJdbcClient, liroamPricingTx, liroamSettings, liroamSkuBindings, liroamCostVersions, liroamPriceVersions,
+                liroamAuditLog);
+    }
+
+    @Bean
     UsageRegionDescriber liroamUsageRegionDescriber(JdbcClient liroamJdbcClient, SkuBindings liroamSkuBindings) {
         return new UsageRegionDescriber(liroamJdbcClient, liroamSkuBindings);
     }
@@ -150,9 +165,9 @@ public class LiroamPricingAutoConfiguration {
     @Bean
     @ConditionalOnProperty(name = WebSurface.PROPERTY, havingValue = WebSurface.MANAGER)
     PricingManagerController liroamPricingManagerController(CurrentActor currentActor, TariffImports liroamTariffImports,
-            PriceVersions liroamPriceVersions, RepriceSuggestions liroamRepriceSuggestions, Settings liroamSettings, FxSync liroamFxSync,
-            FxRates liroamFxRates) {
-        return new PricingManagerController(currentActor, liroamTariffImports, liroamPriceVersions, liroamRepriceSuggestions, liroamSettings,
-                liroamFxSync, liroamFxRates);
+            PriceVersions liroamPriceVersions, RepriceSuggestions liroamRepriceSuggestions, PriceReport liroamPriceReport,
+            BatchRepricing liroamBatchRepricing, Settings liroamSettings, FxSync liroamFxSync, FxRates liroamFxRates) {
+        return new PricingManagerController(currentActor, liroamTariffImports, liroamPriceVersions, liroamRepriceSuggestions, liroamPriceReport,
+                liroamBatchRepricing, liroamSettings, liroamFxSync, liroamFxRates);
     }
 }

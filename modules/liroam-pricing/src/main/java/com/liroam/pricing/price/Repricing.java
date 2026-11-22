@@ -39,6 +39,7 @@ public class Repricing {
     private final CostVersions costVersions;
     private final PriceVersions prices;
     private final AuditLog audit;
+    private final PricingRules rules;
 
     public Repricing(JdbcClient jdbc, TransactionOperations tx, Settings settings, SkuBindings bindings, CostCalculator costs,
             CostVersions costVersions, PriceVersions prices, AuditLog audit) {
@@ -50,6 +51,7 @@ public class Repricing {
         this.costVersions = costVersions;
         this.prices = prices;
         this.audit = audit;
+        this.rules = new PricingRules(jdbc, settings);
     }
 
     private enum Outcome { COST_ONLY, SUGGESTED, AUTO_ACTIVATED }
@@ -90,8 +92,8 @@ public class Repricing {
         BigDecimal after = margin(price.priceFen(), next.costCnyFen());
         SkuBinding sku = bindings.findById(skuId).orElseThrow();
         SettingScope scope = SettingScope.sku(skuId);
-        Optional<PricingRule> rule = rule(sku);
-        BigDecimal minMargin = rule.map(PricingRule::minMarginRate).orElseGet(() -> settings.get(PricingSettings.MIN_MARGIN_RATE, scope));
+        Optional<PricingRule> rule = rules.forSku(sku);
+        BigDecimal minMargin = rules.minMargin(sku, rule);
         boolean moved = before.subtract(after).abs().compareTo(settings.get(PricingSettings.REPRICE_THRESHOLD_RATE, scope)) > 0;
         boolean belowMin = after.compareTo(minMargin) < 0;
         if (!moved && !belowMin) {
@@ -111,8 +113,7 @@ public class Repricing {
                     Json.write(Map.of("priceFen", price.priceFen(), "costCnyFen", base.costCnyFen())), Json.write(change));
             return Outcome.AUTO_ACTIVATED;
         }
-        jdbc.sql("UPDATE lr_reprice_suggestion SET status = 'SUPERSEDED', version = version + 1, updated_at = UTC_TIMESTAMP(3) "
-                + "WHERE sku_binding_id = ? AND status = 'PENDING'").param(skuId).update();
+        prices.supersedePendingSuggestions(skuId);
         jdbc.sql("""
                 INSERT INTO lr_reprice_suggestion (sku_binding_id, trigger_kind, old_cost_version_id, new_cost_version_id, current_price_fen,
                                                    suggested_price_fen, margin_before, margin_after, status)
@@ -131,16 +132,5 @@ public class Repricing {
                 .orElseGet(() -> marginBefore.compareTo(BigDecimal.ONE) < 0 ? PricingRule.divideByOneMinus(costFen, marginBefore, RoundingMode.HALF_UP) : floor);
         long price = Math.max(raw, floor);
         return rule.map(r -> r.round(price)).orElse(price);
-    }
-
-    private Optional<PricingRule> rule(SkuBinding sku) {
-        return jdbc.sql("""
-                SELECT scope_type, markup_mode, markup_rate, markup_add_fen, rounding, min_margin_rate FROM lr_pricing_rule
-                 WHERE effective_from <= UTC_TIMESTAMP(3)
-                   AND ((scope_type = 'SKU' AND scope_id = ?) OR (scope_type = 'CARD_PRODUCT' AND scope_id = ?)
-                        OR (scope_type = 'SUPPLIER' AND scope_id = ?) OR scope_type = 'GLOBAL')
-                 ORDER BY FIELD(scope_type, 'SKU', 'CARD_PRODUCT', 'SUPPLIER', 'GLOBAL'), effective_from DESC, id DESC
-                 LIMIT 1
-                """).params(sku.id(), sku.cardProductId(), sku.supplierId()).query(PricingRule.class).optional();
     }
 }

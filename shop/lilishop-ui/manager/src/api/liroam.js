@@ -65,6 +65,12 @@ export const saveRefundRule = (rule) => postRequest("/liroam/refund-rules", rule
 export const listRepriceSuggestions = (params) => getRequest("/liroam/reprice-suggestions", params);
 /** action: confirm | reject */
 export const actOnRepriceSuggestion = (id, action) => postRequest(`/liroam/reprice-suggestions/${encodeURIComponent(id)}/${action}`, {}, JSON_HEADERS);
+/** action: confirm | reject；逐条处理，返回 { done: [id], failed: [{ id, message }] } */
+export const actOnRepriceSuggestions = (ids, action) => postRequest(`/liroam/reprice-suggestions/batch-${action}`, { ids }, JSON_HEADERS);
+export const getRepriceReport = () => getRequest("/liroam/reprice-report");
+/** adjust: { skuBindingIds, mode: PERCENT | TARGET_MARGIN, value } */
+export const previewRepriceBatch = (adjust) => postRequest("/liroam/reprice-batch/preview", adjust, JSON_HEADERS);
+export const applyRepriceBatch = (adjust) => postRequest("/liroam/reprice-batch/apply", adjust, JSON_HEADERS);
 export const getPricingSettings = () => getRequest("/liroam/settings/pricing");
 export const savePricingSettings = (settings) => putRequest("/liroam/settings/pricing", settings, JSON_HEADERS);
 export const listFxRates = (params) => getRequest("/liroam/fx/rates", params);

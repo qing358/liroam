@@ -48,7 +48,8 @@ class PricingControllersTest {
         c = PricedCatalog.seed(f);
         mvc = MockMvcBuilders.standaloneSetup(
                         new PricingBuyerController(f.describer),
-                        new PricingManagerController(ACTOR, f.tariffs, f.prices, f.suggestions, f.settings, f.fxSync, f.fxRates),
+                        new PricingManagerController(ACTOR, f.tariffs, f.prices, f.suggestions, f.priceReport, f.batchRepricing, f.settings,
+                                f.fxSync, f.fxRates),
                         new MockFxController(f.mockFx))
                 .setControllerAdvice(new LiroamApiExceptionHandler())
                 .build();
@@ -133,6 +134,69 @@ class PricingControllersTest {
         mvc.perform(get("/manager/liroam/reprice-suggestions"))
                 .andExpect(jsonPath("$.result.total").value(2));
         org.assertj.core.api.Assertions.assertThat(f.count("SELECT COUNT(*) FROM lr_audit_log WHERE actor = 'manager:tester'")).isEqualTo(2);
+    }
+
+    @Test
+    void repriceReportBatchDecisionsAndBatchAdjust() throws Exception {
+        long jp = f.sku("JP-1", c.supplier, c.product, "JP", "ESIM", c.plan2gb);
+        long cn = f.sku("CN-1", c.supplier, c.product, "CN", "ESIM", c.plan2gb);
+        f.setFx("0.9");
+        f.fxSync.run("system:fx");
+        f.prices.activateManual(jp, 3000, "manager:ops");
+        f.prices.activateManual(cn, 1300, "manager:ops");
+
+        mvc.perform(get("/manager/liroam/reprice-report"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.fxRate").value(0.9))
+                .andExpect(jsonPath("$.result.fxFetchedText").isString())
+                .andExpect(jsonPath("$.result.fxStale").value(false))
+                .andExpect(jsonPath("$.result.rows", hasSize(2)))
+                .andExpect(jsonPath("$.result.rows[0].skuBindingId").value(jp))
+                .andExpect(jsonPath("$.result.rows[0].liGoodsSkuId").value("JP-1"))
+                .andExpect(jsonPath("$.result.rows[0].supplierCode").value("SUP_A"))
+                .andExpect(jsonPath("$.result.rows[0].cardProduct").isString())
+                .andExpect(jsonPath("$.result.rows[0].regionText").value("日本"))
+                .andExpect(jsonPath("$.result.rows[0].form").value("ESIM"))
+                .andExpect(jsonPath("$.result.rows[0].planName").value("2GB"))
+                .andExpect(jsonPath("$.result.rows[0].priceFen").value(3000))
+                .andExpect(jsonPath("$.result.rows[0].costCnyFen").value(1980))
+                .andExpect(jsonPath("$.result.rows[0].marginRate").value(0.34))
+                .andExpect(jsonPath("$.result.rows[0].minMarginRate").value(0.10))
+                .andExpect(jsonPath("$.result.rows[0].belowMin").value(false))
+                .andExpect(jsonPath("$.result.rows[0].pendingSuggestionId").value(nullValue()))
+                .andExpect(jsonPath("$.result.rows[1].belowMin").value(true));
+
+        mvc.perform(post("/manager/liroam/reprice-batch/preview").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"skuBindingIds\":[" + jp + "],\"mode\":\"PERCENT\",\"value\":0.1}"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.belowMinCount").value(0))
+                .andExpect(jsonPath("$.result.rows[0].liGoodsSkuId").value("JP-1"))
+                .andExpect(jsonPath("$.result.rows[0].newPriceFen").value(3300))
+                .andExpect(jsonPath("$.result.rows[0].marginAfter").value(0.4));
+        mvc.perform(post("/manager/liroam/reprice-batch/apply").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"skuBindingIds\":[" + jp + "," + cn + "],\"mode\":\"PERCENT\",\"value\":0.01}"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message", containsString("最低毛利率")));
+        mvc.perform(post("/manager/liroam/reprice-batch/apply").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"skuBindingIds\":[" + jp + "],\"mode\":\"PERCENT\",\"value\":0.1}"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.rows[0].newPriceFen").value(3300));
+        org.assertj.core.api.Assertions.assertThat(f.writer.lastPrice).containsEntry("JP-1", 3300L);
+
+        f.setFx("1.0");
+        f.fxSync.run("system:fx");
+        long jpSuggestion = f.suggestions.page("PENDING", 1, 10).records().stream().filter(s -> s.skuBindingId() == jp).findFirst().orElseThrow().id();
+        long cnSuggestion = f.suggestions.page("PENDING", 1, 10).records().stream().filter(s -> s.skuBindingId() == cn).findFirst().orElseThrow().id();
+        mvc.perform(post("/manager/liroam/reprice-suggestions/batch-reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ids\":[" + cnSuggestion + "]}"))
+                .andExpect(jsonPath("$.result.done[0]").value(cnSuggestion));
+        mvc.perform(post("/manager/liroam/reprice-suggestions/batch-confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ids\":[" + jpSuggestion + "," + cnSuggestion + "]}"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.done", hasSize(1)))
+                .andExpect(jsonPath("$.result.done[0]").value(jpSuggestion))
+                .andExpect(jsonPath("$.result.failed[0].id").value(cnSuggestion))
+                .andExpect(jsonPath("$.result.failed[0].message", containsString("REJECTED")));
     }
 
     @Test

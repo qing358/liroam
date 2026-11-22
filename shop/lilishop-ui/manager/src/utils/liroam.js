@@ -24,6 +24,14 @@ export function rateToPercent(rate) {
   return Number((n * 100).toFixed(2)) + "%";
 }
 
+/** 表单里填的百分数 → 传输用小数比率（5 → 0.05）。 */
+export function percentToRate(percent) {
+  if (percent === null || percent === undefined || percent === "") return null;
+  const n = Number(percent);
+  if (!Number.isFinite(n)) return null;
+  return Number((n / 100).toFixed(6));
+}
+
 export function listOf(result) {
   if (Array.isArray(result)) return result;
   if (result && Array.isArray(result.records)) return result.records;
@@ -61,6 +69,20 @@ export const REPRICE_TRIGGERS = [
   { value: "FX", label: "汇率变动" },
   { value: "TARIFF", label: "资费表变动" },
 ];
+
+export const REPRICE_ADJUST_MODES = [
+  { value: "PERCENT", label: "按涨跌幅" },
+  { value: "TARGET_MARGIN", label: "按目标毛利率" },
+];
+
+/** 批量确认 / 驳回结果（BatchDecision）→ 一句提示；失败逐条带后端原因。 */
+export function describeBatchDecision(result, verb) {
+  const done = (result && result.done) || [];
+  const failed = (result && result.failed) || [];
+  const head = `已${verb} ${done.length} 条`;
+  if (!failed.length) return head;
+  return `${head}，${failed.length} 条未处理：` + failed.map((f) => `#${f.id} ${f.message}`).join("；");
+}
 
 export const TARIFF_SHEET_STATUSES = [
   { value: "DRAFT", label: "待启用" },

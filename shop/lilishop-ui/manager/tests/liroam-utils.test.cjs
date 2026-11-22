@@ -10,13 +10,15 @@ function load() {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/liroam.js'), 'utf8').replace(/^export /gm, '');
   return new Function(source + '; return { fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf, '
     + 'REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome, '
-    + 'KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag };')();
+    + 'KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision, '
+    + 'REPRICE_ADJUST_MODES };')();
 }
 
 const {
   fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf,
   REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome,
-  KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag,
+  KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision,
+  REPRICE_ADJUST_MODES,
 } = load();
 
 test('枚举标签：已知值翻译，未知原样，缺失为空串', () => {
@@ -149,4 +151,26 @@ test('告警级别映射到标签颜色', () => {
   assert.equal(alertLevelTag('CRITICAL'), 'danger');
   assert.equal(alertLevelTag('WARN'), 'warning');
   assert.equal(alertLevelTag('OTHER'), 'info');
+});
+
+test('百分比输入→比率：5 → 0.05、-10 → -0.1，避免浮点尾差；空或非法为 null', () => {
+  assert.equal(percentToRate(5), 0.05);
+  assert.equal(percentToRate('-10'), -0.1);
+  assert.equal(percentToRate(33.3), 0.333);
+  assert.equal(percentToRate(0.1), 0.001);
+  assert.equal(percentToRate(''), null);
+  assert.equal(percentToRate(null), null);
+  assert.equal(percentToRate('abc'), null);
+  assert.equal(labelOf(REPRICE_ADJUST_MODES, 'PERCENT'), '按涨跌幅');
+  assert.equal(labelOf(REPRICE_ADJUST_MODES, 'TARGET_MARGIN'), '按目标毛利率');
+});
+
+test('批量确认 / 驳回结果：全部成功、部分失败逐条列原因、空结果兜底', () => {
+  assert.equal(describeBatchDecision({ done: [1, 2], failed: [] }, '确认'), '已确认 2 条');
+  assert.equal(
+    describeBatchDecision({ done: [1], failed: [{ id: 3, message: '调价建议 #3 已是 REJECTED，不能再确认' }, { id: 9, message: '不存在' }] }, '确认'),
+    '已确认 1 条，2 条未处理：#3 调价建议 #3 已是 REJECTED，不能再确认；#9 不存在',
+  );
+  assert.equal(describeBatchDecision({ done: [], failed: [{ id: 3, message: 'x' }] }, '驳回'), '已驳回 0 条，1 条未处理：#3 x');
+  assert.equal(describeBatchDecision(null, '驳回'), '已驳回 0 条');
 });

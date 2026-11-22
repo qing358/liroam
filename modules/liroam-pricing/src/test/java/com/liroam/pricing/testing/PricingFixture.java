@@ -28,8 +28,10 @@ import com.liroam.common.setting.Settings;
 import com.liroam.pricing.fx.FxRates;
 import com.liroam.pricing.fx.FxSync;
 import com.liroam.pricing.mock.MockFxRateSource;
+import com.liroam.pricing.price.BatchRepricing;
 import com.liroam.pricing.price.CostCalculator;
 import com.liroam.pricing.price.CostVersions;
+import com.liroam.pricing.price.PriceReport;
 import com.liroam.pricing.price.PriceVersions;
 import com.liroam.pricing.price.RepriceSuggestions;
 import com.liroam.pricing.price.Repricing;
@@ -62,6 +64,8 @@ public final class PricingFixture {
     public final PriceVersions prices;
     public final RepriceSuggestions suggestions;
     public final Repricing repricing;
+    public final PriceReport priceReport;
+    public final BatchRepricing batchRepricing;
     public final TariffImports tariffs;
     public final FxSync fxSync;
     public final OrderLineSnapshots snapshots;
@@ -83,6 +87,8 @@ public final class PricingFixture {
         repricing = new Repricing(client, tx, settings, bindings, costs, costVersions, prices, audit);
         tariffs = new TariffImports(client, tx, settings, audit, new SupplierDirectory(client), RegionDictionary.load(), repricing);
         fxSync = new FxSync(tx, settings, audit, () -> List.of(mockFx), fxRates, repricing, clock);
+        priceReport = new PriceReport(client, settings, bindings, fxRates, fxSync);
+        batchRepricing = new BatchRepricing(client, tx, settings, bindings, costVersions, prices, audit);
         snapshots = new OrderLineSnapshots(client, bindings, describer, fxRates, costVersions, prices);
     }
 

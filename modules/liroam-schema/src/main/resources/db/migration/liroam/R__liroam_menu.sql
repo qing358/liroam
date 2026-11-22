@@ -37,8 +37,8 @@ INSERT INTO lr_tmp_menu_seed (id, level, name, title, parent_id, path, front_rou
         '/manager/liroam/refund-rules*', '退款时卡状态 → 结论与动作'),
 
     (9100000000000000130, 1, 'liroam-pricing', '定价', '9100000000000000100', '/', 'Main', 'md-stats', 3, NULL, 'liroam 定价'),
-    (9100000000000000131, 2, 'liroamRepriceSuggestions', '调价建议', '9100000000000000130', 'liroam-reprice-suggestions', 'liroam/pricing/RepriceSuggestions', 'md-stats', 1,
-        '/manager/liroam/reprice-suggestions*', '成本或汇率变动生成的调价建议'),
+    (9100000000000000131, 2, 'liroamRepriceSuggestions', '调价', '9100000000000000130', 'liroam-reprice-suggestions', 'liroam/pricing/RepriceSuggestions', 'md-stats', 1,
+        '/manager/liroam/reprice*', '调价报表、成本或汇率变动生成的调价建议（含批量确认 / 驳回）与批量改价'),
     (9100000000000000132, 2, 'liroamPricingSettings', '定价与汇率', '9100000000000000130', 'liroam-pricing-settings', 'liroam/pricing/PricingSettings', 'md-stats', 2,
         '/manager/liroam/settings/pricing*,/manager/liroam/fx*', '调价开关、阈值与汇率'),
     (9100000000000000133, 2, 'liroamTariffSheets', '资费表与区域', '9100000000000000130', 'liroam-tariff-sheets', 'liroam/pricing/TariffSheets', 'md-stats', 3,

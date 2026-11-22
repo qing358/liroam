@@ -30,6 +30,12 @@ import com.liroam.pricing.fx.FxRates;
 import com.liroam.pricing.fx.FxSync;
 import com.liroam.pricing.fx.FxSyncResult;
 import com.liroam.pricing.price.ActivePrice;
+import com.liroam.pricing.price.BatchAdjust;
+import com.liroam.pricing.price.BatchDecision;
+import com.liroam.pricing.price.BatchPreview;
+import com.liroam.pricing.price.BatchRepricing;
+import com.liroam.pricing.price.PriceReport;
+import com.liroam.pricing.price.PriceReportView;
 import com.liroam.pricing.price.PriceVersions;
 import com.liroam.pricing.price.RepriceMode;
 import com.liroam.pricing.price.RepriceSuggestionRow;
@@ -39,7 +45,7 @@ import com.liroam.pricing.tariff.ImportReport;
 import com.liroam.pricing.tariff.TariffImports;
 import com.liroam.pricing.tariff.TariffSheetRow;
 
-/** 管理端定价接口（子计划 §3）：资费表、可用区域、汇率、调价建议、定价配置。 */
+/** 管理端定价接口（子计划 §3、P6-D）：资费表、可用区域、汇率、调价建议（含批量确认 / 驳回）、调价报表与批量改价、定价配置。 */
 @RestController
 @RequestMapping("/manager/liroam")
 public class PricingManagerController {
@@ -48,16 +54,20 @@ public class PricingManagerController {
     private final TariffImports tariffs;
     private final PriceVersions prices;
     private final RepriceSuggestions suggestions;
+    private final PriceReport report;
+    private final BatchRepricing batch;
     private final Settings settings;
     private final FxSync fxSync;
     private final FxRates fxRates;
 
-    public PricingManagerController(CurrentActor actor, TariffImports tariffs, PriceVersions prices, RepriceSuggestions suggestions, Settings settings,
-            FxSync fxSync, FxRates fxRates) {
+    public PricingManagerController(CurrentActor actor, TariffImports tariffs, PriceVersions prices, RepriceSuggestions suggestions,
+            PriceReport report, BatchRepricing batch, Settings settings, FxSync fxSync, FxRates fxRates) {
         this.actor = actor;
         this.tariffs = tariffs;
         this.prices = prices;
         this.suggestions = suggestions;
+        this.report = report;
+        this.batch = batch;
         this.settings = settings;
         this.fxSync = fxSync;
         this.fxRates = fxRates;
@@ -120,6 +130,36 @@ public class PricingManagerController {
     public ApiResult<Void> reject(@PathVariable long id) {
         prices.rejectSuggestion(id, actor.requireOperator());
         return ApiResult.ok(null);
+    }
+
+    public record SuggestionIds(List<Long> ids) {
+    }
+
+    @PostMapping("/reprice-suggestions/batch-confirm")
+    public ApiResult<BatchDecision> confirmAll(@RequestBody SuggestionIds body) {
+        return ApiResult.ok(batch.confirm(body.ids(), actor.requireOperator()));
+    }
+
+    @PostMapping("/reprice-suggestions/batch-reject")
+    public ApiResult<BatchDecision> rejectAll(@RequestBody SuggestionIds body) {
+        return ApiResult.ok(batch.reject(body.ids(), actor.requireOperator()));
+    }
+
+    @GetMapping("/reprice-report")
+    public ApiResult<PriceReportView> repriceReport() {
+        actor.requireOperator();
+        return ApiResult.ok(report.build());
+    }
+
+    @PostMapping("/reprice-batch/preview")
+    public ApiResult<BatchPreview> previewBatch(@RequestBody BatchAdjust body) {
+        actor.requireOperator();
+        return ApiResult.ok(batch.preview(body));
+    }
+
+    @PostMapping("/reprice-batch/apply")
+    public ApiResult<BatchPreview> applyBatch(@RequestBody BatchAdjust body) {
+        return ApiResult.ok(batch.apply(body, actor.requireOperator()));
     }
 
     @PostMapping("/fx/sync")

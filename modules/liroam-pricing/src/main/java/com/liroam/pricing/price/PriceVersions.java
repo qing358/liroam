@@ -109,6 +109,12 @@ public class PriceVersions {
                 + "updated_at = UTC_TIMESTAMP(3) WHERE id = ?").params(status, actor, id).update();
     }
 
+    /** 售价另有来源时，该 SKU 还没处理的建议作废；在调用方事务内执行。 */
+    void supersedePendingSuggestions(long skuBindingId) {
+        jdbc.sql("UPDATE lr_reprice_suggestion SET status = 'SUPERSEDED', version = version + 1, updated_at = UTC_TIMESTAMP(3) "
+                + "WHERE sku_binding_id = ? AND status = 'PENDING'").param(skuBindingId).update();
+    }
+
     /** 调用方负责审计；在调用方事务内执行。 */
     ActivePrice activate(SkuBinding sku, long priceFen, long costVersionId, String origin, Long suggestionId, String actor) {
         return tx.execute(status -> {
