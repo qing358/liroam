@@ -135,7 +135,7 @@ onMounted(load);
     line-height: 26px;
     font-size: 13px;
     color: #606266;
-    label { width: 36px; color: #909399; }
+    label { flex: none; width: 56px; white-space: nowrap; color: #909399; }
   }
   &__strong { font-weight: 600; color: #252833; }
   &__updated { margin-top: 6px; font-size: 12px; color: #b0b5bf; }
