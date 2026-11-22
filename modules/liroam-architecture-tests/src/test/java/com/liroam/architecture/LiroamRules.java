@@ -9,9 +9,9 @@ import com.tngtech.archunit.lang.ArchRule;
 /** domain-design §14「架构检查」。新增规则须同时在 {@code RulesCatchViolationsTest} 配一个违例夹具。 */
 final class LiroamRules {
 
-    /** 厂商 / 渠道实现与模拟实现所在包；业务代码不得依赖。 */
+    /** 厂商 / 渠道实现与模拟实现（任一模块下的 {@code mock} 包，如汇率 mock 来源）所在包；业务代码不得依赖。 */
     static final String[] VENDOR_PACKAGES = {
-            "com.liroam.supplier.adapter..", "com.liroam.supplier.mock..", "com.liroam.channel.adapter..", "com.liroam.channel.mock.."};
+            "com.liroam.supplier.adapter..", "com.liroam.channel.adapter..", "com.liroam..mock.."};
 
     private LiroamRules() {
     }
@@ -41,7 +41,7 @@ final class LiroamRules {
 
     static final ArchRule SIMULATED_ONLY_IN_MOCK_PACKAGES = classes()
             .that().areAnnotatedWith(Simulated.class)
-            .should().resideInAnyPackage("com.liroam.supplier.mock..", "com.liroam.channel.mock..")
+            .should().resideInAnyPackage("com.liroam..mock..")
             .allowEmptyShould(true)
             .because("模拟实现集中在 mock 包，生产闸按 @Simulated 拦截");
 }

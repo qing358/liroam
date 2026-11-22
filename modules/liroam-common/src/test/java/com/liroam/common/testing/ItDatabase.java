@@ -50,11 +50,24 @@ public final class ItDatabase {
         return connect(schema(module));
     }
 
+    /** 多个 worktree 同时跑测试时用不同前缀，避免同名测试类互删库；必须以 {@code liroam_it_} 开头。 */
+    static final String PREFIX_ENV = "LIROAM_IT_DB_PREFIX";
+
     private static String schema(String module) {
         if (!module.matches("[a-z_]+")) {
             throw new IllegalArgumentException("模块名只允许小写字母与下划线：" + module);
         }
-        return "liroam_it_" + module;
+        return prefix(System.getenv(PREFIX_ENV)) + module;
+    }
+
+    static String prefix(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "liroam_it_";
+        }
+        if (!raw.matches("liroam_it_[a-z0-9_]*")) {
+            throw new IllegalArgumentException(PREFIX_ENV + " 必须形如 liroam_it_xxx_：" + raw);
+        }
+        return raw;
     }
 
     private static DriverManagerDataSource connect(String schema) {

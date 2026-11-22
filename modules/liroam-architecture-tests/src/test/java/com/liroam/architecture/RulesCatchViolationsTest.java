@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.liroam.archfixture.bad.LeaksLilishop;
 import com.liroam.archfixture.bad.SimulatedOutsideMock;
 import com.liroam.archfixture.bad.TouchesLedgerStore;
+import com.liroam.archfixture.bad.UsesMockFxSource;
 import com.liroam.archfixture.bad.UsesVendorAdapter;
+import com.liroam.pricing.mock.archfixture.FakeMockFxSource;
 import com.liroam.supplier.adapter.archfixture.FakeVendorAdapter;
 import com.liroam.supplier.archfixture.AdapterWithStorage;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -28,6 +30,11 @@ class RulesCatchViolationsTest {
     @Test
     void vendorDependencyFromBusinessCodeIsCaught() {
         assertCatches(LiroamRules.BUSINESS_DOES_NOT_DEPEND_ON_VENDOR_OR_MOCK, UsesVendorAdapter.class, FakeVendorAdapter.class);
+    }
+
+    @Test
+    void mockDependencyFromAnyModuleIsCaught() {
+        assertCatches(LiroamRules.BUSINESS_DOES_NOT_DEPEND_ON_VENDOR_OR_MOCK, UsesMockFxSource.class, FakeMockFxSource.class);
     }
 
     @Test

@@ -11,6 +11,8 @@ import com.liroam.catalog.SkuBindings;
 import com.liroam.catalog.SupplierAdapterRegistry;
 import com.liroam.catalog.SupplierDirectory;
 import com.liroam.catalog.SupplierWiringCheck;
+import com.liroam.common.audit.AuditLog;
+import com.liroam.common.setting.Settings;
 import com.liroam.schema.LiroamSchemaAutoConfiguration;
 import com.liroam.supplier.spi.SupplierAdapter;
 
@@ -21,6 +23,16 @@ public class LiroamCatalogAutoConfiguration {
     @Bean
     JdbcClient liroamJdbcClient(DataSource dataSource) {
         return JdbcClient.create(dataSource);
+    }
+
+    @Bean
+    AuditLog liroamAuditLog(JdbcClient liroamJdbcClient) {
+        return new AuditLog(liroamJdbcClient);
+    }
+
+    @Bean
+    Settings liroamSettings(JdbcClient liroamJdbcClient, AuditLog liroamAuditLog) {
+        return new Settings(liroamJdbcClient, liroamAuditLog);
     }
 
     @Bean
