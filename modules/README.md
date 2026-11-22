@@ -9,7 +9,7 @@
 | `liroam-supplier-spi` | 供应商适配契约、四态结果、能力声明；test-jar：`SupplierAdapterContractTest`（CT-SUP-01~08） | 纯 Java |
 | `liroam-catalog` | SKU 绑定、供应商目录、适配器注册；启用供应商缺适配器即启动失败 | common、spi、schema |
 | `liroam-supplier-mock` | 两家模拟供应商 `mock-shape-a`（池模式、MB）/ `mock-shape-b`（下单即建、字节、回调），仅 dev/test profile；`MockFaults` 故障注入（`failNext` + `liroam.mock.supplier.rules`）、`MockUpstreamConsole` 推卡状态 | spi、common |
-| `liroam-fulfillment` | 唯一履约入口 `FulfillmentEntry.accept`、`FulfillmentRules`、卡/套餐/指令/履约行状态机 | catalog |
+| `liroam-fulfillment` | 唯一履约入口 `FulfillmentEntry.accept` 与 `FulfillmentRules`；拆卡 worker、指令执行（限流/查档/转人工）、卡池、交码三通道、轮询镜像、卡投影与查询、`CardActions`、加包意图；买家 `/buyer/liroam/cards`、后台 `/manager/liroam/cards`；节拍需 `liroam.worker.enabled=true` | catalog |
 | `liroam-pricing` | 资费表导入（xlsx → 区域/资费行/卡产品）、使用区域文案、汇率同步、成本与售价版本、调价建议、订单行快照；售价回写走端口 `ShellPriceWriter`（H7，实现在 shell-bridge）；模拟汇率源在 `..pricing.mock..` | catalog |
 | `liroam-shell-bridge` | 唯一允许依赖 `cn.lili` 的模块：H1 支付监听、H1′ 补偿扫描 | fulfillment |
 | `liroam-architecture-tests` | ArchUnit 规则与厂商名源码扫描（新增模块须加为它的依赖） | 全部 |
