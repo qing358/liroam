@@ -3,6 +3,7 @@ package com.liroam.smoke;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -53,9 +54,16 @@ final class SmokeHarness implements AutoCloseable {
     private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
 
     SmokeHarness(String module) {
+        this(module, MOCKS, ctx -> {
+        });
+    }
+
+    /** @param extraBeans 在自动配置之外再登记的 Bean（如指向桩上游的真适配器，Bean 名即 {@code adapter_key}） */
+    SmokeHarness(String module, Upstreams upstreams, Consumer<AnnotationConfigApplicationContext> extraBeans) {
         DataSource ds = ItSchema.migrated(module);
         jdbc = new JdbcTemplate(ds);
-        catalog = TestCatalog.seed(jdbc, MOCKS);
+        catalog = TestCatalog.seed(jdbc, upstreams);
+        extraBeans.accept(context);
         context.getEnvironment().setActiveProfiles("test");
         TestPropertySourceUtils.addInlinedPropertiesToEnvironment(context, TestKeys.properties());
         context.registerBean(DataSource.class, () -> ds);

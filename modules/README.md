@@ -9,12 +9,13 @@
 | `liroam-supplier-spi` | 供应商适配契约、四态结果、能力声明；test-jar：`SupplierAdapterContractTest`（CT-SUP-01~08） | 纯 Java |
 | `liroam-catalog` | SKU 绑定、供应商目录、适配器注册；启用供应商缺适配器即启动失败 | common、spi、schema |
 | `liroam-supplier-mock` | 两家模拟供应商 `mock-shape-a`（池模式、MB）/ `mock-shape-b`（下单即建、字节、回调），仅 dev/test profile；`MockFaults` 故障注入（`failNext` + `liroam.mock.supplier.rules`）、`MockUpstreamConsole` 推卡状态 | spi、common |
+| `liroam-supplier-quadcell` | 真供应商适配器（Open API v1.3.3，JDK `HttpClient`）：池卡开订阅、查档（MB→字节、+08:00 时间）、加包、停复机/终止、按卡状态查档；错误码表 → 四态（写操作 5xx 记未知走查档，不盲重试）；有 `LIROAM_SUPPLIER_QUADCELL_APIKEY` 才装配，Bean 名 `quadcell`；test-jar 只发布按文档报文回放的 HTTP 桩 `QuadcellStubUpstream` | spi |
 | `liroam-fulfillment` | 唯一履约入口 `FulfillmentEntry.accept` 与 `FulfillmentRules`；拆卡 worker、指令执行（限流/查档/转人工）、卡池、交码三通道、轮询镜像、卡投影与查询、`CardActions`、加包意图；买家 `/buyer/liroam/cards`、后台 `/manager/liroam/cards`；节拍需 `liroam.worker.enabled=true` | catalog |
 | `liroam-pricing` | 资费表导入（xlsx → 区域/资费行/卡产品）、使用区域文案、汇率同步、成本与售价版本、调价建议、订单行快照；售价回写走端口 `ShellPriceWriter`（H7，实现在 shell-bridge）；模拟汇率源在 `..pricing.mock..` | catalog |
 | `liroam-refund` | 退款最小闭环（§9）：`RefundRules`（版本化，无规则即需审核；dev 默认 `liroam/dev-seed/refund-rules.sql`）、`RefundCases`（冻结 → 审批 → 卡动作 → 完成）、`CommissionReversal` 端口（默认只记审计）；买家 `POST /buyer/liroam/cards/{id}/refund`、后台 `/manager/liroam/refunds`、`/manager/liroam/refund-rules`；卡写入只经 `CardActions` | fulfillment |
 | `liroam-shell-bridge` | 唯一允许依赖 `cn.lili` 的模块：H1 支付监听、H1′ 补偿扫描 | fulfillment |
 | `liroam-architecture-tests` | ArchUnit 规则与厂商名源码扫描（新增模块须加为它的依赖） | 全部 |
-| `liroam-smoke-tests` | 只有测试：P2 主路径冒烟（domain-design §15 V3–V7、V10），真 `mock-shape-a`/`mock-shape-b` + 各模块自动配置（test profile）走唯一履约入口 → worker 出卡 → 交码 → 壳发货回写端口（记录型假实现）→ 卡投影 → 加包；进 CI 命令。不依赖壳 | fulfillment、supplier-mock（均 test） |
+| `liroam-smoke-tests` | 只有测试：P2 主路径冒烟（domain-design §15 V3–V7、V10），真 `mock-shape-a`/`mock-shape-b` + 各模块自动配置（test profile）走唯一履约入口 → worker 出卡 → 交码 → 壳发货回写端口（记录型假实现）→ 卡投影 → 加包；P3 另有 `QuadcellPathSmokeTest`（真 Quadcell 适配器 + HTTP 桩，写后超时查档、MySQL 令牌桶、429 退避）；进 CI 命令。不依赖壳 | fulfillment、supplier-mock、supplier-quadcell（均 test） |
 
 约定：
 

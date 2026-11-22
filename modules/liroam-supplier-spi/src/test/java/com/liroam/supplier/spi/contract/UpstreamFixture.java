@@ -44,6 +44,10 @@ public interface UpstreamFixture {
     /** 上游视角下某 requestNo 实际产生的开通次数（WireMock 回放时按请求携带的幂等键去重计数）。 */
     int effectiveProvisions(String requestNo);
 
+    /** 上游侧把卡推到「已激活」（用户已装卡上网）；激活与否不影响状态操作的上游可不实现。 */
+    default void activate(CardRef card) {
+    }
+
     /** 给卡植入一段用量，返回适配器应归一出的结果。 */
     ExpectedUsage seedUsage(CardRef card);
 

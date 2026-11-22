@@ -62,7 +62,26 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 | `JASYPT_ENCRYPTOR_PASSWORD` | 上游 jasypt 解密口令（上游 yml 默认 `lili`） | 未覆盖，用上游默认 | 建议覆盖。2026-11-22 核实：上游配置、SQL、docker 摘取文件中没有任何 `ENC(` 值，`JasyptUtil` 只在其自带 `main` 里用，现无依赖默认口令的密文 |
 | 支付、短信、OSS、快递等三方密钥 | 上游存于库表 `li_setting`，由管理端配置 | 未配置 | 按环境在管理端录入，不进仓库 |
 
-供应商（Quadcell 等）、京东渠道、汇率来源的密钥变量名在对应模块接入时补到本表。
+| `LIROAM_SUPPLIER_QUADCELL_APIKEY` | Quadcell Open API 的 `X-api-key`；不设则不装配该适配器（启用了 `adapter_key=quadcell` 的供应商会让启动失败） | 未配置 | 密钥管理注入 |
+| `LIROAM_SUPPLIER_QUADCELL_BASEURL` | 接口根地址，默认官方 `https://mvne-api.quadcell.com:8443/open-api/1.0`；拿到沙箱地址时覆盖 | 默认值 | 按环境 |
+| `LIROAM_SUPPLIER_QUADCELL_DEFAULTMODE` | 开订阅必填的 `mode`，SKU 模板 payload 未写时用它；两处都没有则开卡被拒（`BAD_PAYLOAD`） | 未配置 | 供应商确认后配置 |
+| `LIROAM_SUPPLIER_QUADCELL_PROXYHOST` / `_PROXYPORT` | 出口代理（供应商按 IP 白名单放行时，经固定 IP 出口） | 未配置 | 按网络方案 |
+
+京东渠道、汇率来源的密钥变量名在对应模块接入时补到本表。
+
+## 供应商接入（Quadcell）
+
+1. 配好 `LIROAM_SUPPLIER_QUADCELL_APIKEY`（及必要的 base-url / 代理），出口 IP 进供应商白名单。
+2. 后台把该供应商的 `adapter_key` 设为 `quadcell`；资费/套餐的供应商编码填 `packCode`。
+3. SKU 套餐模板 payload 可写：开卡 `svcCode`、`mode`、`vDay`、`actwPack`，套餐 `pcrfCode`、`pcrfReset`、`autoAct`、`priority`（加包只认套餐字段）；未知字段或类型不对在本地拒绝，不调上游。
+4. 池卡：导入供应商给的 Idle 卡；开订阅后上游卡状态为 Provisioned，交码走导入或人工（上游无交码接口）。
+5. 其余可调项（`liroam.supplier.quadcell.*`）：`time-zone`（默认 `Asia/Hong_Kong`）、`bytes-per-mb`（默认 1048576，待供应商确认）、`connect-timeout` / `read-timeout`、`throttle-retry-after`。
+
+真沙箱测试（`QuadcellLiveTest`）只在设了 `LIROAM_SUPPLIER_QUADCELL_APIKEY` 时跑：只读需 `LIROAM_QUADCELL_LIVE_ICCID`；写路径另需 `LIROAM_QUADCELL_LIVE_WRITES=true`、`LIROAM_QUADCELL_LIVE_IDLE_ICCID`、`LIROAM_QUADCELL_LIVE_PACK_CODE`，可选 `_TOPUP_PACK_CODE`、`_PAYLOAD`（`k=v;k=v`）、`_TERMINATE=true`（会把卡退回 Idle 并终止订阅，注意费用）。
+
+```bash
+mvn -B -o -pl modules/liroam-supplier-quadcell -am test -Dtest='QuadcellLiveTest' -Dsurefire.failIfNoSpecifiedTests=false
+```
 
 ## 测试
 

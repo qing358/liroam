@@ -1,0 +1,56 @@
+{
+    "imsi": "100000000000014",
+    "iccid": "1000000000000000014",
+    "msisdn": "100000000000014",
+    "imeis": ["JKFLWKEJ9234k91HSKFDE"],
+    "resType": "45400",
+    "svcCode": "PROF01",
+    "mode": 2,
+    "modeDesc": "Calendar Day",
+    "vDay": 7,
+    "actwPack": true,
+    "actEffDate": "2026-03-01T23:59:59+08:00",
+    "actExpDate": "2026-03-31T23:59:59+08:00",
+    "actDate": " 2026-03-18T17:56:14+08:00",
+    "expDate": "2026-03-25T17:56:14+08:00",
+    "status": 4,
+    "statusDesc": "Activated",
+    "packs": [
+      {
+        "packId": "69ba6aec1c81c5102bfba46f",
+        "packCode": "DATAPKG02",
+        "packInfo": {
+           "code": "DATAPKG02",
+           "name": "Unlimited Quota And Never Expired",
+           "areaCodes": ["ASIA02", "JP"],
+           "quota": {
+              "unlimit": true
+           },
+           "validity": {
+              "type": 0,
+              "typeDesc": "Never Expire"
+           }
+        },
+        "pcrfCode": "FUP01",
+        "pcrfReset": 0,
+        "pcrfUsage": 1056.8613176345825,
+        "pcrfTier": 2,
+        "pcrfInfo": {
+           "name": "FUP 3-Tiers",
+           "tiers": [
+             { "thld": 0.0, "fullSpd": true },
+             { "thld": 800, "thldUnit": "MB", "spd": 1, "spdUnit": "Mbps" },
+             { "thld": 1, "thldUnit": "GB", "spd": 256, "spdUnit": "Kbps" }
+           ]
+        },
+        "autoAct": null,
+        "priority": "M",
+        "actEffDate": "2026-03-01T23:59:59+08:00",
+        "actExpDate": "2026-03-31T23:59:59+08:00",
+        "actDate": " 2026-03-18T17:56:14+08:00",
+        "expDate": "2026-03-25T17:56:14+08:00",
+        "status": 2,
+        "statusDesc": "Activated"
+      }
+    ]
+}

@@ -178,6 +178,7 @@ public abstract class SupplierAdapterContractTest {
     @Test
     void ct_sup_07_declaredStatusOperationsSucceed() {
         CardRef card = provisionedCard();
+        upstream().activate(card);
         for (StatusOp op : List.of(StatusOp.SUSPEND, StatusOp.RESUME, StatusOp.TERMINATE)) {
             if (caps.statusOps().contains(op)) {
                 assertThat(adapter().changeStatus(new StatusCommand(requestNo(op.name()), card, op))).as(op.name()).isInstanceOf(Outcome.Ok.class);

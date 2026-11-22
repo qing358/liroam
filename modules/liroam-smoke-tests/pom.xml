@@ -24,6 +24,25 @@
         </dependency>
         <dependency>
             <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-quadcell</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-quadcell</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-spi</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
             <artifactId>liroam-fulfillment</artifactId>
             <type>test-jar</type>
             <scope>test</scope>

@@ -23,6 +23,7 @@
         <module>liroam-supplier-spi</module>
         <module>liroam-catalog</module>
         <module>liroam-supplier-mock</module>
+        <module>liroam-supplier-quadcell</module>
         <module>liroam-pricing</module>
         <module>liroam-fulfillment</module>
         <module>liroam-refund</module>
@@ -77,6 +78,11 @@
             <dependency>
                 <groupId>com.liroam</groupId>
                 <artifactId>liroam-supplier-mock</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-supplier-quadcell</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

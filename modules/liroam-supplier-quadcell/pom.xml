@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.liroam</groupId>
+        <artifactId>liroam-modules</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>liroam-supplier-quadcell</artifactId>
+    <description>Quadcell Open API v1.3.3 适配器（Bean 名 quadcell）：池卡开订阅、查档/用量、加包、停用/恢复/终止；JDK HttpClient + 壳自带 Jackson 3，仅配置了 API key 时装配</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-spi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-spi</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <!-- 装配测试：与 ProductionSafetyGate 同时装配，证明真适配器在生产 profile 下可启动 -->
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                        <configuration>
+                            <!-- 只发布桩上游，供冒烟测试驱动真适配器走 worker 全链路 -->
+                            <includes>
+                                <include>com/liroam/supplier/adapter/quadcell/QuadcellStubUpstream*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

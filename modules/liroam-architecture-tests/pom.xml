@@ -24,6 +24,11 @@
         </dependency>
         <dependency>
             <groupId>com.liroam</groupId>
+            <artifactId>liroam-supplier-quadcell</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
             <artifactId>liroam-pricing</artifactId>
             <scope>test</scope>
         </dependency>
