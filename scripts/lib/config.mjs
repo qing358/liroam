@@ -49,35 +49,6 @@ export function backendBuildArgs(modules) {
   return ['-B', '-q', '-pl', modules.map((m) => `shop/lilishop/${m}`).join(','), '-am', 'package', '-DskipTests'];
 }
 
-// 本机宿主进程资源上限（唯一登记处）。WSL 虚拟机与本机其它项目共用 CPU / 内存，liroam 起的每个进程都要有天花板
-export const HOST_LIMITS = {
-  build: { cpus: 4, memory: '4G' },
-  backend: { cpus: 2, memory: '1536M' },
-  frontend: { cpus: 1, memory: '2G' },
-};
-
-// JVM 默认按整机核数开 JIT / GC 线程（28 核时 CICompilerCount=12），可见核数跟随 HOST_LIMITS
-export function backendJvmArgs() {
-  return ['-Xms256m', '-Xmx768m', `-XX:ActiveProcessorCount=${HOST_LIMITS.backend.cpus}`];
-}
-
-export function frontendEnv() {
-  return { BROWSER: 'none', NODE_OPTIONS: '--max-old-space-size=1536' };
-}
-
-// systemd-run --scope 与 nice / ionice 都 exec 目标命令，pid 不变，dev.mjs 记录的 pid 与进程组仍可用于停止
-export function limitedCommand(kind, command, args, { systemd }) {
-  const limit = HOST_LIMITS[kind];
-  if (!limit) throw new Error(`进程类别 ${kind} 未登记资源上限`);
-  const lowPriority = ['-n', '10', 'ionice', '-c2', '-n7', command, ...args];
-  if (!systemd) return ['nice', lowPriority];
-  return ['systemd-run', [
-    '--scope', '--quiet', '--slice=liroam.slice',
-    '-p', `CPUQuota=${limit.cpus * 100}%`, '-p', `MemoryMax=${limit.memory}`,
-    'nice', ...lowPriority,
-  ]];
-}
-
 export function selectFrontends(argv, frontends) {
   const flag = argv.find((a) => a.startsWith('--ui='));
   if (!flag) return frontends;

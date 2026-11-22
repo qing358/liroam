@@ -34,9 +34,6 @@
         <lilishop.version>5.0.2</lilishop.version>
         <archunit.version>1.5.1</archunit.version>
         <bucket4j.version>8.22.0</bucket4j.version>
-        <!-- 本机多个 worktree 可能同时跑测试：每个模块只 fork 一个测试 JVM，且不按整机核数开线程 -->
-        <forkCount>1</forkCount>
-        <argLine>-XX:ActiveProcessorCount=2 -Xmx1g</argLine>
     </properties>
 
     <dependencyManagement>

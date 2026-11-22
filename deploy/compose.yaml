@@ -6,9 +6,6 @@ services:
   mysql:
     image: mysql:8.0.30
     restart: unless-stopped
-    # Docker Desktop 与本机其它项目共用 WSL 虚拟机；上限覆盖 dev 栈与 mvn verify 集成测试（每测试类建一个库）
-    cpus: "2"
-    mem_limit: 1536m
     environment:
       MYSQL_ROOT_PASSWORD: ${LIROAM_MYSQL_ROOT_PASSWORD:?缺少 LIROAM_MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: lilishop
@@ -30,8 +27,6 @@ services:
   redis:
     image: redis:7.0.4
     restart: unless-stopped
-    cpus: "1"
-    mem_limit: 256m
     environment:
       REDISCLI_AUTH: ${LIROAM_REDIS_PASSWORD:?缺少 LIROAM_REDIS_PASSWORD}
     command: ["sh", "-c", "exec redis-server --requirepass \"$$REDISCLI_AUTH\" --appendonly yes"]

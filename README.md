@@ -26,20 +26,6 @@ node scripts/dev.mjs status      # 地址与进程
 node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 ```
 
-### 资源上限（默认生效）
-
-本机 WSL 与其它项目共用一台虚拟机，liroam 起的进程一律带上限，数值只在 `scripts/lib/config.mjs` 的 `HOST_LIMITS` 与 `deploy/compose.yaml` 改：
-
-| 进程 | 上限 |
-|------|------|
-| `mvn package`（`up` 构建） | 4 核 / 4G；Maven 本体 `.mvn/jvm.config`：可见 4 核、堆 2G；reactor 串行（不加 `-T`） |
-| manager-api / buyer-api | 各 2 核 / 1536M；JVM `-Xmx768m -XX:ActiveProcessorCount=2` |
-| 每个前端 dev server | 1 核 / 2G；Node 堆 1536M |
-| MySQL / Redis 容器 | 2 核 / 1536m；1 核 / 256m |
-| surefire 测试 JVM | 每模块 1 个 fork，可见 2 核、堆 1G（`modules/pom.xml`） |
-
-宿主进程经 `systemd-run --scope` 放进 `liroam.slice`（`systemctl status liroam.slice` 可看），并以 `nice 10` / `ionice` 尽力而为级最低档运行；没有 systemd 或非 root 时只降优先级。自研测试不用 Testcontainers，集成测试共用 compose 的 MySQL，本机同一时刻只跑一个 `mvn verify`。
-
 首次 `up` 会在仓根生成 `.env`（本机随机口令，不入库，权限 600）。重建空库：`docker compose --env-file deploy/ports.env --env-file .env -f deploy/compose.yaml down -v` 后再 `up`。日志在 `.run/logs/`。
 
 ## 端口（唯一登记：`deploy/ports.env`）
