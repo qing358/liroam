@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 // liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] | down | status | health
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava } from './lib/config.mjs';
+import {
+  backendBuildArgs, backendEnv, backendJvmArgs, buildConfig, ensureSecretsFile, frontendEnv, limitedCommand, parseEnv, readSdkmanJava, selectFrontends,
+} from './lib/config.mjs';
 import { renderPcConfig } from '../shop/docker/scripts/dev-env-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -76,9 +78,13 @@ function backendJar(module) {
   return jar ? path.join(targetDir, jar) : null;
 }
 
+// systemd-run --scope 需要 systemd 为 1 号进程且有 root 权限；否则只降优先级，不设硬上限
+const systemd = fs.existsSync('/run/systemd/system') && process.getuid?.() === 0;
+
 function buildBackend(javaHome) {
   console.log('\n$ mvn package（仓根 reactor：buyer-api、manager-api 及自研依赖，跳过测试）');
-  const result = spawnSync('mvn', backendBuildArgs(BACKENDS.map((b) => b.module)), {
+  const [cmd, args] = limitedCommand('build', 'mvn', backendBuildArgs(BACKENDS.map((b) => b.module)), { systemd });
+  const result = spawnSync(cmd, args, {
     cwd: rootDir,
     stdio: 'inherit',
     env: { ...process.env, JAVA_HOME: javaHome, PATH: `${javaHome}/bin:${process.env.PATH}` },
@@ -127,7 +133,7 @@ function portInUse(port) {
   return out.stdout.trim().length > 0;
 }
 
-function startProcess(name, command, args, { cwd, env, port }, pids) {
+function startProcess(name, kind, command, args, { cwd, env, port }, pids) {
   if (pids[name] && isAlive(pids[name].pid)) {
     console.log(`- ${name} 已在运行（pid ${pids[name].pid}）`);
     return;
@@ -135,7 +141,8 @@ function startProcess(name, command, args, { cwd, env, port }, pids) {
   if (portInUse(port)) throw new Error(`${name} 的端口 ${port} 已被其它进程占用；改 deploy/ports.env 或先释放该端口`);
   const logPath = path.join(logsDir, `${name}.log`);
   const fd = fs.openSync(logPath, 'a');
-  const child = spawn(command, args, { cwd, env: { ...process.env, ...env }, detached: true, stdio: ['ignore', fd, fd] });
+  const [cmd, limitedArgs] = limitedCommand(kind, command, args, { systemd });
+  const child = spawn(cmd, limitedArgs, { cwd, env: { ...process.env, ...env }, detached: true, stdio: ['ignore', fd, fd] });
   child.unref();
   fs.closeSync(fd);
   pids[name] = { pid: child.pid, port, log: logPath };
@@ -190,13 +197,15 @@ async function up() {
   const env = loadEnv();
   const config = buildConfig(env);
   const javaHome = resolveJavaHome();
+  const frontends = selectFrontends(process.argv, FRONTENDS);
+  if (!systemd) console.log('未检测到 systemd（或非 root）：进程只降优先级，不设 CPU / 内存硬上限');
 
   console.log('\n$ docker compose up -d --wait（liroam 专用 MySQL / Redis）');
   compose(['up', '-d', '--wait']);
   applyDevSeed();
 
   if (process.argv.includes('--build') || BACKENDS.some((b) => !backendJar(b.module))) buildBackend(javaHome);
-  for (const fe of FRONTENDS) {
+  for (const fe of frontends) {
     installFrontend(fe.app);
     writeFrontendConfig(fe.app, fe.prefix, config);
   }
@@ -206,17 +215,17 @@ async function up() {
     const javaEnv = backendEnv(env, config, { worker: be.worker });
     const workDir = path.join(runDir, be.name);
     fs.mkdirSync(workDir, { recursive: true });
-    startProcess(be.name, path.join(javaHome, 'bin/java'),
-      ['-Xms256m', '-Xmx1g', '-jar', backendJar(be.module), '--spring.profiles.active=dev', `--server.port=${portOf(config[be.urlKey])}`],
+    startProcess(be.name, 'backend', path.join(javaHome, 'bin/java'),
+      [...backendJvmArgs(), '-jar', backendJar(be.module), '--spring.profiles.active=dev', `--server.port=${portOf(config[be.urlKey])}`],
       { cwd: workDir, env: javaEnv, port: portOf(config[be.urlKey]) }, pids);
   }
-  for (const fe of FRONTENDS) {
-    startProcess(fe.name, path.join(uiDir, fe.app, 'node_modules/.bin/vue-cli-service'), ['serve', '--host', '0.0.0.0', '--port', String(portOf(config[fe.urlKey]))],
-      { cwd: path.join(uiDir, fe.app), env: { BROWSER: 'none' }, port: portOf(config[fe.urlKey]) }, pids);
+  for (const fe of frontends) {
+    startProcess(fe.name, 'frontend', path.join(uiDir, fe.app, 'node_modules/.bin/vue-cli-service'), ['serve', '--host', '0.0.0.0', '--port', String(portOf(config[fe.urlKey]))],
+      { cwd: path.join(uiDir, fe.app), env: frontendEnv(), port: portOf(config[fe.urlKey]) }, pids);
   }
 
   for (const be of BACKENDS) await waitFor(be.name, () => backendUp(config[be.urlKey]), 300000);
-  for (const fe of FRONTENDS) {
+  for (const fe of frontends) {
     const apiUrl = fe.app === 'buyer' ? config.buyerApiUrl : config.managerApiUrl;
     await waitFor(fe.name, () => frontendUp(config[fe.urlKey], apiUrl), 300000);
   }
@@ -296,7 +305,9 @@ async function health() {
   for (const be of BACKENDS) {
     await check(be.name, async () => expect(await backendUp(config[be.urlKey]), `${config[be.urlKey]}/actuator/health UP`, `${config[be.urlKey]} 未就绪`));
   }
-  for (const fe of FRONTENDS) {
+  // 只检查 up 实际启动过的前端（--ui 按需启动）；启动后又挂掉的仍在 pids 里，照样判失败
+  const pids = readPids();
+  for (const fe of FRONTENDS.filter((f) => pids[f.name])) {
     const apiUrl = fe.app === 'buyer' ? config.buyerApiUrl : config.managerApiUrl;
     await check(fe.name, async () => expect(await frontendUp(config[fe.urlKey], apiUrl), `${config[fe.urlKey]} 200，API 指向 ${apiUrl}`, `${config[fe.urlKey]} 未就绪或未指向 ${apiUrl}`));
   }
@@ -315,7 +326,7 @@ async function health() {
 const command = process.argv[2] || 'status';
 const handlers = { up, down, status, health };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] | down | status | health`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health`);
   process.exit(2);
 }
 try {
