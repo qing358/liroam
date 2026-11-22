@@ -56,6 +56,9 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { ElDescriptions, ElDescriptionsItem } from "element-plus";
+import "element-plus/es/components/descriptions/style/css";
+import "element-plus/es/components/descriptions-item/style/css";
 import { getMyCard } from "@/api/liroam";
 import { cardFormText, failureMessage, listOf } from "@/utils/liroam";
 import CredentialDialog from "./components/CredentialDialog.vue";
