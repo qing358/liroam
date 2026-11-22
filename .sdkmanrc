@@ -1,0 +1,3 @@
+# 本仓后端（Lilishop v5）要求 Java 21；进入仓目录执行 `sdk env` 切换，本机默认 JDK 不变。
+# 21-openjdk 为 sdkman 本地候选，指向 apt 包 openjdk-21-jdk-headless（/usr/lib/jvm/java-21-openjdk-amd64）。
+java=21-openjdk

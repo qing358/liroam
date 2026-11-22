@@ -35,3 +35,7 @@ coverage/
 .cache/
 tmp/
 temp/
+
+# liroam 本机编排运行态（scripts/dev.mjs）
+.run/
+shop/lilishop-ui/*/public/config.local.js
