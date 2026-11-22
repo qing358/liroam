@@ -81,6 +81,7 @@ public final class FulfillmentHarness implements AutoCloseable {
         context.registerBean(ADAPTER_A, SupplierAdapter.class, () -> adapterA);
         context.registerBean(ADAPTER_B, SupplierAdapter.class, () -> adapterB);
         context.registerBean(ShellOrderDelivery.class, () -> shell);
+        context.registerBean(RecordingCredentialEvents.class);
         context.register(LiroamCommonAutoConfiguration.class, LiroamCatalogAutoConfiguration.class, LiroamFulfillmentAutoConfiguration.class);
         context.refresh();
         this.catalog = catalog != null ? catalog : TestCatalog.seed(jdbc);
@@ -99,6 +100,11 @@ public final class FulfillmentHarness implements AutoCloseable {
         props.putAll(extraProperties);
         StubUpstream a = new StubUpstream(StubShape.POOL_IMPORT);
         StubUpstream b = new StubUpstream(StubShape.CREATE_API);
+        // 两个桩各自从 1 编卡号，会撞出同一个 ICCID；把 A 的序号推远，台账里的卡号哈希唯一键才不会被假数据撞上
+        for (int i = 0; i < 100_000; i++) {
+            a.idleIccid();
+        }
+        a.reset();
         return new FulfillmentHarness(module, ds, props, new MutableClock(), new RecordingShellOrderDelivery(), a, b,
                 new ContractStubAdapter(StubShape.POOL_IMPORT, a), new ContractStubAdapter(StubShape.CREATE_API, b), null);
     }
@@ -120,6 +126,7 @@ public final class FulfillmentHarness implements AutoCloseable {
         upstreamB.reset();
         clock.reset();
         shell.reset();
+        bean(RecordingCredentialEvents.class).reset();
     }
 
     /** 走唯一履约入口收一条自营订单行；返回履约行 id。 */
@@ -156,6 +163,13 @@ public final class FulfillmentHarness implements AutoCloseable {
         }
         bean(CardPool.class).importItems(catalog.supplierA, catalog.productA, rows, "op-test");
         return iccids;
+    }
+
+    /** 收一张单卡订单并拆卡；返回卡 id（指令尚未执行）。 */
+    public long acceptCard(String orderSn, long skuBindingId, String memberId) {
+        long line = acceptShop(orderSn, orderSn + "-1", skuBindingId, 1, memberId);
+        bean(FulfillmentWorker.class).runOnce(10);
+        return cardOfLine(line);
     }
 
     public long cardOfLine(long lineId) {

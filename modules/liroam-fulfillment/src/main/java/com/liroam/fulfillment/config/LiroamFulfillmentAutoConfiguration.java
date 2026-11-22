@@ -28,6 +28,8 @@ import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.credential.CredentialTimeouts;
 import com.liroam.fulfillment.delivery.ShellDeliveries;
 import com.liroam.fulfillment.credential.CredentialDeliveries;
+import com.liroam.fulfillment.credential.CredentialEntry;
+import com.liroam.fulfillment.credential.CredentialImports;
 import com.liroam.fulfillment.delivery.DeliveryProgress;
 import com.liroam.fulfillment.delivery.LineProgress;
 import com.liroam.fulfillment.poll.PollTiers;
@@ -146,6 +148,19 @@ public class LiroamFulfillmentAutoConfiguration {
     CredentialDeliveries liroamCredentialDeliveries(CardCredentials liroamCardCredentials, SensitiveCipher liroamSensitiveCipher,
             ApplicationEventPublisher events, Clock liroamFulfillmentClock) {
         return new CredentialDeliveries(liroamCardCredentials, liroamSensitiveCipher, events, liroamFulfillmentClock);
+    }
+
+    @Bean
+    CredentialImports liroamCredentialImports(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, PoolItems liroamPoolItems,
+            CredentialDeliveries liroamCredentialDeliveries, SensitiveCipher liroamSensitiveCipher, AuditLog liroamAuditLog) {
+        return new CredentialImports(liroamFulfillmentTx, liroamCardAssets, liroamPoolItems, liroamCredentialDeliveries, liroamSensitiveCipher,
+                liroamAuditLog);
+    }
+
+    @Bean
+    CredentialEntry liroamCredentialEntry(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets,
+            CredentialDeliveries liroamCredentialDeliveries, AuditLog liroamAuditLog) {
+        return new CredentialEntry(liroamFulfillmentTx, liroamCardAssets, liroamCredentialDeliveries, liroamAuditLog);
     }
 
     @Bean
