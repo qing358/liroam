@@ -34,7 +34,8 @@ class ArchitectureTest {
                 .map(p -> p.split("\\.").length > 2 ? p.split("\\.")[2] : p).collect(Collectors.toSet());
         assertThat(roots).contains("common", "schema", "supplier", "catalog", "pricing", "fulfillment", "refund", "channel", "shell");
         assertThat(production.stream().map(JavaClass::getPackageName)).as("mock 供应商受规则约束").contains("com.liroam.supplier.mock");
-        assertThat(production.stream().map(JavaClass::getPackageName)).as("模拟渠道受规则约束").contains("com.liroam.channel.adapter.jd.mock");
+        assertThat(production.stream().map(JavaClass::getPackageName)).as("模拟渠道受规则约束")
+                .contains("com.liroam.channel.adapter.mock", "com.liroam.channel.adapter.jd.mock", "com.liroam.channel.adapter.xhs.mock");
         assertThat(production.stream().map(JavaClass::getPackageName)).as("佣金与运营模块受规则约束").contains("com.liroam.commission", "com.liroam.ops.recon");
         assertThat(production.stream().map(JavaClass::getName)).noneMatch(n -> n.contains(".contract."));
     }

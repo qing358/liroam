@@ -3,7 +3,7 @@
     <el-card>
       <el-form inline label-width="60px" class="search-form">
         <el-form-item label="渠道">
-          <el-select v-model="filter.channelId" placeholder="全部" clearable style="width: 160px" @change="search">
+          <el-select v-model="filter.channelId" placeholder="全部" clearable style="width: 160px" @change="onChannelChange">
             <el-option v-for="c in channels" :key="c.id" :label="`${c.code} ${c.name}`" :value="c.id" />
           </el-select>
         </el-form-item>
@@ -102,6 +102,9 @@
     <el-card>
       <el-collapse @change="onDevToggle">
         <el-collapse-item title="模拟渠道（仅开发 / 测试环境；资质未到前用于演示）" name="dev">
+          <p v-if="!sim" class="liroam-channel-tip">先在上方选择一个装配了模拟实现的渠道。</p>
+          <template v-else>
+          <p class="liroam-channel-tip">当前：{{ sim.code }}（{{ sim.name }}）</p>
           <el-form inline class="search-form">
             <el-form-item label="渠道 SKU"><el-input v-model="mock.skuId" style="width: 150px" /></el-form-item>
             <el-form-item label="数量"><el-input-number v-model="mock.qty" :min="1" :max="10" style="width: 110px" /></el-form-item>
@@ -118,12 +121,12 @@
           <el-table :data="mockOrders" size="small" border>
             <el-table-column prop="orderId" label="模拟单号" min-width="140" />
             <el-table-column prop="orderState" label="渠道状态" min-width="170" />
-            <el-table-column prop="orderStartTime" label="下单时间" width="160" />
+            <el-table-column prop="orderedAtText" label="下单时间" width="160" />
             <el-table-column prop="skuId" label="SKU" min-width="120" />
-            <el-table-column prop="itemTotal" label="数量" width="60" />
-            <el-table-column prop="orderPayment" label="实付" width="80" />
+            <el-table-column prop="qty" label="数量" width="60" />
+            <el-table-column prop="paidYuan" label="实付" width="80" />
             <el-table-column label="结算单金额" width="100">
-              <template #default="{ row }">{{ row.statementPayment || "不在结算单" }}</template>
+              <template #default="{ row }">{{ row.statementYuan || "不在结算单" }}</template>
             </el-table-column>
             <el-table-column prop="mobile" label="手机号" width="120" />
             <el-table-column label="回传" width="70">
@@ -136,6 +139,7 @@
               </template>
             </el-table-column>
           </el-table>
+          </template>
         </el-collapse-item>
       </el-collapse>
     </el-card>
@@ -158,7 +162,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import {
   adjustMockStatement,
@@ -167,14 +171,16 @@ import {
   failMockWriteBacks,
   listChannelOrders,
   listChannelReconDiffs,
+  listChannelSkuMappings,
   listChannels,
   listMockChannelOrders,
+  listSimulatedChannels,
   pullChannelNow,
   replayChannelOrder,
   retryChannelWriteBack,
   runChannelRecon,
 } from "@/api/liroam";
-import { channelOrderActions, fenToYuan, listOf, pageOf, reconTagType, writebackTagType } from "@/utils/liroam";
+import { channelOrderActions, fenToYuan, listOf, pageOf, reconTagType, simulatedChannelOf, writebackTagType } from "@/utils/liroam";
 
 defineOptions({ name: "liroam-channel-orders" });
 
@@ -196,8 +202,11 @@ const reconDay = ref("");
 const diffVisible = ref(false);
 const diffs = ref([]);
 const recon = reactive({ theirCount: 0, ourCount: 0, diffCount: 0 });
-const mock = reactive({ skuId: "JD-SKU-1001", qty: 1, unitPriceYuan: "49.00", mobile: "13800138000" });
+const mock = reactive({ skuId: "", qty: 1, unitPriceYuan: "49.00", mobile: "13800138000" });
 const mockOrders = ref([]);
+const simulated = ref(null);
+const devOpen = ref(false);
+const sim = computed(() => simulatedChannelOf(channels.value, simulated.value, filter.channelId));
 
 async function loadChannels() {
   try {
@@ -298,22 +307,51 @@ async function retryWriteBack(line) {
   }
 }
 
-async function loadMockOrders() {
+function onChannelChange() {
+  search();
+  if (devOpen.value) loadMockPanel();
+}
+
+async function loadMockPanel() {
+  mockOrders.value = [];
+  if (simulated.value === null) {
+    try {
+      const res = await listSimulatedChannels();
+      simulated.value = listOf(res && res.success ? res.result : null);
+    } catch {
+      simulated.value = [];
+    }
+  }
+  if (!sim.value) return;
+  const key = sim.value.adapterKey;
   try {
-    const res = await listMockChannelOrders();
+    const [orders, mappings] = await Promise.all([listMockChannelOrders(key), listChannelSkuMappings(filter.channelId)]);
+    mockOrders.value = listOf(orders && orders.success ? orders.result : null);
+    const first = listOf(mappings && mappings.success ? mappings.result : null)[0];
+    mock.skuId = first ? first.externalSkuId : "";
+  } catch {
+    // 请求层已提示错误
+  }
+}
+
+async function loadMockOrders() {
+  if (!sim.value) return;
+  try {
+    const res = await listMockChannelOrders(sim.value.adapterKey);
     mockOrders.value = listOf(res && res.success ? res.result : null);
   } catch {
-    // 非 dev 进程无此接口
+    // 请求层已提示错误
   }
 }
 
 function onDevToggle(names) {
-  if (names.includes("dev")) loadMockOrders();
+  devOpen.value = names.includes("dev");
+  if (devOpen.value) loadMockPanel();
 }
 
 async function createMockOrder() {
   try {
-    const res = await createMockChannelOrder({ ...mock });
+    const res = await createMockChannelOrder(sim.value.adapterKey, { ...mock });
     if (res && res.success) {
       ElMessage.success(`模拟单 ${res.result.orderId} 已生成，点「立即拉单」入单`);
       loadMockOrders();
@@ -325,7 +363,7 @@ async function createMockOrder() {
 
 async function failWriteBacks(rejected) {
   try {
-    const res = await failMockWriteBacks(1, rejected);
+    const res = await failMockWriteBacks(sim.value.adapterKey, 1, rejected);
     if (res && res.success) ElMessage.success(rejected ? "下一次回传将被渠道拒绝" : "下一次回传将超时（可重试）");
   } catch {
     // 请求层已提示错误
@@ -336,7 +374,7 @@ async function adjustStatement(row) {
   let paid;
   try {
     const answer = await ElMessageBox.prompt(`结算单上 ${row.orderId} 记成多少元？`, "制造金额不符", {
-      inputValue: row.orderPayment,
+      inputValue: row.paidYuan,
       confirmButtonText: "保存",
       cancelButtonText: "取消",
     });
@@ -345,7 +383,7 @@ async function adjustStatement(row) {
     return;
   }
   try {
-    const res = await adjustMockStatement(row.orderId, paid);
+    const res = await adjustMockStatement(sim.value.adapterKey, row.orderId, paid);
     if (res && res.success) mockOrders.value = listOf(res.result);
   } catch {
     // 请求层已提示错误
@@ -354,7 +392,7 @@ async function adjustStatement(row) {
 
 async function dropStatement(row) {
   try {
-    const res = await dropMockStatement(row.orderId);
+    const res = await dropMockStatement(sim.value.adapterKey, row.orderId);
     if (res && res.success) mockOrders.value = listOf(res.result);
   } catch {
     // 请求层已提示错误

@@ -24,7 +24,8 @@ class VendorNameScanTest {
     /** 模块目录名关键字 → 需拦截的写法。 */
     static final Map<String, List<String>> VENDOR_TOKENS = Map.of(
             "quadcell", List.of("quadcell"),
-            "jd", List.of("jingdong", "京东", "jd.com"));
+            "jd", List.of("jingdong", "京东", "jd.com"),
+            "xhs", List.of("xiaohongshu", "小红书"));
 
     static List<String> violations(Path modulesDir) {
         try (Stream<Path> modules = Files.list(modulesDir)) {

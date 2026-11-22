@@ -26,3 +26,7 @@
 | 20 | 佣金策略为客户确认值 | 后台「佣金策略」不是 demo 的 `DEFAULT`（实付 10%、80/20、T+0）；结算天数、锚点、提现审批、最低提现 `commission.withdraw_min_fen` 按合同；dev 的「买家锁客到自己」只在演示库（`deploy/dev-demo-commission.sql`） |
 | 21 | 对账单来源 | 支付渠道日对账单（CSV 列 `order_sn,trade_no,amount`）与供应商账单格式经财务 / 供应商确认，每天上传；「报表与对账」告警 `PAYMENT_RECON_MISSING` 接值班 |
 | 22 | 到期短信 | `notify.expiry_sms_enabled` 保持关闭，除非已接短信端口 `MemberSms` 的真实现并确认模板 |
+| 23 | 值班手册 | 值班人读过 `ops-runbook.md`；告警推送按其「值班与分级」配好（`[CRITICAL]` 加急）；轮值表与升级联系人写进手册 |
+| 24 | 库容量阈值 | `alert.db_capacity_mb` 改成生产实例实际配额（默认 20480 MB）；「运维概览」占比正常 |
+| 25 | 数据密钥轮换可行 | 生产密钥管理能新增 `LIROAM_DATA_KEY_Vn` 并滚动重启；在预发按手册走一遍 新增 → 重加密 → 下线旧版本，「运维概览」无无法解密行 |
+| 26 | 渠道真适配器 | 每个启用渠道的 `lr_channel.adapter_key` 不含 `mock-`（生产 profile 装到模拟渠道即启动失败）；小红书 / 京东真适配器按真实报文过 拉单 → 回传 → 日对账 |

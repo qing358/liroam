@@ -11,14 +11,14 @@ function load() {
   return new Function(source + '; return { fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf, '
     + 'REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome, '
     + 'KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision, '
-    + 'REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType };')();
+    + 'REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType, simulatedChannelOf, bytesText, capacityUsage };')();
 }
 
 const {
   fenToYuan, yuanToFen, rateToPercent, listOf, pageOf, pick, cardFormText, labelOf,
   REPRICE_STATUSES, REPRICE_TRIGGERS, TARIFF_SHEET_STATUSES, FX_RATE_STATUSES, describeTariffImport, fxSyncOutcome,
   KYC_GATE_MODES, LISTING_STATES, planQuotaText, skuActions, cardActions, alertLevelTag, percentToRate, describeBatchDecision,
-  REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType,
+  REPRICE_ADJUST_MODES, channelOrderActions, reconTagType, writebackTagType, simulatedChannelOf, bytesText, capacityUsage,
 } = load();
 
 test('枚举标签：已知值翻译，未知原样，缺失为空串', () => {
@@ -192,4 +192,33 @@ test('渠道订单标记颜色：对账与回传状态', () => {
   assert.equal(writebackTagType('FAILED'), 'warning');
   assert.equal(writebackTagType('PENDING'), 'info');
   assert.equal(writebackTagType('READY'), 'info');
+});
+
+test('模拟渠道面板：按所选渠道的 adapterKey 找已装配的模拟渠道；未选、非模拟、接口缺失都为 null', () => {
+  const channels = [
+    { id: 1, code: 'JD', adapterKey: 'mock-jd' },
+    { id: 2, code: 'XHS', adapterKey: 'mock-xhs' },
+    { id: 3, code: 'REAL', adapterKey: 'real-adapter' },
+  ];
+  const simulated = [{ adapterKey: 'mock-jd', name: '模拟甲' }, { adapterKey: 'mock-xhs', name: '模拟乙' }];
+  assert.deepEqual(simulatedChannelOf(channels, simulated, 2), { adapterKey: 'mock-xhs', name: '模拟乙', code: 'XHS' });
+  assert.deepEqual(simulatedChannelOf(channels, simulated, 1), { adapterKey: 'mock-jd', name: '模拟甲', code: 'JD' });
+  assert.equal(simulatedChannelOf(channels, simulated, 3), null);
+  assert.equal(simulatedChannelOf(channels, simulated, null), null);
+  assert.equal(simulatedChannelOf(channels, null, 1), null);
+});
+
+test('运维概览：字节换算到 KB/MB/GB，缺失为 -', () => {
+  assert.equal(bytesText(512), '512 B');
+  assert.equal(bytesText(2048), '2.0 KB');
+  assert.equal(bytesText(5 * 1024 * 1024), '5.0 MB');
+  assert.equal(bytesText(3.5 * 1024 * 1024 * 1024), '3.50 GB');
+  assert.equal(bytesText(null), '-');
+});
+
+test('运维概览：容量占比与后端告警同口径（≥80% 注意、≥100% 严重，容量 0 不检查）', () => {
+  assert.deepEqual(capacityUsage(79, 100), { percent: 79, status: 'success' });
+  assert.deepEqual(capacityUsage(80, 100), { percent: 80, status: 'warning' });
+  assert.deepEqual(capacityUsage(150, 100), { percent: 100, status: 'exception' });
+  assert.deepEqual(capacityUsage(5, 0), { percent: 0, status: 'success' });
 });

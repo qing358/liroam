@@ -67,6 +67,14 @@ test('backendEnv 透传自研数据密钥；worker 只在显式开启的进程�
   assert.equal(backendEnv(env, config, { worker: true }).LIROAM_WORKER_ENABLED, 'true');
 });
 
+test('backendEnv 透传全部数据密钥版本（轮换后 V1 可下线）', () => {
+  const env = { LIROAM_DATA_KEY_V2: 'k2', LIROAM_DATA_KEY_V3: 'k3', LIROAM_DATA_HASH_KEY: 'h' };
+  const out = backendEnv(env, { mysqlPort: 39306, redisPort: 39379 });
+  assert.equal(out.LIROAM_DATA_KEY_V2, 'k2');
+  assert.equal(out.LIROAM_DATA_KEY_V3, 'k3');
+  assert.ok(!('LIROAM_DATA_KEY_V1' in out));
+});
+
 test('数据密钥为 32 字节 base64（AES-256 / HMAC-SHA256）', () => {
   const secrets = generateSecrets();
   for (const key of ['LIROAM_DATA_KEY_V1', 'LIROAM_DATA_HASH_KEY']) {
@@ -78,6 +86,17 @@ test('数据密钥为 32 字节 base64（AES-256 / HMAC-SHA256）', () => {
 test('后端从仓根 reactor 构建，自研模块随 API 进程一起编译', () => {
   assert.deepEqual(backendBuildArgs(['manager-api', 'buyer-api']),
     ['-B', '-q', '-pl', 'shop/lilishop/manager-api,shop/lilishop/buyer-api', '-am', 'package', '-DskipTests']);
+});
+
+test('ensureSecretsFile 在 V1 已下线、只剩更高版本数据密钥时不再补 V1', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'liroam-secrets-'));
+  const file = path.join(dir, '.env');
+  ensureSecretsFile(file);
+  const text = fs.readFileSync(file, 'utf8').replace(/^LIROAM_DATA_KEY_V1=.*$/m, 'LIROAM_DATA_KEY_V2=' + Buffer.alloc(32, 2).toString('base64'));
+  fs.writeFileSync(file, text);
+  const again = ensureSecretsFile(file);
+  assert.deepEqual(again.created, []);
+  assert.ok(!('LIROAM_DATA_KEY_V1' in again.values));
 });
 
 test('ensureSecretsFile 首次生成全部口令，再次运行不覆盖已有值、只补缺', () => {

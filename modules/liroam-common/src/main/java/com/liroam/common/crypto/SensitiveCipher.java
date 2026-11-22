@@ -5,8 +5,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 
 import javax.crypto.Cipher;
@@ -19,7 +22,7 @@ import javax.crypto.spec.SecretKeySpec;
  * 敏感字段（ICCID、交码内容、手机号）的加密与查询哈希。
  * <p>
  * 加密：AES-256-GCM，密文 = 12 字节 IV ‖ 密文+标签，与 {@code key_version} 一起入库；密钥来自环境变量
- * {@code LIROAM_DATA_KEY_V1..V32}（Base64 的 32 字节），新写入用最大版本，旧版本只用于解密。
+ * {@code LIROAM_DATA_KEY_V1..V32}（Base64 的 32 字节，至少一个），新写入用最大版本，旧版本只用于解密；旧数据重加密到最大版本后旧版本可下线。
  * 查询：HMAC-SHA256，密钥 {@code LIROAM_DATA_HASH_KEY} 不随加密密钥轮换，保证 {@code *_hash} 唯一键稳定。
  */
 public final class SensitiveCipher {
@@ -52,8 +55,8 @@ public final class SensitiveCipher {
                 keys.put(v, decodeKey(DATA_KEY_PREFIX + v, raw, "AES"));
             }
         }
-        if (!keys.containsKey(1)) {
-            throw new IllegalStateException("缺少数据加密密钥环境变量 " + DATA_KEY_PREFIX + "1");
+        if (keys.isEmpty()) {
+            throw new IllegalStateException("缺少数据加密密钥环境变量 " + DATA_KEY_PREFIX + "1（轮换后为最大版本 " + DATA_KEY_PREFIX + "N）");
         }
         String hash = env.apply(HASH_KEY);
         if (hash == null || hash.isBlank()) {
@@ -73,6 +76,16 @@ public final class SensitiveCipher {
             throw new IllegalStateException(name + " 须为 32 字节（Base64 编码），实际 " + bytes.length + " 字节");
         }
         return new SecretKeySpec(bytes, algorithm);
+    }
+
+    /** 新写入用的版本（已配置的最大版本）。 */
+    public int currentVersion() {
+        return currentVersion;
+    }
+
+    /** 已配置、可解密的全部版本，升序。 */
+    public SortedSet<Integer> versions() {
+        return Collections.unmodifiableSortedSet(new TreeSet<>(dataKeys.keySet()));
     }
 
     public Sealed seal(SensitiveField field, String plaintext) {

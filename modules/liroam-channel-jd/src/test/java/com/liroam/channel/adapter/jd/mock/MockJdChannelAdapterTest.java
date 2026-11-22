@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import com.liroam.channel.adapter.jd.mock.MockJdChannelAdapter.MockOrderRequest;
+import com.liroam.channel.adapter.mock.SimulatedChannel.OrderRequest;
 import com.liroam.channel.spi.ExternalOrder;
 import com.liroam.channel.spi.ExternalOrderLine;
 import com.liroam.channel.spi.ExternalOrderRef;
@@ -31,7 +31,7 @@ class MockJdChannelAdapterTest {
 
     @Test
     void wireOrderIsTranslatedToTheDomainShapeWithMaskedRawPayload() {
-        String id = jd.createOrder(new MockOrderRequest("JD-SKU-1001", 2, "49.50", "13800138000")).orderId();
+        String id = jd.createOrder(new OrderRequest("JD-SKU-1001", 2, "49.50", "13800138000")).orderId();
 
         List<ExternalOrder> pulled = jd.pull(NOON.minusSeconds(60));
 
@@ -50,17 +50,17 @@ class MockJdChannelAdapterTest {
 
     @Test
     void createOrderValidatesInput() {
-        assertThatThrownBy(() -> jd.createOrder(new MockOrderRequest(" ", 1, "1.00", "13800138000"))).isInstanceOf(UserFacingException.class);
-        assertThatThrownBy(() -> jd.createOrder(new MockOrderRequest("S", 0, "1.00", "13800138000"))).isInstanceOf(UserFacingException.class);
-        assertThatThrownBy(() -> jd.createOrder(new MockOrderRequest("S", 1, "abc", "13800138000"))).isInstanceOf(UserFacingException.class);
-        assertThatThrownBy(() -> jd.createOrder(new MockOrderRequest("S", 1, "1.00", ""))).isInstanceOf(UserFacingException.class);
+        assertThatThrownBy(() -> jd.createOrder(new OrderRequest(" ", 1, "1.00", "13800138000"))).isInstanceOf(UserFacingException.class);
+        assertThatThrownBy(() -> jd.createOrder(new OrderRequest("S", 0, "1.00", "13800138000"))).isInstanceOf(UserFacingException.class);
+        assertThatThrownBy(() -> jd.createOrder(new OrderRequest("S", 1, "abc", "13800138000"))).isInstanceOf(UserFacingException.class);
+        assertThatThrownBy(() -> jd.createOrder(new OrderRequest("S", 1, "1.00", ""))).isInstanceOf(UserFacingException.class);
     }
 
     @Test
     void statementFollowsOrdersOfTheDayAndAcceptsInjectedDifferences() {
-        String a = jd.createOrder(new MockOrderRequest("S", 1, "49.00", "13800138000")).orderId();
-        String b = jd.createOrder(new MockOrderRequest("S", 1, "49.00", "13800138000")).orderId();
-        String c = jd.createOrder(new MockOrderRequest("S", 1, "49.00", "13800138000")).orderId();
+        String a = jd.createOrder(new OrderRequest("S", 1, "49.00", "13800138000")).orderId();
+        String b = jd.createOrder(new OrderRequest("S", 1, "49.00", "13800138000")).orderId();
+        String c = jd.createOrder(new OrderRequest("S", 1, "49.00", "13800138000")).orderId();
         LocalDate day = LocalDate.of(2026, 11, 22);
 
         jd.adjustStatement(b, "39.00");
@@ -76,7 +76,7 @@ class MockJdChannelAdapterTest {
 
     @Test
     void writeBacksAreRecordedAndFaultsCanBeInjected() {
-        String id = jd.createOrder(new MockOrderRequest("S", 1, "49.00", "13800138000")).orderId();
+        String id = jd.createOrder(new OrderRequest("S", 1, "49.00", "13800138000")).orderId();
         ExternalOrderRef ref = new ExternalOrderRef(id, "1", "S");
         WriteBack wb = new WriteBack(List.of(new WriteBack.DeliveredCard("C1", "ESIM", "LPA", "LPA:1$x$y", null, null)));
 

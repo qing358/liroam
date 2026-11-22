@@ -79,6 +79,33 @@ class SensitiveCipherTest {
     }
 
     @Test
+    void keyRingReportsCurrentAndAvailableVersions() {
+        Map<String, String> rotated = new HashMap<>(v1Env);
+        rotated.put("LIROAM_DATA_KEY_V3", randomKey());
+
+        SensitiveCipher cipher = SensitiveCipher.fromEnvironment(rotated::get);
+
+        assertThat(cipher.currentVersion()).isEqualTo(3);
+        assertThat(cipher.versions()).containsExactly(1, 3);
+    }
+
+    @Test
+    void oldVersionCanBeRetiredOnceDataIsResealed() {
+        Map<String, String> rotated = new HashMap<>(v1Env);
+        rotated.put("LIROAM_DATA_KEY_V2", randomKey());
+        SensitiveCipher.Sealed resealed = SensitiveCipher.fromEnvironment(rotated::get).seal(SensitiveField.ICCID, "8985200000000000001");
+        SensitiveCipher.Sealed old = SensitiveCipher.fromEnvironment(v1Env::get).seal(SensitiveField.ICCID, "8985200000000000001");
+        rotated.remove("LIROAM_DATA_KEY_V1");
+
+        SensitiveCipher v2Only = SensitiveCipher.fromEnvironment(rotated::get);
+
+        assertThat(v2Only.versions()).containsExactly(2);
+        assertThat(v2Only.open(SensitiveField.ICCID, resealed)).isEqualTo("8985200000000000001");
+        assertThatThrownBy(() -> v2Only.open(SensitiveField.ICCID, old)).isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("LIROAM_DATA_KEY_V1");
+    }
+
+    @Test
     void hashIsStableAcrossKeyRotationAndSeparatedByField() {
         Map<String, String> rotated = new HashMap<>(v1Env);
         rotated.put("LIROAM_DATA_KEY_V2", randomKey());

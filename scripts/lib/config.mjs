@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import { dataKeyEntries, dataKeyVersions } from './data-keys.mjs';
 
 export function parseEnv(text) {
   const result = {};
@@ -31,7 +32,7 @@ export function validatePorts(env) {
   if (seen.size === 0) throw new Error('ports.env 未登记任何 LIROAM_*_PORT');
 }
 
-// LIROAM_DATA_KEY_V1 / LIROAM_DATA_HASH_KEY：ICCID、交码内容等敏感字段的 AES-256-GCM 密钥与查重用 HMAC 密钥（liroam-common SensitiveCipher）
+// LIROAM_DATA_KEY_V1 / LIROAM_DATA_HASH_KEY（V1 只在还没有任何数据密钥版本时生成；轮换见 data-keys.mjs）：ICCID、交码内容等敏感字段的 AES-256-GCM 密钥与查重用 HMAC 密钥（liroam-common SensitiveCipher）
 export const SECRET_KEYS = ['LIROAM_MYSQL_ROOT_PASSWORD', 'LIROAM_REDIS_PASSWORD', 'LILI_JWT_SECRET', 'LIROAM_DATA_KEY_V1', 'LIROAM_DATA_HASH_KEY'];
 
 export function generateSecrets() {
@@ -63,7 +64,8 @@ export function selectFrontends(argv, frontends) {
 
 export function ensureSecretsFile(secretsPath) {
   const existing = fs.existsSync(secretsPath) ? parseEnv(fs.readFileSync(secretsPath, 'utf8')) : {};
-  const missing = SECRET_KEYS.filter((key) => !existing[key]);
+  const hasDataKey = dataKeyVersions(existing).length > 0;
+  const missing = SECRET_KEYS.filter((key) => !existing[key] && !(key === 'LIROAM_DATA_KEY_V1' && hasDataKey));
   if (missing.length === 0) return { created: [], values: existing };
   const generated = generateSecrets();
   const lines = missing.map((key) => `${key}=${generated[key]}`);
@@ -91,7 +93,7 @@ export function buildConfig(env, host = 'localhost') {
 // worker（补偿扫描等定时任务）只在 manager-api 进程开（domain-design §5 H12）
 export function backendEnv(env, config, { worker = false } = {}) {
   return {
-    LIROAM_DATA_KEY_V1: env.LIROAM_DATA_KEY_V1,
+    ...dataKeyEntries(env),
     LIROAM_DATA_HASH_KEY: env.LIROAM_DATA_HASH_KEY,
     LIROAM_WORKER_ENABLED: String(worker),
     SPRING_DATASOURCE_URL: `jdbc:mysql://127.0.0.1:${config.mysqlPort}/lilishop?useUnicode=true&characterEncoding=utf-8&useSSL=false&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai`,

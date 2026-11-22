@@ -9,6 +9,7 @@
 | `project.md` | 立项草稿 / 功能意向 |
 | `upstream.md` | 上游 Lilishop 来源、版本、改动清单、已知上游问题与升级方法 |
 | `launch-checklist.md` | 首次上生产前逐项核对（P4 门禁） |
+| `ops-runbook.md` | 值班：告警分级与逐码处置、供应商故障、备份恢复、数据密钥轮换、新渠道接入、演练记录 |
 | `../README.md` | 目录、本机一键启停、端口、演示数据、密钥变量名、测试命令 |
 | `../AGENTS.md` | Agent 强制约束 |
 | Cursor Project `preferences.md` | 跨项目开发偏好 |
@@ -60,6 +61,12 @@
 - 实体卡物流轨迹：端口 `CourierTracking`（按 `logistics.tracking_source` 选来源，默认 `shell` = 壳物流插件快递鸟/快递100；`mock` 只 dev/test）；买家卡详情与后台台账看轨迹，查不到给「凭运单号到快递官网查」兜底。后台台账「发货设置」改多运单开关与轨迹来源。
 - 纯软卡：资费表「纯软件卡 Profile」卡费解析为 SOFT；卡产品默认不卖软卡，运营在「旅行卡商品」按卡产品「开卖软卡」（资费表无软卡卡费不能开、有在售软卡 SKU 不能关）；资费表注明不支持软卡的区域拒绝建软卡 SKU；买家端交码弹窗出软卡写卡指引。
 - 调价：后台「调价」页 = 调价报表（售价 / 最近成本 / 毛利率 / 最低毛利 / 待确认建议 + 当前汇率）、建议批量确认 / 驳回（逐条独立，部分失败列原因）、按涨跌幅或目标毛利率批量改价（先预览，执行同口径重算，任一 SKU 低于最低毛利整批拒绝）；有待确认建议即出告警 `REPRICE_PENDING`。调价开关默认仍 `MANUAL_CONFIRM`。
+
+## 渠道放大与运维稳态（P7 已落地，mock 渠道）
+
+- 新渠道 = 适配器模块 + `lr_channel` 行 + SKU 映射，渠道核心与履约零改动：`liroam-channel-mock` 提供模拟渠道基类与通用 dev 控制台，`liroam-channel-xhs`（`mock-xhs`，小红书报文形状【待核实】）按此接入，`demo` 建渠道 `XHS` 与映射 `XHS-SKU-1001`；真适配器待资质、密钥与报文样例。
+- 运维：后台「运维 › 运维概览」（`li_menu` 152）看库容量（`alert.db_capacity_mb`，`DB_CAPACITY`）、各类积压、数据密钥版本分布并分批重加密；旧密钥版本数据清零后可下线（`DATA_KEY_STALE` / `DATA_KEY_UNREADABLE`）。值班与逐码处置见 `ops-runbook.md`，告警码缺条目构建失败（`RunbookCoverageTest`）。
+- 演练（本机 dev 栈）：供应商故障（mock 故障注入接口）、`backup` / `restore-drill`、`rotate-data-key` / `retire-data-key`（只动本机 `.env` 假密钥）；记录在 `ops-runbook.md`。
 
 ## 工程方法
 

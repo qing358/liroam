@@ -23,6 +23,8 @@ import com.liroam.common.web.UserFacingException;
 import com.liroam.common.web.WebSurface;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
 import com.liroam.ops.OpsSchedules;
+import com.liroam.ops.health.OpsOverview;
+import com.liroam.ops.keys.DataKeyRotation;
 import com.liroam.ops.notify.ExpiryReminders;
 import com.liroam.ops.notify.MemberSms;
 import com.liroam.ops.notify.Notifications;
@@ -34,6 +36,8 @@ import com.liroam.ops.recon.SupplierReconciliation;
 import com.liroam.ops.report.OpsReports;
 import com.liroam.ops.web.BuyerNotificationController;
 import com.liroam.ops.web.ManagerOpsController;
+import com.liroam.ops.web.ManagerOpsHealthController;
+import com.liroam.schema.SealedTables;
 
 /** 运营模块装配。壳支付数据 {@link ShellPayments} 由 shell-bridge 提供；短信 {@link MemberSms} 可缺省（只发站内通知）。 */
 @AutoConfiguration(after = LiroamFulfillmentAutoConfiguration.class)
@@ -91,6 +95,16 @@ public class LiroamOpsAutoConfiguration {
     }
 
     @Bean
+    OpsOverview liroamOpsOverview(JdbcClient liroamJdbcClient, Settings liroamSettings) {
+        return new OpsOverview(liroamJdbcClient, liroamSettings);
+    }
+
+    @Bean
+    DataKeyRotation liroamDataKeyRotation(JdbcClient liroamJdbcClient, SensitiveCipher liroamSensitiveCipher, AuditLog liroamAuditLog) {
+        return new DataKeyRotation(liroamJdbcClient, liroamSensitiveCipher, SealedTables.ALL, liroamAuditLog);
+    }
+
+    @Bean
     @ConditionalOnProperty(name = "liroam.worker.enabled", havingValue = "true")
     OpsSchedules liroamOpsSchedules(ExpiryReminders liroamExpiryReminders) {
         return new OpsSchedules(liroamExpiryReminders);
@@ -116,6 +130,12 @@ public class LiroamOpsAutoConfiguration {
         ManagerOpsController liroamManagerOpsController(CurrentActor actor, OpsReports liroamOpsReports,
                 PaymentReconciliation liroamPaymentReconciliation, SupplierReconciliation liroamSupplierReconciliation, ReconRuns liroamReconRuns) {
             return new ManagerOpsController(actor, liroamOpsReports, liroamPaymentReconciliation, liroamSupplierReconciliation, liroamReconRuns);
+        }
+
+        @Bean
+        ManagerOpsHealthController liroamManagerOpsHealthController(CurrentActor actor, OpsOverview liroamOpsOverview,
+                DataKeyRotation liroamDataKeyRotation) {
+            return new ManagerOpsHealthController(actor, liroamOpsOverview, liroamDataKeyRotation);
         }
     }
 }

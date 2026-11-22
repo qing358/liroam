@@ -9,17 +9,12 @@
         <version>0.1.0-SNAPSHOT</version>
     </parent>
     <artifactId>liroam-channel-jd</artifactId>
-    <description>京东渠道适配：资质未到前只有模拟适配器 mock-jd（仿京东开放平台订单报文，只在 dev/test profile 装配，标 @Simulated）；真适配器待京东开放平台资质与 AppKey/Secret</description>
+    <description>京东渠道适配：资质未到前只有模拟适配器 mock-jd（仿京东开放平台订单报文，只在 dev/test profile 装配，标 @Simulated）；存单与故障注入复用 liroam-channel-mock；真适配器待京东开放平台资质与 AppKey/Secret</description>
 
     <dependencies>
         <dependency>
             <groupId>com.liroam</groupId>
-            <artifactId>liroam-channel</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-webmvc</artifactId>
-            <optional>true</optional>
+            <artifactId>liroam-channel-mock</artifactId>
         </dependency>
 
         <dependency>
@@ -56,6 +51,11 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

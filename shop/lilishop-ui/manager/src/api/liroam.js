@@ -51,6 +51,9 @@ export const setSkuPrice = (id, priceFen) => postRequest(`/liroam/sku-bindings/$
 
 // 运营告警
 export const listOpsAlerts = () => getRequest("/liroam/ops/alerts");
+export const getOpsHealth = () => getRequest("/liroam/ops/overview");
+export const getDataKeyStatus = () => getRequest("/liroam/ops/data-keys");
+export const resealDataKeys = (batchSize) => postRequest("/liroam/ops/data-keys/reseal", { batchSize }, JSON_HEADERS);
 // 壳物流公司（上游设置 → 物流公司）
 export const listLogistics = () => getRequest("/other/logistics/getByPage", { pageNumber: 1, pageSize: 100 });
 
@@ -117,9 +120,11 @@ export const retryChannelWriteBack = (lineId) =>
 export const runChannelRecon = (id, day) => postRequest(`/liroam/channels/${encodeURIComponent(id)}/recon`, { day });
 export const listChannelReconDiffs = (runId) => getRequest(`/liroam/channels/recon-runs/${encodeURIComponent(runId)}/diffs`);
 
-// 模拟渠道（仅 dev/test 进程有这些接口）
-export const listMockChannelOrders = () => getRequest("/liroam/dev/channel-mock/orders");
-export const createMockChannelOrder = (body) => postRequest("/liroam/dev/channel-mock/orders", body, JSON_HEADERS);
-export const adjustMockStatement = (orderId, paidYuan) => postRequest("/liroam/dev/channel-mock/statement/adjust", { orderId, paidYuan }, JSON_HEADERS);
-export const dropMockStatement = (orderId) => postRequest("/liroam/dev/channel-mock/statement/drop", { orderId }, JSON_HEADERS);
-export const failMockWriteBacks = (count, rejected) => postRequest("/liroam/dev/channel-mock/writeback-faults", { count, rejected }, JSON_HEADERS);
+// 模拟渠道（仅 dev/test 进程有这些接口；按渠道的 adapterKey 路由，新渠道不用改这里）
+const mockChannel = (key, tail) => `/liroam/dev/channel-mock/${encodeURIComponent(key)}${tail}`;
+export const listSimulatedChannels = () => getRequest("/liroam/dev/channel-mock");
+export const listMockChannelOrders = (key) => getRequest(mockChannel(key, "/orders"));
+export const createMockChannelOrder = (key, body) => postRequest(mockChannel(key, "/orders"), body, JSON_HEADERS);
+export const adjustMockStatement = (key, orderId, paidYuan) => postRequest(mockChannel(key, "/statement/adjust"), { orderId, paidYuan }, JSON_HEADERS);
+export const dropMockStatement = (key, orderId) => postRequest(mockChannel(key, "/statement/drop"), { orderId }, JSON_HEADERS);
+export const failMockWriteBacks = (key, count, rejected) => postRequest(mockChannel(key, "/writeback-faults"), { count, rejected }, JSON_HEADERS);

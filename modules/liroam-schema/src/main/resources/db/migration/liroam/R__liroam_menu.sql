@@ -63,6 +63,8 @@ INSERT INTO lr_tmp_menu_seed (id, level, name, title, parent_id, path, front_rou
     (9100000000000000150, 1, 'liroam-ops', '运维', '9100000000000000100', '/', 'Main', 'md-warning', 4, NULL, 'liroam 运维'),
     (9100000000000000151, 2, 'liroamOpsAlerts', '运营告警', '9100000000000000150', 'liroam-ops-alerts', 'liroam/ops/OpsAlerts', 'md-warning', 1,
         '/manager/liroam/ops*', '指令重试、限流、人工积压、交码超时、轮询滞后、回写失败、汇率过期'),
+    (9100000000000000152, 2, 'liroamOpsOverview', '运维概览', '9100000000000000150', 'liroam-ops-overview', 'liroam/ops/OpsOverview', 'md-analytics', 2,
+        '/manager/liroam/ops*', '库容量、各类积压、数据密钥版本与分批重加密'),
 
     (9100000000000000170, 1, 'liroam-channel', '渠道', '9100000000000000100', '/', 'Main', 'md-git-network', 3.5, NULL, 'liroam 外部渠道'),
     (9100000000000000171, 2, 'liroamChannels', '渠道与 SKU 映射', '9100000000000000170', 'liroam-channels', 'liroam/channels/Channels', 'md-git-network', 1,

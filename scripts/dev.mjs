@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件]
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件] | rotate-data-key | retire-data-key <版本号>
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -14,6 +14,7 @@ import {
   backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava, selectFrontends,
 } from './lib/config.mjs';
 import { backupFileName, compareCounts, latestBackup, parseCounts } from './lib/backup.mjs';
+import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
 import { renderPcConfig } from '../shop/docker/scripts/dev-env-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -329,7 +330,7 @@ async function health() {
 
 
 // 本机演示目录：两家模拟供应商、资费表导入启用、全卡型旅行卡 SKU 绑定（纯流量 / 语音短信 / 实名 / 实体卡 / 纯软卡）与定价、池卡，
-// 物流轨迹来源切到模拟快递、模拟渠道 JD 与 SKU 映射、演示分销员与佣金策略。幂等，可重复执行；要求 up 已起好后端。
+// 物流轨迹来源切到模拟快递、模拟渠道 JD / XHS 与 SKU 映射、演示分销员与佣金策略。幂等，可重复执行；要求 up 已起好后端。
 const DEMO_SHEET = 'docs/media/202611-资费报价-想象智能-202611(20261117）.xlsx';
 const DEMO_SOFT = { supplier: 'SUP_B', cardType: '45412_C' };
 const DEMO_POOL_SIZE = 20;
@@ -514,10 +515,48 @@ async function restoreDrill() {
   }
 }
 
+// 数据密钥轮换演练（只动本机 .env 的假密钥）：新增版本 → 重启后端 → 后台「运维概览」重加密 → 旧版本数据清零后下线
+async function stopBackends() {
+  const pids = readPids();
+  const config = buildConfig(loadEnv());
+  for (const be of BACKENDS) {
+    const meta = pids[be.name];
+    if (meta && isAlive(meta.pid)) {
+      killTree(meta.pid);
+      console.log(`已停止 ${be.name}（pid ${meta.pid}）`);
+    }
+    delete pids[be.name];
+  }
+  fs.writeFileSync(pidPath, JSON.stringify(pids, null, 2));
+  for (const be of BACKENDS) await waitFor(`${be.name} 端口释放`, async () => !portInUse(portOf(config[be.urlKey])), 60000);
+}
+
+async function rotateDataKey() {
+  const { name, value } = nextDataKey(loadEnv());
+  fs.appendFileSync(secretsPath, `${name}=${value}\n`, { mode: 0o600 });
+  console.log(`已在本机 .env 追加 ${name}（新写入将用它加密，旧版本仍可解密）`);
+  await stopBackends();
+  console.log('下一步：node scripts/dev.mjs up --ui=none 以新密钥启动后端，再到后台「运维 › 运维概览」分批重加密');
+}
+
+async function retireDataKey() {
+  const version = Number(process.argv[3]);
+  if (!Number.isInteger(version) || version < 1) throw new Error('用法：node scripts/dev.mjs retire-data-key <版本号>');
+  const env = loadEnv();
+  const api = managerClient(buildConfig(env).managerApiUrl);
+  await api.login();
+  const blockers = retireBlockers(env, version, await api.get('/manager/liroam/ops/data-keys'));
+  if (blockers.length) throw new Error(`不能下线 V${version}：${blockers.join('；')}`);
+  fs.writeFileSync(secretsPath, removeEnvLine(fs.readFileSync(secretsPath, 'utf8'), DATA_KEY_PREFIX + version), { mode: 0o600 });
+  console.log(`已从本机 .env 删除 ${DATA_KEY_PREFIX}${version}；剩余版本 ${dataKeyVersions(loadEnv()).map((v) => `V${v}`).join('、')}`);
+  await stopBackends();
+  console.log('下一步：node scripts/dev.mjs up --ui=none 重启后端，「运维概览」应无无法解密行');
+}
+
 const command = process.argv[2] || 'status';
-const handlers = { up, down, status, health, demo, backup, 'restore-drill': restoreDrill };
+const handlers = { up, down, status, health, demo, backup, 'restore-drill': restoreDrill, 'rotate-data-key': rotateDataKey, 'retire-data-key': retireDataKey };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件]`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件] | rotate-data-key | retire-data-key <版本号>`);
   process.exit(2);
 }
 try {

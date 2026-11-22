@@ -15,7 +15,7 @@ import com.liroam.channel.ChannelClaims;
 import com.liroam.channel.ChannelOrders;
 import com.liroam.channel.ChannelReconciliation;
 import com.liroam.channel.ChannelWriteBacks;
-import com.liroam.channel.adapter.jd.mock.MockJdChannelAdapter.MockOrderRequest;
+import com.liroam.channel.adapter.mock.SimulatedChannel.OrderRequest;
 import com.liroam.channel.spi.ChannelAdapter;
 import com.liroam.channel.testing.ChannelFixture;
 import com.liroam.fulfillment.DisplayTime;
@@ -50,7 +50,7 @@ class MockJdEndToEndTest {
     @Test
     void mockOrderRunsThroughPullFulfilmentWriteBackClaimAndRecon() {
         f.h.importPoolA(1, true);
-        String orderId = jd.createOrder(new MockOrderRequest("JD-SKU-1001", 1, "49.00", "13800138000")).orderId();
+        String orderId = jd.createOrder(new OrderRequest("JD-SKU-1001", 1, "49.00", "13800138000")).orderId();
 
         assertThat(f.bean(ChannelOrders.class).pullNow(jdChannel, "op").created()).isEqualTo(1);
         f.h.drain();

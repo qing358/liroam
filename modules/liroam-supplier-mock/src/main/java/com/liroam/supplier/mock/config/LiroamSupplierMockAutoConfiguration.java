@@ -54,7 +54,7 @@ public class LiroamSupplierMockAutoConfiguration {
     /** worker 在 manager-api 进程，模拟上游的内存也在那边，只在管理端挂接口。 */
     @Bean
     @ConditionalOnProperty(name = WebSurface.PROPERTY, havingValue = WebSurface.MANAGER)
-    MockUpstreamController liroamMockUpstreamController(MockUpstreamConsole liroamMockUpstreamConsole) {
-        return new MockUpstreamController(liroamMockUpstreamConsole);
+    MockUpstreamController liroamMockUpstreamController(MockUpstreamConsole liroamMockUpstreamConsole, MockFaults liroamMockFaults) {
+        return new MockUpstreamController(liroamMockUpstreamConsole, liroamMockFaults);
     }
 }

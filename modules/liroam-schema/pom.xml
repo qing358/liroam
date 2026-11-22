@@ -24,6 +24,11 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
         </dependency>
+        <!-- SealedTables 用 SensitiveField 标明各密文列的字段种类 -->
+        <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-common</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.liroam</groupId>
             <artifactId>liroam-common</artifactId>

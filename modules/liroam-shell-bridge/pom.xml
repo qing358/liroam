@@ -47,6 +47,10 @@
         </dependency>
         <dependency>
             <groupId>com.liroam</groupId>
+            <artifactId>liroam-channel-xhs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liroam</groupId>
             <artifactId>liroam-supplier-quadcell</artifactId>
         </dependency>
         <!-- 壳进程自带；这里只编译期使用，避免 buyer-api/manager-api 打进第二份 -->

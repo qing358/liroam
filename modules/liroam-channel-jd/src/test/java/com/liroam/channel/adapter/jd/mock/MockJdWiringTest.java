@@ -8,6 +8,8 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 
+import com.liroam.channel.adapter.mock.LiroamChannelMockAutoConfiguration;
+import com.liroam.channel.adapter.mock.SimulatedChannelController;
 import com.liroam.channel.spi.ChannelAdapter;
 import com.liroam.common.config.LiroamCommonAutoConfiguration;
 import com.liroam.common.testing.TestKeys;
@@ -17,7 +19,7 @@ import com.liroam.common.web.CurrentActor;
 class MockJdWiringTest {
 
     private static final AutoConfigurations CONFIGS = AutoConfigurations.of(LiroamCommonAutoConfiguration.class,
-            LiroamChannelJdMockAutoConfiguration.class);
+            LiroamChannelMockAutoConfiguration.class, LiroamChannelJdMockAutoConfiguration.class);
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner().withConfiguration(CONFIGS)
             .withPropertyValues(TestKeys.properties());
@@ -36,7 +38,7 @@ class MockJdWiringTest {
     void noProfileOrProductionProfileWiresNoMock() {
         runner.run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(ChannelAdapter.class));
         runner.withPropertyValues("spring.profiles.active=prod").run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(ChannelAdapter.class)
-                .doesNotHaveBean(MockJdController.class));
+                .doesNotHaveBean(SimulatedChannelController.class));
     }
 
     @Test
@@ -46,11 +48,15 @@ class MockJdWiringTest {
     }
 
     @Test
-    void devConsoleOnlyOnManagerSurface() {
+    void devConsoleListsTheMockOnManagerSurface() {
         WebApplicationContextRunner web = new WebApplicationContextRunner().withConfiguration(CONFIGS)
                 .withBean(CurrentActor.class, () -> mock(CurrentActor.class)).withPropertyValues(TestKeys.properties())
                 .withPropertyValues("spring.profiles.active=dev");
-        web.withPropertyValues("liroam.web.surface=manager").run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(MockJdController.class));
-        web.withPropertyValues("liroam.web.surface=buyer").run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(MockJdController.class));
+        web.withPropertyValues("liroam.web.surface=manager").run(ctx -> {
+            assertThat(ctx).hasNotFailed();
+            assertThat(ctx.getBean(SimulatedChannelController.class).channels().result())
+                    .containsExactly(new SimulatedChannelController.SimulatedChannelView(MockJdChannelAdapter.ADAPTER_KEY, "模拟京东"));
+        });
+        web.withPropertyValues("liroam.web.surface=buyer").run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(SimulatedChannelController.class));
     }
 }

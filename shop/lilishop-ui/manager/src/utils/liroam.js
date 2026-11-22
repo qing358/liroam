@@ -309,3 +309,26 @@ export function writebackTagType(status) {
   if (status === "FAILED") return "warning";
   return "info";
 }
+
+/** 「渠道订单」模拟面板：所选渠道若装配的是模拟实现（dev/test 才有），返回 { adapterKey, name, code }，否则 null。 */
+export function simulatedChannelOf(channels, simulated, channelId) {
+  if (!channelId || !Array.isArray(channels) || !Array.isArray(simulated)) return null;
+  const channel = channels.find((c) => c.id === channelId);
+  const sim = channel && simulated.find((s) => s.adapterKey === channel.adapterKey);
+  return sim ? { adapterKey: sim.adapterKey, name: sim.name, code: channel.code } : null;
+}
+
+export function bytesText(bytes) {
+  if (bytes === null || bytes === undefined) return "-";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+/** 与后端 DB_CAPACITY 告警同口径：≥80% 注意、≥100% 严重；容量 ≤ 0 视为不检查。 */
+export function capacityUsage(used, limit) {
+  if (!limit || limit <= 0) return { percent: 0, status: "success" };
+  const status = used >= limit ? "exception" : used * 5 >= limit * 4 ? "warning" : "success";
+  return { percent: Math.min(100, Math.round((used * 100) / limit)), status };
+}
