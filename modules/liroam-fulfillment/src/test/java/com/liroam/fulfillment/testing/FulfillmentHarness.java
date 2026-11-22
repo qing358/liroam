@@ -58,6 +58,8 @@ public final class FulfillmentHarness implements AutoCloseable {
     public final StubUpstream upstreamB;
     public final ContractStubAdapter adapterA;
     public final ContractStubAdapter adapterB;
+    /** 供应商 A 实际注册的适配器：默认原样转发 {@link #adapterA}，可收窄状态操作。 */
+    public final NarrowableAdapter capsA;
     public final TestCatalog catalog;
     private final Map<String, Object> properties;
     private final AnnotationConfigApplicationContext context;
@@ -73,12 +75,13 @@ public final class FulfillmentHarness implements AutoCloseable {
         this.upstreamB = upstreamB;
         this.adapterA = adapterA;
         this.adapterB = adapterB;
+        this.capsA = new NarrowableAdapter(adapterA);
         this.context = new AnnotationConfigApplicationContext();
         context.getEnvironment().getPropertySources().addFirst(new MapPropertySource("liroam-test", properties));
         context.registerBean(DataSource.class, () -> ds);
         context.registerBean(PlatformTransactionManager.class, () -> new DataSourceTransactionManager(ds));
         context.registerBean(Clock.class, () -> clock);
-        context.registerBean(ADAPTER_A, SupplierAdapter.class, () -> adapterA);
+        context.registerBean(ADAPTER_A, SupplierAdapter.class, () -> capsA);
         context.registerBean(ADAPTER_B, SupplierAdapter.class, () -> adapterB);
         context.registerBean(ShellOrderDelivery.class, () -> shell);
         context.registerBean(RecordingCredentialEvents.class);
@@ -124,6 +127,7 @@ public final class FulfillmentHarness implements AutoCloseable {
         jdbc.update("UPDATE lr_sku_binding SET listing_state = 'LISTED', kyc_gate_mode = 'NONE'");
         upstreamA.reset();
         upstreamB.reset();
+        capsA.reset();
         clock.reset();
         shell.reset();
         bean(RecordingCredentialEvents.class).reset();

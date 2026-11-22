@@ -27,6 +27,8 @@ import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.credential.CredentialTimeouts;
 import com.liroam.fulfillment.delivery.ShellDeliveries;
+import com.liroam.fulfillment.card.CardActions;
+import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.credential.CredentialDeliveries;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
@@ -206,6 +208,22 @@ public class LiroamFulfillmentAutoConfiguration {
                 liroamSupplierDirectory, liroamSupplierAdapterRegistry, liroamSupplierRateLimiter, liroamCardPool, liroamCredentialDeliveries,
                 liroamLineProgress, liroamUsageMirror, liroamPollTiers, liroamManualTasks, new CallLogs(liroamJdbcClient), liroamSettings,
                 liroamSensitiveCipher, liroamFulfillmentClock);
+    }
+
+    @Bean
+    CardQueries liroamCardQueries(TransactionTemplate liroamFulfillmentTx, JdbcClient liroamJdbcClient, CardAssets liroamCardAssets,
+            CardCredentials liroamCardCredentials, SupplierCommands liroamSupplierCommands, FulfillmentRules liroamFulfillmentRules,
+            SensitiveCipher liroamSensitiveCipher) {
+        return new CardQueries(liroamFulfillmentTx, liroamJdbcClient, liroamCardAssets, liroamCardCredentials, liroamSupplierCommands,
+                liroamFulfillmentRules, liroamSensitiveCipher);
+    }
+
+    @Bean
+    CardActions liroamCardActions(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, CardPlans liroamCardPlans,
+            SupplierCommands liroamSupplierCommands, SupplierDirectory liroamSupplierDirectory, SupplierAdapterRegistry liroamSupplierAdapterRegistry,
+            CardPool liroamCardPool, ManualTasks liroamManualTasks, Settings liroamSettings, AuditLog liroamAuditLog, Clock liroamFulfillmentClock) {
+        return new CardActions(liroamFulfillmentTx, liroamCardAssets, liroamCardPlans, liroamSupplierCommands, liroamSupplierDirectory,
+                liroamSupplierAdapterRegistry, liroamCardPool, liroamManualTasks, liroamSettings, liroamAuditLog, liroamFulfillmentClock);
     }
 
     @Bean
