@@ -1,6 +1,7 @@
 package com.liroam.fulfillment;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import com.liroam.catalog.SkuBinding;
 import com.liroam.catalog.SkuBinding.ListingState;
@@ -15,8 +16,8 @@ import com.liroam.fulfillment.store.CardAssets;
 import com.liroam.fulfillment.store.CardAssets.TopUpView;
 
 /**
- * 履约入口的一次性校验（domain-design §7.1）。加包页、下单校验（H2）与 {@link FulfillmentEntry} 调同一份规则。
- * 含号码 SKU 的全局可售开关随 H2 在 P2 接入。
+ * 履约入口的一次性校验（domain-design §7.1）。加包页（{@code TopUpIntents.open}、卡投影的 {@code canTopUp}）、
+ * 下单校验（H2）与 {@link FulfillmentEntry} 调同一份规则。含号码 SKU 的全局可售开关随 H2 接入。
  */
 public class FulfillmentRules {
 
@@ -46,31 +47,36 @@ public class FulfillmentRules {
         Supplier supplier = suppliers.find(sku.supplierId()).filter(s -> s.enabled() && s.listingEnabled())
                 .orElseThrow(() -> new FulfillmentRejected(Reason.SUPPLIER_NOT_LISTABLE, "supplier_id=" + sku.supplierId()));
         if (r.sourceType() == SourceType.TOPUP) {
-            verifyTopUp(r, supplier);
+            if (r.topupCardAssetId() == null) {
+                throw new FulfillmentRejected(Reason.TOPUP_CARD_REQUIRED, r.sourceLineRef());
+            }
+            if (r.qty() != 1) {
+                throw new FulfillmentRejected(Reason.TOPUP_QTY_NOT_ONE, "qty=" + r.qty());
+            }
+            long cardId = r.topupCardAssetId();
+            TopUpView card = cards.findForTopUp(cardId)
+                    .orElseThrow(() -> new FulfillmentRejected(Reason.TOPUP_CARD_NOT_FOUND, "card_asset_id=" + cardId));
+            topUpBlocker(card, r.ownerMemberId(), supplier.id())
+                    .ifPresent(reason -> {
+                        throw new FulfillmentRejected(reason, "card_asset_id=" + cardId + " status=" + card.status());
+                    });
         }
     }
 
-    private void verifyTopUp(FulfillmentRequest r, Supplier supplier) {
-        if (r.topupCardAssetId() == null) {
-            throw new FulfillmentRejected(Reason.TOPUP_CARD_REQUIRED, r.sourceLineRef());
+    /** 加包挂卡的四拒（CT-FUL-02）；{@code skuSupplierId} 为加包 SKU 的供应商。 */
+    public Optional<Reason> topUpBlocker(TopUpView card, String memberId, long skuSupplierId) {
+        if (card.ownerMemberId() == null || !Objects.equals(card.ownerMemberId(), memberId)) {
+            return Optional.of(Reason.TOPUP_CARD_NOT_OWNED);
         }
-        if (r.qty() != 1) {
-            throw new FulfillmentRejected(Reason.TOPUP_QTY_NOT_ONE, "qty=" + r.qty());
-        }
-        long cardId = r.topupCardAssetId();
-        TopUpView card = cards.findForTopUp(cardId)
-                .orElseThrow(() -> new FulfillmentRejected(Reason.TOPUP_CARD_NOT_FOUND, "card_asset_id=" + cardId));
-        if (card.ownerMemberId() == null || !Objects.equals(card.ownerMemberId(), r.ownerMemberId())) {
-            throw new FulfillmentRejected(Reason.TOPUP_CARD_NOT_OWNED, "card_asset_id=" + cardId);
-        }
-        if (card.supplierId() != supplier.id()) {
-            throw new FulfillmentRejected(Reason.TOPUP_CARD_OTHER_SUPPLIER, "card_asset_id=" + cardId);
+        if (card.supplierId() != skuSupplierId) {
+            return Optional.of(Reason.TOPUP_CARD_OTHER_SUPPLIER);
         }
         if (card.refundHold()) {
-            throw new FulfillmentRejected(Reason.TOPUP_CARD_REFUND_HOLD, "card_asset_id=" + cardId);
+            return Optional.of(Reason.TOPUP_CARD_REFUND_HOLD);
         }
         if (CardAssetStatus.MACHINE.isTerminal(card.status())) {
-            throw new FulfillmentRejected(Reason.TOPUP_CARD_CLOSED, "card_asset_id=" + cardId + " status=" + card.status());
+            return Optional.of(Reason.TOPUP_CARD_CLOSED);
         }
+        return Optional.empty();
     }
 }

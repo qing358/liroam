@@ -22,8 +22,9 @@
                             <goal>test-jar</goal>
                         </goals>
                         <configuration>
+                            <!-- 契约桩（ContractStubAdapter/StubUpstream/StubShape）随 test-jar 发布，供履约等模块当两形状假上游；桩自身的契约子类不发布 -->
                             <excludes>
-                                <exclude>com/liroam/supplier/spi/contract/stub/**</exclude>
+                                <exclude>com/liroam/supplier/spi/contract/stub/*ContractTest*</exclude>
                             </excludes>
                         </configuration>
                     </execution>

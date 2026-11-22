@@ -89,6 +89,12 @@
             </dependency>
             <dependency>
                 <groupId>com.liroam</groupId>
+                <artifactId>liroam-fulfillment</artifactId>
+                <version>${project.version}</version>
+                <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
                 <artifactId>liroam-shell-bridge</artifactId>
                 <version>${project.version}</version>
             </dependency>
