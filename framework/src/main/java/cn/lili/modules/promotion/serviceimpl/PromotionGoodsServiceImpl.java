@@ -1,0 +1,386 @@
+package cn.lili.modules.promotion.serviceimpl;
+
+import cn.hutool.core.convert.Convert;
+import cn.lili.cache.Cache;
+import cn.lili.common.enums.PromotionTypeEnum;
+import cn.lili.modules.promotion.support.SingleReductionSupport;
+import cn.lili.common.vo.PageVO;
+import cn.lili.modules.goods.entity.dos.GoodsSku;
+import cn.lili.modules.promotion.support.SkuPromotionQuerySupport;
+import cn.lili.modules.promotion.support.SeckillApplySalesSupport;
+import cn.lili.modules.order.cart.entity.enums.CartTypeEnum;
+import cn.lili.modules.promotion.entity.dos.PromotionGoods;
+import cn.lili.modules.promotion.entity.dto.search.PromotionGoodsSearchParams;
+import cn.lili.modules.promotion.entity.enums.PromotionsScopeTypeEnum;
+import cn.lili.modules.promotion.entity.enums.PromotionsStatusEnum;
+import cn.lili.modules.promotion.mapper.PromotionGoodsMapper;
+import cn.lili.modules.promotion.service.PromotionGoodsService;
+import cn.lili.modules.promotion.tools.PromotionTools;
+import cn.lili.modules.search.entity.dos.GoodsIndex;
+import cn.lili.modules.search.service.GoodsIndexService;
+import cn.lili.modules.system.aspect.annotation.SystemLogPoint;
+import cn.lili.mybatis.util.PageUtil;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 促销商品业务层实现
+ * 秒杀申请销量通过独立支持类回写，不反向依赖秒杀申请业务服务。
+ *
+ * @author Chopper
+ * @since 2021/3/18 9:22 上午
+ */
+@Service
+public class PromotionGoodsServiceImpl extends ServiceImpl<PromotionGoodsMapper, PromotionGoods> implements PromotionGoodsService {
+
+    private static final String SKU_ID_COLUMN = "sku_id";
+
+    @Autowired
+    private SeckillApplySalesSupport seckillApplySales;
+    @Autowired
+    private SkuPromotionQuerySupport skuPromotionQueries;
+    @Autowired
+    private GoodsIndexService goodsIndexService;
+    @Autowired
+    private Cache cache;
+
+    @Override
+    public List<PromotionGoods> findSkuValidPromotion(String skuId, String storeIds) {
+        return skuPromotionQueries.findSkuValidPromotion(skuId, storeIds);
+    }
+
+    @Override
+    public List<PromotionGoods> findSkuValidPromotions(List<String> skuIds) {
+        QueryWrapper<PromotionGoods> queryWrapper = new QueryWrapper<>();
+
+        queryWrapper.and(i -> i.or(j -> j.in(SKU_ID_COLUMN, skuIds))
+                .or(n -> n.eq("scope_type", PromotionsScopeTypeEnum.ALL.name()))
+                .or(n -> n.and(k -> k.eq("scope_type", PromotionsScopeTypeEnum.PORTION_GOODS_CATEGORY.name()))));
+        queryWrapper.and(i -> i.or(PromotionTools.queryPromotionStatus(PromotionsStatusEnum.START)).or(PromotionTools.queryPromotionStatus(PromotionsStatusEnum.NEW)));
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public Page<PromotionGoods> pageFindAll(PromotionGoodsSearchParams searchParams, PageVO pageVo) {
+        return this.page(PageUtil.initPage(pageVo), searchParams.queryWrapper());
+    }
+
+    /**
+     * 获取促销商品信息
+     *
+     * @param searchParams 查询参数
+     * @return 促销商品列表
+     */
+    @Override
+    public List<PromotionGoods> listFindAll(PromotionGoodsSearchParams searchParams) {
+        return this.list(searchParams.queryWrapper());
+    }
+
+    /**
+     * 获取促销商品信息
+     *
+     * @param searchParams 查询参数
+     * @return 促销商品信息
+     */
+    @Override
+    public PromotionGoods getPromotionsGoods(PromotionGoodsSearchParams searchParams) {
+        return this.getOne(searchParams.queryWrapper(), false);
+    }
+
+    /**
+     * 获取当前有效时间特定促销类型的促销商品信息
+     *
+     * @param skuId          查询参数
+     * @param promotionTypes 特定促销类型
+     * @return 促销商品信息
+     */
+    @Override
+    public PromotionGoods getValidPromotionsGoods(String skuId, List<String> promotionTypes) {
+        QueryWrapper<PromotionGoods> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(SKU_ID_COLUMN, skuId);
+        queryWrapper.in("promotion_type", promotionTypes);
+        queryWrapper.and(PromotionTools.queryPromotionStatus(PromotionsStatusEnum.START));
+        return this.getOne(queryWrapper, false);
+    }
+
+    /**
+     * 获取当前有效时间特定促销类型的促销商品价格
+     *
+     * @param skuId          skuId
+     * @param promotionTypes 特定促销类型
+     * @return 促销商品价格
+     */
+    @Override
+    public Double getValidPromotionsGoodsPrice(String skuId, List<String> promotionTypes) {
+        return skuPromotionQueries.getValidPromotionsGoodsPrice(skuId, promotionTypes);
+    }
+
+    @Override
+    public Integer findInnerOverlapPromotionGoods(String promotionType, String skuId, Date startTime, Date endTime, String promotionId) {
+        if (promotionId != null) {
+            return this.baseMapper.selectInnerOverlapPromotionGoodsWithout(promotionType, skuId, startTime, endTime, promotionId);
+        } else {
+            return this.baseMapper.selectInnerOverlapPromotionGoods(promotionType, skuId, startTime, endTime);
+        }
+    }
+
+    /**
+     * 获取促销活动商品库存
+     *
+     * @param typeEnum    促销商品类型
+     * @param promotionId 促销活动id
+     * @param skuId       商品skuId
+     * @return 促销活动商品库存
+     */
+    @Override
+    public Integer getPromotionGoodsStock(PromotionTypeEnum typeEnum, String promotionId, String skuId) {
+        String promotionStockKey = PromotionGoodsService.getPromotionGoodsStockCacheKey(typeEnum, promotionId, skuId);
+        Object promotionGoodsStock = cache.get(promotionStockKey);
+
+        //库存如果不为空，则直接返回
+        if (promotionGoodsStock != null) {
+            return Convert.toInt(promotionGoodsStock);
+        }
+        //如果为空
+        else {
+            //获取促销商品，如果不存在促销商品，则返回0
+            PromotionGoodsSearchParams searchParams = new PromotionGoodsSearchParams();
+            searchParams.setPromotionType(typeEnum.name());
+            searchParams.setPromotionId(promotionId);
+            searchParams.setSkuId(skuId);
+            PromotionGoods promotionGoods = this.getPromotionsGoods(searchParams);
+            if (promotionGoods == null) {
+                return 0;
+            }
+            //否则写入新的促销商品库存
+            cache.put(promotionStockKey, promotionGoods.getQuantity());
+            return promotionGoods.getQuantity();
+        }
+    }
+
+    @Override
+    public List<Integer> getPromotionGoodsStock(PromotionTypeEnum typeEnum, String promotionId, List<String> skuId) {
+        PromotionGoodsSearchParams searchParams = new PromotionGoodsSearchParams();
+        searchParams.setPromotionType(typeEnum.name());
+        searchParams.setPromotionId(promotionId);
+        searchParams.setSkuIds(skuId);
+        //获取促销商品，如果不存在促销商品，则返回0
+        List<PromotionGoods> promotionGoods = this.listFindAll(searchParams);
+        //接收数据
+        List<Integer> result = new ArrayList<>(skuId.size());
+        for (String sid : skuId) {
+            Integer stock = null;
+            for (PromotionGoods pg : promotionGoods) {
+                if (sid.equals(pg.getSkuId())) {
+                    stock = pg.getQuantity();
+                }
+            }
+            //如果促销商品不存在，给一个默认值
+            if (stock == null) {
+                stock = 0;
+            }
+            result.add(stock);
+        }
+        return result;
+    }
+
+    /**
+     * 更新促销活动商品库存
+     * 秒杀申请存在时同步覆盖累计销量，申请销量和促销库存数据库写入沿用本方法事务。
+     * 库存缓存仍在数据库更新后写入，不作为数据库事务的一部分。
+     *
+     * @param promotionGoodsList 更新促销活动商品信息
+     */
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updatePromotionGoodsStock(List<PromotionGoods> promotionGoodsList) {
+        for (PromotionGoods promotionGoods : promotionGoodsList) {
+            String promotionStockKey = PromotionGoodsService.getPromotionGoodsStockCacheKey(PromotionTypeEnum.valueOf(promotionGoods.getPromotionType()), promotionGoods.getPromotionId(), promotionGoods.getSkuId());
+            if (promotionGoods.getPromotionType().equals(PromotionTypeEnum.SECKILL.name())) {
+                seckillApplySales.updateSaleNumIfPresent(promotionGoods.getPromotionId(),
+                        promotionGoods.getSkuId(), promotionGoods.getNum());
+            }
+
+            LambdaUpdateWrapper<PromotionGoods> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.eq(PromotionGoods::getPromotionType, promotionGoods.getPromotionType()).eq(PromotionGoods::getPromotionId, promotionGoods.getPromotionId()).eq(PromotionGoods::getSkuId, promotionGoods.getSkuId());
+            updateWrapper.set(PromotionGoods::getQuantity, promotionGoods.getQuantity()).set(PromotionGoods::getNum, promotionGoods.getNum());
+
+            this.update(updateWrapper);
+            cache.put(promotionStockKey, promotionGoods.getQuantity());
+        }
+    }
+
+    @Override
+    @SystemLogPoint(description = "更新促销活动商品库存", customerLog = "'操作的skuId:['+#skuId+']，修改后的库存:['+#quantity+']'")
+    public void updatePromotionGoodsStock(String skuId, Integer quantity) {
+        LambdaQueryWrapper<PromotionGoods> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.notIn(PromotionGoods::getPromotionType, Arrays.stream(PromotionTypeEnum.haveIndependanceStockPromotion).map(Enum::name).collect(Collectors.toList()));
+        queryWrapper.eq(PromotionGoods::getSkuId, skuId);
+        this.list(queryWrapper).forEach(promotionGoods -> {
+            String promotionStockKey = PromotionGoodsService.getPromotionGoodsStockCacheKey(PromotionTypeEnum.valueOf(promotionGoods.getPromotionType()), promotionGoods.getPromotionId(), promotionGoods.getSkuId());
+            cache.remove(promotionStockKey);
+        });
+        LambdaUpdateWrapper<PromotionGoods> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.notIn(PromotionGoods::getPromotionType, Arrays.stream(PromotionTypeEnum.haveIndependanceStockPromotion).map(Enum::name).collect(Collectors.toList()));
+        updateWrapper.eq(PromotionGoods::getSkuId, skuId);
+        updateWrapper.set(PromotionGoods::getQuantity, quantity);
+        this.update(updateWrapper);
+    }
+
+    /**
+     * 更新促销活动商品库存
+     *
+     * @param promotionGoods 促销信息
+     */
+    @Override
+    public void updatePromotionGoodsByPromotions(PromotionGoods promotionGoods) {
+        LambdaQueryWrapper<PromotionGoods> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(PromotionGoods::getPromotionId, promotionGoods.getPromotionId());
+        this.remove(queryWrapper);
+        this.save(promotionGoods);
+    }
+
+    /**
+     * 删除促销商品
+     *
+     * @param promotionId 促销活动id
+     * @param skuIds      skuId
+     */
+    @Override
+    @SystemLogPoint(description = "删除促销商品", customerLog = "'删除的skuId:['+#skuIds+']，促销活动ID:['+#promotionId+']'")
+    public void deletePromotionGoods(String promotionId, List<String> skuIds) {
+        LambdaQueryWrapper<PromotionGoods> queryWrapper = new LambdaQueryWrapper<PromotionGoods>()
+                .eq(PromotionGoods::getPromotionId, promotionId).in(PromotionGoods::getSkuId, skuIds);
+        this.remove(queryWrapper);
+    }
+
+    /**
+     * 删除促销促销商品
+     *
+     * @param promotionIds 促销活动id
+     */
+    @Override
+    public void deletePromotionGoods(List<String> promotionIds) {
+        LambdaQueryWrapper<PromotionGoods> queryWrapper = new LambdaQueryWrapper<PromotionGoods>().in(PromotionGoods::getPromotionId, promotionIds);
+        this.remove(queryWrapper);
+    }
+
+    @Override
+    public void deletePromotionGoodsByGoods(List<String> goodsIds) {
+        LambdaQueryWrapper<PromotionGoods> queryWrapper = new LambdaQueryWrapper<PromotionGoods>().in(PromotionGoods::getGoodsId, goodsIds);
+        this.remove(queryWrapper);
+    }
+
+
+    /**
+     * 根据参数删除促销商品
+     *
+     * @param searchParams 查询参数
+     */
+    @Override
+    public void deletePromotionGoods(PromotionGoodsSearchParams searchParams) {
+        this.remove(searchParams.queryWrapper());
+    }
+
+    @Override
+    public Map<String, Object> getCurrentGoodsPromotion(GoodsSku dataSku, String cartType) {
+        Map<String, Object> promotionMap;
+        GoodsIndex goodsIndex = goodsIndexService.findById(dataSku.getId());
+        if (goodsIndex == null) {
+            goodsIndex = goodsIndexService.buildGoodsIndex(dataSku);
+        }
+        if (goodsIndex.getPromotionMap() != null && !goodsIndex.getPromotionMap().isEmpty()) {
+            promotionMap = new HashMap<>(goodsIndex.getPromotionMap());
+            promotionMap.keySet().removeIf(key -> PromotionTypeEnum.isRetired(key.split("-", 2)[0]));
+            if (SingleReductionSupport.findActivity(dataSku, promotionMap) == null) {
+                promotionMap.keySet().removeIf(key -> key.startsWith(PromotionTypeEnum.SINGLE_REDUCTION.name() + "-"));
+            }
+            applyBestSkuPromotionPrice(dataSku, promotionMap, cartType);
+        } else {
+            promotionMap = null;
+            dataSku.setPromotionFlag(false);
+            dataSku.setPromotionPrice(null);
+        }
+        return promotionMap;
+    }
+
+    /**
+     * 从促销映射中选取最优 SKU 活动价（秒杀/拼团/单品立减），单品立减按当前售价实时计算
+     */
+    private void applyBestSkuPromotionPrice(GoodsSku dataSku, Map<String, Object> promotionMap, String cartType) {
+        boolean ordinary = CartTypeEnum.CART.name().equals(cartType) || CartTypeEnum.BUY_NOW.name().equals(cartType)
+                || CartTypeEnum.VIRTUAL.name().equals(cartType);
+        Double bestPrice = ordinary ? SingleReductionSupport.price(dataSku, promotionMap) : null;
+        for (Map.Entry<String, Object> entry : promotionMap.entrySet()) {
+            String key = entry.getKey();
+            if (!isSkuPricePromotionKey(key, cartType)) {
+                continue;
+            }
+            PromotionGoodsSearchParams searchParams = new PromotionGoodsSearchParams();
+            searchParams.setSkuId(dataSku.getId());
+            JSONObject promotionsObj = JSON.parseObject(JSON.toJSONString(entry.getValue()));
+            searchParams.setPromotionId(promotionsObj.getString("id"));
+            PromotionGoods promotionsGoods = this.getPromotionsGoods(searchParams);
+            if (promotionsGoods == null || promotionsGoods.getPrice() == null) {
+                continue;
+            }
+            if (bestPrice == null || promotionsGoods.getPrice() < bestPrice) {
+                bestPrice = promotionsGoods.getPrice();
+            }
+        }
+        if (bestPrice != null) {
+            dataSku.setPromotionFlag(true);
+            dataSku.setPromotionPrice(bestPrice);
+        } else {
+            dataSku.setPromotionFlag(false);
+            dataSku.setPromotionPrice(null);
+        }
+    }
+
+    /**
+     * 识别秒杀及拼团购物车中的价格促销缓存项。
+     *
+     * @param key 促销缓存键
+     * @param cartType 购物车类型
+     * @return 是否应按SKU促销价处理
+     */
+    private boolean isSkuPricePromotionKey(String key, String cartType) {
+        if (key.contains(PromotionTypeEnum.SECKILL.name())) {
+            return true;
+        }
+        return key.contains(PromotionTypeEnum.PINTUAN.name()) && CartTypeEnum.PINTUAN.name().equals(cartType);
+    }
+
+    /**
+     * 将促销商品价格写入SKU展示字段，无有效促销价时清除展示标记。
+     *
+     * @param dataSku 待填充促销展示信息的SKU
+     * @param promotionInfo 促销缓存项
+     */
+    private void setGoodsPromotionInfo(GoodsSku dataSku, Map.Entry<String, Object> promotionInfo) {
+        JSONObject promotionsObj = JSON.parseObject(JSON.toJSONString(promotionInfo.getValue()));
+        PromotionGoodsSearchParams searchParams = new PromotionGoodsSearchParams();
+        searchParams.setSkuId(dataSku.getId());
+        searchParams.setPromotionId(promotionsObj.get("id").toString());
+        PromotionGoods promotionsGoods = this.getPromotionsGoods(searchParams);
+        if (promotionsGoods != null && promotionsGoods.getPrice() != null) {
+            dataSku.setPromotionFlag(true);
+            dataSku.setPromotionPrice(promotionsGoods.getPrice());
+        } else {
+            dataSku.setPromotionFlag(false);
+            dataSku.setPromotionPrice(null);
+        }
+    }
+
+}

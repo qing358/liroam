@@ -1,0 +1,486 @@
+package cn.lili.modules.search.serviceimpl;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.lili.common.enums.PromotionTypeEnum;
+import cn.lili.common.utils.StringUtils;
+import cn.lili.common.vo.PageVO;
+import cn.lili.mybatis.util.PageUtil;
+import cn.lili.modules.goods.entity.dos.Category;
+import cn.lili.modules.goods.entity.dos.GoodsSku;
+import cn.lili.modules.goods.entity.dto.GoodsParamsItemDTO;
+import cn.lili.modules.goods.entity.dto.GoodsSearchParamFacetRow;
+import cn.lili.modules.goods.entity.dto.GoodsSearchParams;
+import cn.lili.modules.goods.entity.dto.GoodsSkuDTO;
+import cn.lili.modules.goods.entity.enums.GoodsAuthEnum;
+import cn.lili.modules.goods.entity.enums.GoodsStatusEnum;
+import cn.lili.modules.goods.mapper.GoodsSearchParamMapper;
+import cn.lili.modules.goods.mapper.GoodsSkuMapper;
+import cn.lili.modules.goods.service.CategoryService;
+import cn.lili.modules.goods.service.GoodsSkuService;
+import cn.lili.modules.goods.support.GoodsSearchParamParser;
+import cn.lili.modules.promotion.support.SkuPromotionQuerySupport;
+import cn.lili.modules.search.entity.dos.GoodsIndex;
+import cn.lili.modules.search.entity.dos.GoodsRelatedInfo;
+import cn.lili.modules.search.entity.dto.GoodsSearchDTO;
+import cn.lili.modules.search.entity.dto.ParamOptions;
+import cn.lili.modules.search.entity.dto.SelectorOptions;
+import cn.lili.modules.search.service.GoodsSearchService;
+import com.alibaba.fastjson2.JSON;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+/**
+ * 商品搜索：列表走倒排 SQL 下推 + 真分页，selector 走三条全量聚合。
+ * 促销映射及活动价复用独立查询组件，不依赖完整促销业务服务或延迟注入。
+ */
+@Service
+public class GoodsSearchServiceImpl implements GoodsSearchService {
+
+    private static final Map<String, SortColumn> SORT_WHITELIST = Map.of(
+            "price", new SortColumn("gs.price", true),
+            "buy_count", new SortColumn("IFNULL(gs.buy_count,0) + IFNULL(gs.virtual_sales,0)", false),
+            "release_time", new SortColumn("g.create_time", true),
+            "comment_num", new SortColumn("gs.comment_num", true)
+    );
+
+    private final GoodsSkuService goodsSkuService;
+    @Autowired
+    private GoodsSkuMapper goodsSkuMapper;
+    @Autowired
+    private GoodsSearchParamMapper goodsSearchParamMapper;
+    @Autowired
+    private CategoryService categoryService;
+    @Autowired
+    private SkuPromotionQuerySupport skuPromotionQueries;
+
+    public GoodsSearchServiceImpl(GoodsSkuService goodsSkuService) {
+        this.goodsSkuService = goodsSkuService;
+    }
+
+    @Override
+    public Page<GoodsIndex> searchGoodsByPage(GoodsSearchDTO searchDTO, PageVO pageVo) {
+        Map<String, List<String>> selectedProps = parseSelectedProps(searchDTO);
+        Page<GoodsSkuDTO> skuPage = PageUtil.initPageWithoutOrder(pageVo);
+        QueryWrapper<GoodsSkuDTO> queryWrapper = buildSharedWhere(searchDTO, selectedProps);
+        applyOrderBy(queryWrapper, pageVo);
+        IPage<GoodsSkuDTO> result = goodsSkuService.getGoodsSkuDTOByPage(skuPage, queryWrapper);
+        Page<GoodsIndex> page = new Page<>(skuPage.getCurrent(), skuPage.getSize());
+        if (result == null || CollUtil.isEmpty(result.getRecords())) {
+            page.setTotal(result == null ? 0 : result.getTotal());
+            page.setRecords(Collections.emptyList());
+            return page;
+        }
+        page.setTotal(result.getTotal());
+        List<GoodsIndex> records = result.getRecords().stream().map(this::toGoodsIndex).toList();
+        records.forEach(this::fillPromotionInfo);
+        page.setRecords(records);
+        return page;
+    }
+
+    @Override
+    public GoodsRelatedInfo getSelector(GoodsSearchDTO goodsSearch, PageVO pageVo) {
+        Map<String, List<String>> selectedProps = parseSelectedProps(goodsSearch);
+        GoodsRelatedInfo relatedInfo = new GoodsRelatedInfo();
+        relatedInfo.setBrands(queryBrandSelector(goodsSearch, selectedProps));
+        relatedInfo.setCategories(queryCategorySelector(goodsSearch, selectedProps));
+        relatedInfo.setParamOptions(queryParamSelector(goodsSearch, selectedProps));
+        return relatedInfo;
+    }
+
+    @Override
+    public List<GoodsIndex> getGoodsBySkuIds(List<String> skuIds, PageVO pageVo) {
+        if (CollUtil.isEmpty(skuIds)) {
+            return Collections.emptyList();
+        }
+        GoodsSearchParams params = new GoodsSearchParams();
+        params.setSkuIds(skuIds);
+        return goodsSkuService.getGoodsSkuByList(params).stream().map(this::buildGoodsIndex).toList();
+    }
+
+    @Override
+    public GoodsIndex getGoodsById(String id) {
+        if (CharSequenceUtil.isEmpty(id)) {
+            return null;
+        }
+        List<GoodsIndex> indexes = getGoodsBySkuIds(List.of(id), null);
+        return indexes.isEmpty() ? null : indexes.get(0);
+    }
+
+    /**
+     * selector 三条全量 SQL：各自新建 wrapper，共用 {@link #buildSharedWhere}，不使用列表 pageSize。
+     */
+    private List<SelectorOptions> queryBrandSelector(GoodsSearchDTO searchDTO, Map<String, List<String>> selectedProps) {
+        QueryWrapper<GoodsSkuDTO> wrapper = buildSharedWhere(searchDTO, selectedProps);
+        wrapper.ne("gs.brand_id", "0");
+        List<GoodsSkuDTO> rows = goodsSkuMapper.selectSelectorBrands(wrapper);
+        if (CollUtil.isEmpty(rows)) {
+            return Collections.emptyList();
+        }
+        List<SelectorOptions> options = new ArrayList<>();
+        for (GoodsSkuDTO row : rows) {
+            if (row == null || CharSequenceUtil.isEmpty(row.getBrandId())) {
+                continue;
+            }
+            SelectorOptions option = new SelectorOptions();
+            option.setValue(row.getBrandId());
+            option.setName(CharSequenceUtil.isNotEmpty(row.getBrandName()) ? row.getBrandName() : row.getBrandId());
+            option.setUrl(row.getBrandLogo());
+            options.add(option);
+        }
+        return options;
+    }
+
+    /**
+     * 按当前检索条件查询商品分类筛选候选项。
+     *
+     * @param searchDTO 商品搜索条件
+     * @param selectedProps 已选商品参数及对应值
+     * @return 分类筛选候选项
+     */
+    private List<SelectorOptions> queryCategorySelector(GoodsSearchDTO searchDTO, Map<String, List<String>> selectedProps) {
+        QueryWrapper<GoodsSkuDTO> wrapper = buildSharedWhere(searchDTO, selectedProps);
+        return resolveCategorySelector(goodsSkuMapper.selectSelectorCategoryPaths(wrapper));
+    }
+
+    /**
+     * 批量解析分类名：一次 {@code listByIdsOrderByLevel}，再按各 path 自身的 id 顺序拼名。
+     * allIds 为空时不发起查询，避免 MP 生成 {@code IN ()}。
+     */
+    private List<SelectorOptions> resolveCategorySelector(List<String> paths) {
+        if (CollUtil.isEmpty(paths)) {
+            return Collections.emptyList();
+        }
+        List<String> distinctPaths = paths.stream()
+                .filter(CharSequenceUtil::isNotEmpty)
+                .distinct()
+                .toList();
+        Set<String> allIds = distinctPaths.stream()
+                .flatMap(p -> Arrays.stream(p.split(",")))
+                .map(String::trim)
+                .filter(CharSequenceUtil::isNotEmpty)
+                .collect(Collectors.toSet());
+        if (allIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, String> nameById = new HashMap<>();
+        if (categoryService != null) {
+            List<Category> categories = categoryService.listByIdsOrderByLevel(new ArrayList<>(allIds));
+            if (CollUtil.isNotEmpty(categories)) {
+                nameById = categories.stream()
+                        .filter(c -> c != null && CharSequenceUtil.isNotEmpty(c.getId()))
+                        .collect(Collectors.toMap(Category::getId, Category::getName, (a, b) -> a));
+            }
+        }
+        List<SelectorOptions> options = new ArrayList<>();
+        for (String path : distinctPaths) {
+            SelectorOptions option = new SelectorOptions();
+            option.setValue(path);
+            String name = Arrays.stream(path.split(","))
+                    .map(String::trim)
+                    .filter(CharSequenceUtil::isNotEmpty)
+                    .map(nameById::get)
+                    .filter(CharSequenceUtil::isNotEmpty)
+                    .collect(Collectors.joining(","));
+            option.setName(CharSequenceUtil.isNotEmpty(name) ? name : path);
+            options.add(option);
+        }
+        return options;
+    }
+
+    /**
+     * 按当前检索条件查询商品参数筛选候选项。
+     *
+     * @param searchDTO 商品搜索条件
+     * @param selectedProps 已选商品参数及对应值
+     * @return 参数筛选候选项
+     */
+    private List<ParamOptions> queryParamSelector(GoodsSearchDTO searchDTO, Map<String, List<String>> selectedProps) {
+        QueryWrapper<GoodsSkuDTO> wrapper = buildSharedWhere(searchDTO, selectedProps);
+        List<String> excludeNames = selectedProps == null || selectedProps.isEmpty()
+                ? Collections.emptyList()
+                : new ArrayList<>(selectedProps.keySet());
+        List<GoodsSearchParamFacetRow> rows = goodsSearchParamMapper.selectSelectorParams(wrapper, excludeNames);
+        return toParamOptions(rows);
+    }
+
+    /**
+     * 按参数名分组；维度顺序：有 sort 的在前（取 MIN），sort 为 null 的排最后。
+     */
+    private List<ParamOptions> toParamOptions(List<GoodsSearchParamFacetRow> rows) {
+        if (CollUtil.isEmpty(rows)) {
+            return Collections.emptyList();
+        }
+        Map<String, Integer> minSortByName = new LinkedHashMap<>();
+        Map<String, List<String>> valuesByName = new LinkedHashMap<>();
+        for (GoodsSearchParamFacetRow row : rows) {
+            if (row == null || CharSequenceUtil.isEmpty(row.getParamName()) || CharSequenceUtil.isEmpty(row.getParamValue())) {
+                continue;
+            }
+            List<String> values = valuesByName.computeIfAbsent(row.getParamName(), key -> new ArrayList<>());
+            if (!values.contains(row.getParamValue())) {
+                values.add(row.getParamValue());
+            }
+            Integer rowSort = row.getSort();
+            if (!minSortByName.containsKey(row.getParamName())) {
+                minSortByName.put(row.getParamName(), rowSort);
+            } else if (rowSort != null) {
+                Integer current = minSortByName.get(row.getParamName());
+                if (current == null || rowSort < current) {
+                    minSortByName.put(row.getParamName(), rowSort);
+                }
+            }
+        }
+        List<String> names = new ArrayList<>(valuesByName.keySet());
+        names.sort(Comparator
+                .comparing((String name) -> minSortByName.get(name) == null)
+                .thenComparing(minSortByName::get, Comparator.nullsLast(Integer::compareTo)));
+        return names.stream().map(name -> {
+            ParamOptions option = new ParamOptions();
+            option.setKey(name);
+            option.setValues(valuesByName.get(name));
+            return option;
+        }).toList();
+    }
+
+    /**
+     * 只产出 WHERE 条件，绝不调用 last()/orderBy —— C4 要把它嵌进别的 SQL 形状里。
+     * selectedProps 由调用方在请求入口解析一次后传入，本方法不再自行调用 parseSelectedProps。
+     */
+    private QueryWrapper<GoodsSkuDTO> buildSharedWhere(GoodsSearchDTO searchDTO,
+                                                       Map<String, List<String>> selectedProps) {
+        QueryWrapper<GoodsSkuDTO> queryWrapper = new QueryWrapper<>();
+        applyBaseSkuConditions(queryWrapper, searchDTO);
+        applyParamExists(queryWrapper, selectedProps);
+        if (searchDTO != null && CharSequenceUtil.isNotEmpty(searchDTO.getBrandId())) {
+            queryWrapper.in("gs.brand_id", List.of(searchDTO.getBrandId().split("@")));
+        }
+        queryWrapper.apply("(g.delete_flag IS NULL OR g.delete_flag = 0)");
+        if (searchDTO != null) {
+            queryWrapper.apply(CharSequenceUtil.isNotEmpty(searchDTO.getNeGoodsType()),
+                    "(gs.goods_type IS NULL OR gs.goods_type <> {0})", searchDTO.getNeGoodsType());
+            queryWrapper.apply(CharSequenceUtil.isNotEmpty(searchDTO.getNeSalesModel()),
+                    "(gs.sales_model IS NULL OR gs.sales_model <> {0})", searchDTO.getNeSalesModel());
+        }
+        return queryWrapper;
+    }
+
+    /**
+     * 仅列表路径调用，把白名单 ORDER BY 挂到 wrapper 上。
+     * 排序输入只用于查白名单，永远不进入 SQL 文本，无需依赖 SQL 关键字过滤。
+     */
+    private void applyOrderBy(QueryWrapper<GoodsSkuDTO> wrapper, PageVO pageVo) {
+        String sortKey = pageVo == null || CharSequenceUtil.isEmpty(pageVo.getSort())
+                ? null : StringUtils.camel2Underline(pageVo.getSort());
+        SortColumn column = sortKey == null ? null : SORT_WHITELIST.get(sortKey);
+        if (column == null) {
+            wrapper.last("ORDER BY gs.id DESC");
+            return;
+        }
+        boolean desc = pageVo != null && "desc".equalsIgnoreCase(pageVo.getOrder());
+        String direction = desc ? "DESC" : "ASC";
+        StringBuilder orderBy = new StringBuilder("ORDER BY ");
+        if (column.nullable()) {
+            orderBy.append("(").append(column.expression()).append(" IS NULL), ");
+        }
+        orderBy.append(column.expression()).append(" ").append(direction)
+                .append(", gs.id ").append(direction);
+        wrapper.last(orderBy.toString());
+    }
+
+    /**
+     * 为SKU查询追加上架、审核通过、未删除及当前搜索范围条件。
+     *
+     * @param queryWrapper 待追加条件的SKU查询
+     * @param searchDTO 商品搜索条件
+     */
+    private void applyBaseSkuConditions(QueryWrapper<GoodsSkuDTO> queryWrapper, GoodsSearchDTO searchDTO) {
+        queryWrapper.eq("gs.market_enable", GoodsStatusEnum.UPPER.name());
+        queryWrapper.eq("gs.auth_flag", GoodsAuthEnum.PASS.name());
+        queryWrapper.eq("gs.delete_flag", false);
+        if (searchDTO == null) {
+            return;
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getKeyword())) {
+            queryWrapper.like("gs.goods_name", searchDTO.getKeyword());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getCategoryId())) {
+            queryWrapper.like("gs.category_path", searchDTO.getCategoryId());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getStoreId())) {
+            queryWrapper.eq("gs.store_id", searchDTO.getStoreId());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getStoreCatId())) {
+            queryWrapper.like("gs.store_category_path", searchDTO.getStoreCatId());
+        }
+        if (searchDTO.getRecommend() != null) {
+            queryWrapper.eq("gs.recommend", searchDTO.getRecommend());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getGoodsType())) {
+            queryWrapper.eq("gs.goods_type", searchDTO.getGoodsType());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getSalesModel())) {
+            queryWrapper.eq("gs.sales_model", searchDTO.getSalesModel());
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getPrice())) {
+            String[] price = searchDTO.getPrice().split("_");
+            if (price.length > 1) {
+                queryWrapper.between("gs.price", price[0], price[1]);
+            } else {
+                queryWrapper.ge("gs.price", price[0]);
+            }
+        }
+        if (CharSequenceUtil.isNotEmpty(searchDTO.getIds())) {
+            queryWrapper.in("gs.id", List.of(searchDTO.getIds().split(",")));
+        }
+    }
+
+    /**
+     * 按已选参数追加商品参数匹配条件，空参数不参与筛选。
+     *
+     * @param queryWrapper 待追加条件的SKU查询
+     * @param selectedProps 已选商品参数及对应值
+     */
+    private void applyParamExists(QueryWrapper<GoodsSkuDTO> queryWrapper, Map<String, List<String>> selectedProps) {
+        if (selectedProps == null || selectedProps.isEmpty()) {
+            return;
+        }
+        selectedProps.forEach((name, values) -> {
+            if (CharSequenceUtil.isEmpty(name) || CollUtil.isEmpty(values)) {
+                return;
+            }
+            String placeholders = IntStream.range(1, values.size() + 1)
+                    .mapToObj(i -> "{" + i + "}").collect(Collectors.joining(", "));
+            Object[] args = Stream.concat(Stream.of(name), values.stream()).toArray();
+            queryWrapper.apply(
+                    "EXISTS (SELECT 1 FROM li_goods_search_param p WHERE p.goods_id = gs.goods_id"
+                            + " AND p.param_name = {0} AND p.param_value IN (" + placeholders + "))", args);
+        });
+    }
+
+    /**
+     * 将SKU检索结果转换为商品索引展示对象并补充关联展示信息。
+     *
+     * @param sku 商品SKU
+     * @return 商品索引展示对象
+     */
+    private GoodsIndex toGoodsIndex(GoodsSkuDTO sku) {
+        List<GoodsParamsItemDTO> params = parseIndexParams(sku.getParams());
+        GoodsIndex index = new GoodsIndex(sku, params);
+        if (!"0".equals(sku.getBrandId())) {
+            index.setBrandName(sku.getBrandName());
+            index.setBrandUrl(sku.getBrandLogo());
+        }
+        index.setReleaseTime(sku.getGoodsCreateTime());
+        return index;
+    }
+
+    /**
+     * 由SKU构建索引展示对象并填充促销信息。
+     *
+     * @param sku 商品SKU
+     * @return 包含促销信息的索引展示对象
+     */
+    private GoodsIndex buildGoodsIndex(GoodsSku sku) {
+        return fillPromotionInfo(new GoodsIndex(sku));
+    }
+
+    /**
+     * 填充索引展示对象的促销集合和促销价格。
+     *
+     * @param index 待补充信息的商品索引对象
+     * @return 填充后的索引对象，输入为空时返回null
+     */
+    private GoodsIndex fillPromotionInfo(GoodsIndex index) {
+        if (index == null) {
+            return null;
+        }
+        Map<String, Object> promotionMap = buildPromotionMap(index);
+        index.setPromotionMapJson(JSON.toJSONString(promotionMap));
+        fillPromotionPrice(index);
+        return index;
+    }
+
+    /**
+     * 按搜索结果的店铺和SKU主键查询促销映射，与商品索引共用适用范围和活动类型过滤规则。
+     *
+     * @param index 待补充促销信息的搜索结果，可为null
+     * @return 活动类型及活动ID组成的促销映射；结果、查询依赖缺失或查询返回null时为空映射
+     */
+    private Map<String, Object> buildPromotionMap(GoodsIndex index) {
+        if (skuPromotionQueries == null || index == null) {
+            return Collections.emptyMap();
+        }
+        Map<String, Object> promotionMap = skuPromotionQueries.getGoodsSkuPromotionMap(index.getStoreId(), index.getId());
+        return promotionMap == null ? Collections.emptyMap() : promotionMap;
+    }
+
+    /**
+     * 回填当前有效的秒杀、拼团及单品立减最低活动价，金额单位为元，不将其他活动类型纳入价格比较。
+     * 没有有效活动价时保留原值；调用方仅对当前页结果或指定SKU列表执行查询。
+     *
+     * @param index 待补充活动价的搜索结果，可为null
+     */
+    private void fillPromotionPrice(GoodsIndex index) {
+        if (skuPromotionQueries == null || index == null) {
+            return;
+        }
+        Double promotionPrice = skuPromotionQueries.getValidPromotionsGoodsPrice(index.getId(),
+                Arrays.asList(PromotionTypeEnum.SECKILL.name(), PromotionTypeEnum.PINTUAN.name(), PromotionTypeEnum.SINGLE_REDUCTION.name()));
+        if (promotionPrice != null) {
+            index.setPromotionPrice(promotionPrice);
+        }
+    }
+
+    /**
+     * 解析索引中保存的商品参数数据。
+     *
+     * @param params 索引中保存的商品参数JSON
+     * @return 商品参数列表
+     */
+    private List<GoodsParamsItemDTO> parseIndexParams(String params) {
+        return GoodsSearchParamParser.parseIndexed(params);
+    }
+
+    /**
+     * 解析已选商品参数并同步筛选隐藏项，空输入返回空映射。
+     *
+     * @param searchDTO 商品搜索条件
+     * @return 参数名称到已选值列表的映射
+     */
+    Map<String, List<String>> parseSelectedProps(GoodsSearchDTO searchDTO) {
+        if (searchDTO == null || CharSequenceUtil.isEmpty(searchDTO.getProp())) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<String>> selectedProps = new LinkedHashMap<>();
+        for (String prop : searchDTO.getProp().split("@")) {
+            String[] pair = prop.split("_", 2);
+            if (pair.length < 2 || CharSequenceUtil.isEmpty(pair[0]) || CharSequenceUtil.isEmpty(pair[1])) {
+                continue;
+            }
+            selectedProps.computeIfAbsent(pair[0], key -> new ArrayList<>()).add(pair[1]);
+        }
+        searchDTO.getNotShowCol().put("name", new ArrayList<>(selectedProps.keySet()));
+        searchDTO.getNotShowCol().put("value", selectedProps.values().stream().flatMap(List::stream).toList());
+        return selectedProps;
+    }
+
+    private record SortColumn(String expression, boolean nullable) {
+    }
+}

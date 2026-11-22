@@ -1,0 +1,359 @@
+package cn.lili.modules.order.cart.render.impl;
+
+import cn.hutool.core.text.CharSequenceUtil;
+import cn.lili.common.enums.PromotionTypeEnum;
+import cn.lili.modules.promotion.support.SingleReductionSupport;
+import cn.lili.common.utils.CurrencyUtil;
+import cn.lili.common.utils.StringUtils;
+import cn.lili.modules.order.cart.entity.dto.MemberCouponDTO;
+import cn.lili.modules.order.cart.entity.dto.TradeDTO;
+import cn.lili.modules.order.cart.entity.enums.RenderStepEnums;
+import cn.lili.modules.order.cart.entity.vo.CartSkuVO;
+import cn.lili.modules.order.cart.render.CartRenderStep;
+import cn.lili.modules.order.cart.render.util.PromotionPriceUtil;
+import cn.lili.modules.order.order.entity.dto.PriceDetailDTO;
+import cn.lili.modules.promotion.entity.dos.MemberCoupon;
+import cn.lili.modules.promotion.entity.enums.CouponTypeEnum;
+import cn.lili.modules.promotion.entity.enums.PromotionsScopeTypeEnum;
+import cn.lili.modules.promotion.entity.vos.MemberCouponVO;
+import cn.lili.modules.promotion.service.MemberCouponService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+/**
+ * 购物促销信息渲染实现
+ *
+ * @author Chopper
+ * @since 2020-07-02 14:47
+ */
+@Service
+public class CouponRender implements CartRenderStep {
+
+    @Autowired
+    private MemberCouponService memberCouponService;
+
+    @Override
+    public RenderStepEnums step() {
+        return RenderStepEnums.COUPON;
+    }
+
+    @Override
+    public void render(TradeDTO tradeDTO) {
+
+        //优惠券列表
+        this.renderCouponRule(tradeDTO);
+        //主要渲染各个优惠的价格
+        this.renderCoupon(tradeDTO);
+    }
+
+
+    /**
+     * 渲染优惠券规则
+     *
+     * @param tradeDTO 交易dto
+     */
+    private void renderCouponRule(TradeDTO tradeDTO) {
+        // 清除之前的优惠券
+        tradeDTO.removeCoupon();
+
+        List<MemberCoupon> memberCouponList = memberCouponService.getMemberCoupons(tradeDTO.getMemberId());
+
+        //获取最新优惠券
+        memberCouponList = memberCouponList.stream()
+                .filter(item -> item.getStartTime().before(new Date()) && item.getEndTime().after(new Date()))
+                .collect(Collectors.toList());
+
+        if (!memberCouponList.isEmpty()) {
+            this.checkMemberExistCoupon(tradeDTO, memberCouponList);
+        } else {
+            tradeDTO.setPlatformCoupon(null);
+            tradeDTO.setStoreCoupons(new HashMap<>());
+        }
+        memberCouponList.forEach(memberCoupon -> available(tradeDTO, memberCoupon));
+    }
+
+    /**
+     * 检查使用中的优惠券是否存在与用户的优惠券中
+     *
+     * @param tradeDTO         交易dto
+     * @param memberCouponList 客户优惠券列表
+     */
+    private void checkMemberExistCoupon(TradeDTO tradeDTO, List<MemberCoupon> memberCouponList) {
+        if (tradeDTO.getPlatformCoupon() != null && tradeDTO.getPlatformCoupon().getMemberCoupon() != null) {
+            boolean b = memberCouponList.stream().anyMatch(i -> i.getId().equals(tradeDTO.getPlatformCoupon().getMemberCoupon().getId()));
+            if (!b) {
+                tradeDTO.setPlatformCoupon(null);
+            }
+        }
+        if (!tradeDTO.getStoreCoupons().isEmpty()) {
+            for (Map.Entry<String, MemberCouponDTO> entry : tradeDTO.getStoreCoupons().entrySet()) {
+                if (entry.getValue().getMemberCoupon() != null && memberCouponList.stream().noneMatch(i -> i.getId().equals(entry.getValue().getMemberCoupon().getId()))) {
+                    tradeDTO.getStoreCoupons().remove(entry.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * 判定优惠券是否可用
+     *
+     * @param tradeDTO     交易dto
+     * @param memberCoupon 客户优惠券
+     */
+    private void available(TradeDTO tradeDTO, MemberCoupon memberCoupon) {
+        if (memberCoupon == null) {
+            return;
+        }
+        List<CartSkuVO> filterSku = filterSkuVo(tradeDTO.getCheckedSkuList(), memberCoupon);
+        if (filterSku == null || filterSku.isEmpty()) {
+            tradeDTO.getCantUseCoupons().add(new MemberCouponVO(memberCoupon,
+                    "购物车中没有满足优惠券使用范围的优惠券"));
+            return;
+        }
+        List<PriceDetailDTO> priceDetailDTOS =
+                filterSku.stream().map(CartSkuVO::getPriceDetailDTO).collect(Collectors.toList());
+
+        PriceDetailDTO totalPrice = new PriceDetailDTO();
+        totalPrice.accumulationPriceDTO(priceDetailDTOS);
+
+        // 含单品立减的组合按立减及店铺活动后的商品净额校验，不含运费；旧玩法保留原门槛口径。
+        boolean hasSingle = priceDetailDTOS.stream().anyMatch(SingleReductionSupport::hasDiscount);
+        double thresholdAmount = hasSingle ? Math.max(0, CurrencyUtil.sub(totalPrice.getGoodsPrice(), totalPrice.getDiscountPrice()))
+                : totalPrice.getGoodsPrice();
+        //满足条件判定
+        if (thresholdAmount >= memberCoupon.getConsumeThreshold()) {
+            tradeDTO.getCanUseCoupons().add(memberCoupon);
+        } else {
+            tradeDTO.getCantUseCoupons().add(new MemberCouponVO(memberCoupon,
+                    "优惠券使用门槛不足，还差" +
+                            StringUtils.toFen(CurrencyUtil.sub(memberCoupon.getConsumeThreshold(), thresholdAmount)) +
+                            "元"));
+        }
+
+    }
+
+    /**
+     * 过滤购物车商品信息，按照优惠券的适用范围过滤
+     *
+     * @param cartSkuVOS   购物车中的产品列表
+     * @param memberCoupon 客户优惠券
+     * @return 按照优惠券的适用范围过滤的购物车商品信息
+     */
+    private List<CartSkuVO> filterSkuVo(List<CartSkuVO> cartSkuVOS, MemberCoupon memberCoupon) {
+
+        List<CartSkuVO> filterSku;
+        //平台店铺过滤
+        if (Boolean.TRUE.equals(memberCoupon.getPlatformFlag())) {
+            filterSku = cartSkuVOS;
+        } else {
+            filterSku = cartSkuVOS.stream().filter(cartSkuVO -> cartSkuVO.getStoreId().equals(memberCoupon.getStoreId())).collect(Collectors.toList());
+        }
+        if (filterSku == null || filterSku.isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 使用完整ID匹配适用范围，避免某个SKU ID是其他ID的子串时误用优惠券。
+        Set<String> scopeIds = new HashSet<>(Arrays.asList(
+                Optional.ofNullable(memberCoupon.getScopeId()).orElse("").split(",")));
+        //优惠券类型判定
+        switch (PromotionsScopeTypeEnum.valueOf(memberCoupon.getScopeType())) {
+            case ALL:
+                return filterSku;
+            case PORTION_GOODS:
+                //按照商品过滤
+                filterSku = filterSku.stream().filter(cartSkuVO -> scopeIds.contains(cartSkuVO.getGoodsSku().getId())).collect(Collectors.toList());
+                break;
+
+            case PORTION_SHOP_CATEGORY:
+                //按照店铺分类过滤
+                filterSku = this.filterPromotionShopCategory(filterSku, memberCoupon);
+                break;
+
+            case PORTION_GOODS_CATEGORY:
+
+                //按照店铺分类过滤
+                filterSku = filterSku.stream().filter(cartSkuVO -> {
+                    //平台分类获取
+                    String[] categoryPath = cartSkuVO.getGoodsSku().getCategoryPath().split(",");
+                    //平台三级分类
+                    String categoryId = categoryPath[categoryPath.length - 1];
+                    return scopeIds.contains(categoryId);
+                }).collect(Collectors.toList());
+                break;
+            default:
+                return Collections.emptyList();
+        }
+        return filterSku;
+    }
+
+    /**
+     * 优惠券按照店铺分类过滤
+     *
+     * @param filterSku    过滤的购物车商品信息
+     * @param memberCoupon 客户优惠
+     * @return 优惠券按照店铺分类过滤的购物车商品信息
+     */
+    private List<CartSkuVO> filterPromotionShopCategory(List<CartSkuVO> filterSku, MemberCoupon memberCoupon) {
+        return filterSku.stream().filter(cartSkuVO -> {
+            if (CharSequenceUtil.isNotEmpty(cartSkuVO.getGoodsSku().getStoreCategoryPath())) {
+                //获取店铺分类
+                String[] storeCategoryPath = cartSkuVO.getGoodsSku().getStoreCategoryPath().split(",");
+                for (String category : storeCategoryPath) {
+                    //店铺分类只要有一项吻合，即可返回true
+                    if (memberCoupon.getScopeId().contains(category)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 渲染优惠券
+     *
+     * @param tradeDTO 购物车展示信息
+     */
+    private void renderCoupon(TradeDTO tradeDTO) {
+        MemberCouponDTO platformCoupon = tradeDTO.getPlatformCoupon();
+        //如果有勾选平台优惠券
+        if (platformCoupon != null) {
+            //判断该优惠券是否可以使用，如果可以进行价格渲染，如果不可以使用，去掉该优惠券的使用
+            boolean checkFlag = tradeDTO.getCanUseCoupons().stream().anyMatch(item -> item.getCouponId().equals(platformCoupon.getMemberCoupon().getCouponId()));
+            if(checkFlag){
+                renderSku(tradeDTO, platformCoupon);
+            }else{
+                tradeDTO.setPlatformCoupon(null);
+            }
+        }
+        //计算商家优惠券
+        Map<String, MemberCouponDTO> map = tradeDTO.getStoreCoupons();
+        if (map != null && map.size() > 0) {
+            for (MemberCouponDTO memberCouponDTO : map.values()) {
+                //判断该优惠券是否可以使用，如果可以进行价格渲染，如果不可以使用，去掉该优惠券的使用
+                boolean storeCouponCheck = tradeDTO.getCanUseCoupons().stream().anyMatch(item -> item.getCouponId().equals(memberCouponDTO.getMemberCoupon().getCouponId()));
+                if(storeCouponCheck){
+                    renderSku(tradeDTO, memberCouponDTO);
+                }else{
+                    map.values().remove(memberCouponDTO);
+                }
+            }
+            tradeDTO.setStoreCoupons(map);
+        }
+    }
+
+    /**
+     * 渲染sku优惠信息
+     *
+     * @param tradeDTO        交易DTO
+     * @param memberCouponDTO 优惠券DTO
+     */
+    private void renderSku(TradeDTO tradeDTO, MemberCouponDTO memberCouponDTO) {
+
+        //计算优惠总金额
+        Double countPrice = 0D;
+        Map<String, Double> couponMap = new LinkedHashMap<>(memberCouponDTO.getSkuDetail());
+        boolean hasSingle = tradeDTO.getCheckedSkuList().stream()
+                .filter(sku -> couponMap.containsKey(sku.getGoodsSku().getId()))
+                .anyMatch(sku -> SingleReductionSupport.hasDiscount(sku.getPriceDetailDTO()));
+        if (hasSingle) {
+            // 商品数量、活动或券发生变化后重新读取当前净额，不能沿用上次选券缓存中的原价。
+            Map<String, Double> currentAmounts = new LinkedHashMap<>();
+            for (CartSkuVO sku : tradeDTO.getCheckedSkuList()) {
+                if (couponMap.containsKey(sku.getGoodsSku().getId())) {
+                    PriceDetailDTO price = sku.getPriceDetailDTO();
+                    currentAmounts.put(sku.getGoodsSku().getId(), Math.max(0,
+                            CurrencyUtil.sub(price.getGoodsPrice(), CurrencyUtil.add(price.getDiscountPrice(), price.getCouponPrice()))));
+                }
+            }
+            couponMap.clear();
+            couponMap.putAll(currentAmounts);
+            memberCouponDTO.setSkuDetail(couponMap);
+        }
+        for (Double skuPrice : couponMap.values()) {
+            countPrice = CurrencyUtil.add(countPrice, skuPrice);
+        }
+
+        //接收具体优惠券信息
+        MemberCoupon coupon = memberCouponDTO.getMemberCoupon();
+        if (coupon.getCouponType().equals(CouponTypeEnum.PRICE.name())) {
+            //减免现金，则按照商品价格计算 需要通过工具类进行优惠金额的分发，分发给每个商品
+            this.renderCouponPrice(couponMap, tradeDTO, coupon, memberCouponDTO, Math.min(coupon.getPrice(), countPrice));
+        } else {
+            //打折券 直接计算
+            this.renderCouponDiscount(couponMap, tradeDTO, coupon);
+        }
+    }
+
+    /**
+     * 减免现金，则按照商品价格计算 需要通过工具类进行优惠金额的分发，分发给每个商品
+     *
+     * @param couponMap       优惠券结算信息
+     * @param tradeDTO        交易dto
+     * @param coupon          优惠券信息
+     * @param memberCouponDTO 用于计算优惠券结算详情
+     * @param discountPrice   本次实际抵扣金额，不改写优惠券面额
+     */
+    private void renderCouponPrice(Map<String, Double> couponMap, TradeDTO tradeDTO, MemberCoupon coupon, MemberCouponDTO memberCouponDTO, double discountPrice) {
+        //分发优惠券
+        PromotionPriceUtil.recountPrice(tradeDTO, memberCouponDTO.getSkuDetail(), discountPrice,
+                Boolean.TRUE.equals(coupon.getPlatformFlag()) ?
+                        PromotionTypeEnum.PLATFORM_COUPON : PromotionTypeEnum.COUPON, memberCouponDTO.getMemberCoupon().getCouponId());
+        //如果是平台券 则需要计算商家承担比例
+        if (Boolean.TRUE.equals(coupon.getPlatformFlag()) && coupon.getStoreCommission() > 0) {
+
+            //循环所有优惠券
+            for (String skuId : couponMap.keySet()) {
+
+                for (CartSkuVO cartSkuVO : tradeDTO.getSkuList()) {
+                    //写入平台优惠券承担比例
+                    if (cartSkuVO.getGoodsSku().getId().equals(skuId)) {
+                        //写入店铺承担比例
+                        cartSkuVO.getPriceDetailDTO().setSiteCouponPoint(coupon.getStoreCommission());
+                    }
+                }
+            }
+        }
+    }
+
+
+    /**
+     * 打折券计算
+     *
+     * @param couponMap 优惠券结算信息
+     * @param tradeDTO  交易dto
+     * @param coupon    优惠券信息
+     */
+    private void renderCouponDiscount(Map<String, Double> couponMap, TradeDTO tradeDTO, MemberCoupon coupon) {
+        //循环所有优惠券
+        for (String skuId : couponMap.keySet()) {
+
+            // 循环购物车商品
+            for (CartSkuVO item : tradeDTO.getSkuList()) {
+                //如果id相等，则渲染商品价格信息
+                if (item.getGoodsSku().getId().equals(skuId)) {
+
+                    PriceDetailDTO priceDetailDTO = item.getPriceDetailDTO();
+
+                    // 打折金额=商品金额*折扣/10
+                    Double couponBase = SingleReductionSupport.hasDiscount(priceDetailDTO)
+                            ? Math.max(0, CurrencyUtil.sub(priceDetailDTO.getGoodsPrice(),
+                            CurrencyUtil.add(priceDetailDTO.getDiscountPrice(), priceDetailDTO.getCouponPrice()))) : priceDetailDTO.getGoodsPrice();
+                    Double discountCouponPrice = CurrencyUtil.mul(couponBase,
+                            CurrencyUtil.sub(1, CurrencyUtil.div(coupon.getDiscount(), 10, 3)));
+
+                    //平台券则写入店铺承担优惠券比例
+                    if (Boolean.TRUE.equals(coupon.getPlatformFlag())) {
+                        priceDetailDTO.setSiteCouponPrice(discountCouponPrice);
+                        priceDetailDTO.setSiteCouponPoint(coupon.getStoreCommission());
+                    }
+                    priceDetailDTO.setCouponPrice(CurrencyUtil.add(priceDetailDTO.getCouponPrice(), discountCouponPrice));
+
+                }
+            }
+        }
+    }
+
+}

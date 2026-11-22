@@ -1,0 +1,353 @@
+# ===================================================================
+# Lilishop 全局通用集中配置模板 (config/application.yml)
+# 作用说明：
+# 1. 集中定义平台全部微服务通用的基础配置模板（供配置中心 Nacos/Config 或外部化加载参考）
+# 2. 覆盖公共数据库连接、Redis 缓存、白名单路由等公用项
+# ===================================================================
+
+# -------------------------------------------------------------------
+# Web 容器与网络服务通用配置
+# -------------------------------------------------------------------
+server:
+  servlet:
+    # 根上下文访问路径
+    context-path: /
+
+  tomcat:
+    # 请求 URI 字符编码
+    uri-encoding: UTF-8
+    threads:
+      # Tomcat 工作线程池：最小空闲预留线程数
+      min-spare: 50
+      # Tomcat 工作线程池：最大并发工作线程数
+      max: 1000
+
+# -------------------------------------------------------------------
+# Spring Boot Actuator 服务监控配置
+# -------------------------------------------------------------------
+# actuator 仅暴露健康检查端点，保障生产环境安全性
+management:
+  endpoints:
+    web:
+      exposure:
+        # 仅公开健康检查健康端点 (/actuator/health)
+        include: health
+
+# -------------------------------------------------------------------
+# Spring 基础组件与中间件通用配置
+# -------------------------------------------------------------------
+spring:
+  cache:
+    # 默认缓存实现类型：Redis
+    type: redis
+
+  # Redis 缓存与分布式锁连接配置
+  data:
+    redis:
+      # Redis 服务器地址
+      host: 192.168.31.100
+      # Redis 端口
+      port: 30379
+      # Redis 认证密码
+      password: lilishop
+      # 读取超时时间
+      timeout: 10s
+      # 建立连接超时时间
+      connect-timeout: 10s
+      lettuce:
+        pool:
+          # 连接池最大连接数（使用负值表示没有限制，默认 8）
+          max-active: 200
+          # 连接池最大阻塞等待时间（默认 20s）
+          max-wait: 20s
+          # 连接池中的最大空闲连接，默认 8
+          max-idle: 10
+          # 连接池中的最小空闲连接，默认 8
+          min-idle: 8
+
+  # HTTP 文件上传大小限制
+  servlet:
+    multipart:
+      # 允许上传的单文件最大大小
+      max-file-size: 20MB
+      # 单次请求允许上传的总数据大小
+      max-request-size: 20MB
+
+  # Jackson JSON 序列化配置
+  jackson:
+    # 日期序列化时区（东八区）
+    time-zone: GMT+8
+    serialization:
+      # 允许空对象序列化
+      fail-on-empty-beans: false
+
+  # 主数据库连接池配置（阿里巴巴 Druid 连接池）
+  datasource:
+    # MySQL 数据库 JDBC 连接串
+    url: jdbc:mysql://192.168.31.100:3306/lilishop?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    # 数据库登录用户名
+    username: root
+    # 数据库登录密码
+    password: lilishop
+    # MySQL 驱动类
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池类型
+    type: com.alibaba.druid.pool.DruidDataSource
+
+# -------------------------------------------------------------------
+# 安全认证：全局白名单 URL 汇总（忽略鉴权，无需携带 Token 即可访问）
+# -------------------------------------------------------------------
+ignored:
+  urls:
+    # 流程设计器（bpmn-js 等）静态资源
+    - /editor-app/**
+    # 微信公众号服务器域名验证文件
+    - /MP_verify_qSyvBPhDsPdxvOhC.txt
+    # 微信相关回调与对接接口（登录、支付回调等）
+    - /weixin/**
+    # 源码/静态资源开放路径
+    - /source/**
+    # ========== 买家端（buyer-api）开放接口 ==========
+    # 首页轮播图
+    - /buyer/common/slider/**
+    # 站点基础设置信息（LOGO、名称等）
+    - /buyer/common/site/**
+    # 短信验证码发送
+    - /buyer/common/sms/**
+    # 省市区行政区划数据
+    - /buyer/common/region/**
+    # IM 客服连接接口
+    - /buyer/common/IM
+    # 收银台支付接口
+    - /buyer/payment/cashier/**
+    # 退款查询接口
+    - /buyer/payment/cashierRefund/**
+    # 楼层装修页面数据
+    - /buyer/other/pageData/**
+    # 直播间轮询
+    - /buyer/live/room/polling/**
+    # 帮助中心/文章
+    - /buyer/other/article/**
+    # 商品列表与商品详情
+    - /buyer/goods/**
+    # 店铺信息
+    - /buyer/store/**
+    # 联合登录（微信、QQ 等第三方登录）
+    - /buyer/passport/connect/**
+    # 会员注册相关
+    - /buyer/members/**
+    # 会员登录、注册、短信登录
+    - /buyer/passport/member/**
+    # 会员 Token 刷新
+    - /buyer/passport/member/refresh/**
+    # 拼团活动
+    - /buyer/promotion/pintuan/**
+    # 秒杀活动
+    - /buyer/promotion/seckill/**
+    # 积分商品
+    - /buyer/promotion/pointsGoods/**
+    # 优惠券列表
+    - /buyer/promotion/coupon
+    # 商品评价列表
+    - /buyer/member/evaluation/*/goodsEvaluation
+    # 商品评价数量统计
+    - /buyer/member/evaluation/*/evaluationNumber
+    # APP 版本更新检查
+    - /buyer/other/appVersion/**
+    # 直播回放/录播
+    - /buyer/broadcast/studio/**
+    # 分销员招募说明页
+    - /buyer/distribution/distribution/recruit/page
+    # 分销员邀请人查询
+    - /buyer/distribution/distribution/recruit/inviter
+    # ========== 商家端（store-api）开放接口 ==========
+    # 商家登录
+    - /store/passport/login/**
+    # 商家 Token 刷新
+    - /store/passport/login/refresh/**
+    # 商家端轮播图
+    - /store/common/slider/**
+    # 商家端短信验证码
+    - /store/common/sms/**
+    # 商家端站点设置
+    - /store/common/site/**
+    # 商家端行政区划数据
+    - /store/common/region/**
+    # ========== 管理端（manager-api）开放接口 ==========
+    # 管理端轮播图
+    - /manager/common/slider/**
+    # 管理端站点设置
+    - /manager/common/site/**
+    # 管理端行政区划数据
+    - /manager/common/region/**
+    # 管理员登录
+    - /manager/passport/user/login
+    # 管理员 Token 刷新
+    - /manager/passport/user/refresh/**
+    # 自定义热词
+    - /manager/other/customWords
+    # ========== 接口文档与静态资源 ==========
+    # Swagger UI 页面及资源
+    - /swagger-ui.html
+    - /swagger-ui
+    - /swagger-ui/
+    - /swagger-ui/**
+    # OpenAPI 文档数据
+    - /v3/api-docs/**
+    # 浏览器图标
+    - /favicon.ico
+    # 上传文件静态访问
+    - /files/**
+    # 各类静态资源目录
+    - /static/**
+    - /public/**
+    - /resources/**
+    - /META-INF/resources/**
+
+# -------------------------------------------------------------------
+# Swagger 接口文档基本信息配置
+# -------------------------------------------------------------------
+swagger:
+  # 接口文档标题
+  title: lilishop API接口文档
+  # 接口文档描述
+  description: lilishop Api Documentation
+  # 接口文档版本号
+  version: 4.2.2
+  # 服务条款链接
+  termsOfServiceUrl: https://pickmall.cn
+  # 联系人信息
+  contact:
+    # 联系人名称
+    name: lili
+    # 联系人主页
+    url: https://pickmall.cn
+    # 联系邮箱
+    email: admin@pickmall.com
+
+# -------------------------------------------------------------------
+# SpringDoc 接口文档通用配置
+# -------------------------------------------------------------------
+springdoc:
+  swagger-ui:
+    # 是否开启 Swagger UI 界面
+    enabled: true
+    # 文档访问入口
+    path: /swagger-ui.html
+
+# -------------------------------------------------------------------
+# MyBatis-Plus ORM 框架配置
+# -------------------------------------------------------------------
+mybatis-plus:
+  # XML 映射文件加载路径
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    # 是否开启二级缓存
+    cache-enabled: true
+    # 日志输出（按需放开）
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# -------------------------------------------------------------------
+# 系统日志配置（基于 Logback）
+# -------------------------------------------------------------------
+logging:
+  level:
+    # 核心包日志输出级别
+    cn.lili: info
+  file:
+    # 日志输出根目录
+    path: logs
+  logback:
+    rollingpolicy:
+      # 日志最大保存天数
+      max-history: 7
+      # 单个日志文件最大大小
+      max-file-size: 5MB
+
+# -------------------------------------------------------------------
+# Jasypt 敏感属性加密密钥配置
+# -------------------------------------------------------------------
+jasypt:
+  encryptor:
+    # 加密/解密私钥
+    password: lili
+
+# -------------------------------------------------------------------
+# Lilishop 商城平台通用业务配置
+# -------------------------------------------------------------------
+lili:
+  # 演示站及脱敏规则配置
+  system:
+    # 是否演示站点
+    isDemoSite: false
+    # 数据脱敏级别：
+    # 0：不做脱敏处理
+    # 1：管理端用户手机号等敏感信息脱敏
+    # 2：商家端信息脱敏（为 2 时，表示管理端、商家端同时脱敏）
+    sensitiveLevel: 1
+
+  # 本地文件存储配置
+  local-file:
+    # 本地上传文件保存目录
+    path: data/uploads
+    # 静态文件访问的 URL 前缀
+    url-prefix: /files
+
+  # 在线会员人数统计设置
+  statistics:
+    # 在线人数统计 X 小时：这里设为 48，即统计过去 48 小时每小时在线人数
+    onlineMember: 48
+    # 当前在线人数刷新时间间隔（单位：秒）：设置为 600，则每 10 分钟刷新一次
+    currentOnlineUpdate: 600
+
+
+  # JWT 身份鉴权令牌配置
+  jwt-setting:
+    # 令牌签名密钥（生产环境建议通过环境变量 LILI_JWT_SECRET 强制覆盖）
+    secret: ${LILI_JWT_SECRET:cuAihCz53DZRjZwbsGcZJ2Ai6At+T142uphtJMsk7iQ=}
+    # 令牌过期时间（分钟）
+    tokenExpireTime: 1440
+    # 刷新令牌过期时间（分钟）
+    refreshTokenExpireTime: 43200
+
+  # Spring Cache 默认缓存过期配置
+  cache:
+    # 缓存过期时间（单位：秒）；永久不过期设为 -1
+    timeout: 1500
+
+  # 异步多线程执行线程池配置
+  thread:
+    # 核心线程数
+    corePoolSize: 5
+    # 最大线程数
+    maxPoolSize: 50
+    # 等待队列容量
+    queueCapacity: 50
+
+  # RocketMQ 分布式消息队列主题 (Topic) 与消费组 (Group) 配置
+  data:
+    rocketmq:
+      # 促销活动相关主题与消费组
+      promotion-topic: lili_promotion_topic
+      promotion-group: lili_promotion_group
+      # 商品变动相关主题与消费组
+      goods-topic: lili_goods_topic
+      goods-group: lili_goods_group
+      # 订单交易相关主题与消费组
+      order-topic: lili_order_topic
+      order-group: lili_order_group
+      # 会员用户相关主题与消费组
+      member-topic: lili_member_topic
+      member-group: lili_member_group
+      # 店铺/商家相关主题与消费组
+      store-topic: lili_store_topic
+      store-group: lili_store_group
+      # 站内公告通知相关主题与消费组
+      notice-topic: lili_notice_topic
+      notice-group: lili_notice_group
+      # 消息发送相关主题与消费组
+      notice-send-topic: lili_send_notice_topic
+      notice-send-group: lili_send_notice_group
+      # 售后/退款退货相关主题与消费组
+      after-sale-topic: lili_after_sale_topic
+      after-sale-group: lili_after_sale_group

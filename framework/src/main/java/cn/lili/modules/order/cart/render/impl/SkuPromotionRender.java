@@ -1,0 +1,368 @@
+package cn.lili.modules.order.cart.render.impl;
+
+import cn.lili.cache.Cache;
+import cn.lili.common.enums.PromotionTypeEnum;
+import cn.lili.modules.promotion.support.SingleReductionSupport;
+import cn.lili.modules.promotion.entity.dos.FullDiscount;
+import cn.lili.common.enums.ResultCode;
+import cn.lili.common.exception.ServiceException;
+import cn.lili.common.security.context.UserContext;
+import cn.lili.common.utils.CurrencyUtil;
+import cn.lili.modules.goods.service.CardKeyService;
+import cn.lili.modules.member.entity.dos.Member;
+import cn.lili.modules.member.service.MemberService;
+import cn.lili.modules.order.cart.entity.dto.TradeDTO;
+import cn.lili.modules.order.cart.entity.enums.RenderStepEnums;
+import cn.lili.modules.order.cart.entity.vo.CartSkuVO;
+import cn.lili.modules.order.cart.entity.vo.CartVO;
+import cn.lili.modules.order.cart.render.CartRenderStep;
+import cn.lili.modules.order.order.entity.dto.DiscountPriceItem;
+import cn.lili.modules.order.order.entity.dto.PriceDetailDTO;
+import cn.lili.modules.promotion.entity.dto.search.KanjiaActivitySearchParams;
+import cn.lili.modules.promotion.entity.enums.KanJiaStatusEnum;
+import cn.lili.modules.promotion.entity.vos.PromotionSkuVO;
+import cn.lili.modules.promotion.entity.vos.kanjia.KanjiaActivityVO;
+import cn.lili.modules.promotion.service.KanjiaActivityGoodsService;
+import cn.lili.modules.promotion.service.KanjiaActivityService;
+import cn.lili.modules.promotion.service.PointsGoodsService;
+import cn.lili.modules.promotion.service.PromotionGoodsService;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+/**
+ * 购物促销信息渲染实现
+ *
+ * @author Chopper
+ * @since 2020-07-02 14:47
+ */
+@Service
+public class SkuPromotionRender implements CartRenderStep {
+
+
+    @Autowired
+    private KanjiaActivityService kanjiaActivityService;
+    @Autowired
+    private KanjiaActivityGoodsService kanjiaActivityGoodsService;
+    @Autowired
+    private PointsGoodsService pointsGoodsService;
+    @Autowired
+    private PromotionGoodsService promotionGoodsService;
+    @Autowired
+    private MemberService memberService;
+    @Autowired
+    private Cache cache;
+
+    @Override
+    public RenderStepEnums step() {
+        return RenderStepEnums.SKU_PROMOTION;
+    }
+
+    @Override
+    public void render(TradeDTO tradeDTO) {
+
+        //基础价格渲染
+        renderBasePrice(tradeDTO);
+        //渲染单品促销
+        renderSkuPromotion(tradeDTO);
+        renderSingleReduction(tradeDTO);
+        //检查促销库存
+        checkPromotionQuantity(tradeDTO);
+
+
+    }
+
+    /**
+     * 基础价格渲染：商品金额保留会员优惠前基数，会员补贴计入优惠总额，不重复从商品基数中扣除。
+     *
+     * @param tradeDTO 交易数据
+     */
+    private void renderBasePrice(TradeDTO tradeDTO) {
+        tradeDTO.getCartList().forEach(
+                cartVO -> cartVO.getCheckedSkuList().forEach(cartSkuVO -> {
+                    PriceDetailDTO priceDetailDTO = cartSkuVO.getPriceDetailDTO();
+                    priceDetailDTO.setGoodsPrice(CurrencyUtil.add(cartSkuVO.getSubTotal(), priceDetailDTO.getPaidMemberSubsidy()));
+                    priceDetailDTO.setDiscountPrice(CurrencyUtil.sub(priceDetailDTO.getOriginalPrice(), cartSkuVO.getSubTotal()));
+                })
+        );
+    }
+
+
+    /**
+     * 渲染单品优惠 积分/拼团/秒杀/砍价
+     *
+     * @param tradeDTO 购物车视图
+     */
+    private void renderSkuPromotion(TradeDTO tradeDTO) {
+
+
+        switch (tradeDTO.getCartTypeEnum()) {
+
+            //这里是双重循环，但是实际积分购买或者是砍价购买时，购物车只有一个商品，所以没有循环操作数据库或者其他的问题
+            case POINTS:
+                Member userInfo = memberService.getUserInfo();
+                long totalPayPoints = 0;
+                //处理积分商品购买
+                for (CartVO cartVO : tradeDTO.getCartList()) {
+                    for (CartSkuVO cartSkuVO : cartVO.getCheckedSkuList()) {
+                        cartSkuVO.getPriceDetailDTO().setPayPoint(cartSkuVO.getPoint());
+                        PromotionSkuVO promotionSkuVO = new PromotionSkuVO(PromotionTypeEnum.POINTS_GOODS.name(), cartSkuVO.getPointsId());
+                        cartSkuVO.getPriceDetailDTO().getJoinPromotion().add(promotionSkuVO);
+                        totalPayPoints += cartSkuVO.getPoint();
+
+                        //记录优惠由来
+                        cartSkuVO.getPriceDetailDTO().setDiscountPriceItem(
+                                DiscountPriceItem.builder()
+                                        .discountPrice(CurrencyUtil.sub(cartSkuVO.getGoodsSku().getPrice(), cartSkuVO.getPurchasePrice()))
+                                        .promotionId(promotionSkuVO.getActivityId())
+                                        .promotionTypeEnum(PromotionTypeEnum.POINTS_GOODS)
+                                        .skuId(cartSkuVO.getGoodsSku().getId())
+                                        .goodsId(cartSkuVO.getGoodsSku().getGoodsId())
+                                        .build()
+                        );
+                    }
+                }
+                if (userInfo.getPoint() < totalPayPoints) {
+                    throw new ServiceException(ResultCode.POINT_NOT_ENOUGH);
+                }
+                return;
+            case KANJIA:
+                for (CartVO cartVO : tradeDTO.getCartList()) {
+                    for (CartSkuVO cartSkuVO : cartVO.getCheckedSkuList()) {
+                        KanjiaActivitySearchParams kanjiaActivitySearchParams = new KanjiaActivitySearchParams();
+                        kanjiaActivitySearchParams.setGoodsSkuId(cartSkuVO.getGoodsSku().getId());
+                        kanjiaActivitySearchParams.setMemberId(Objects.requireNonNull(UserContext.getCurrentUser()).getId());
+                        kanjiaActivitySearchParams.setKanjiaActivityId(cartSkuVO.getKanjiaId());
+                        kanjiaActivitySearchParams.setStatus(KanJiaStatusEnum.SUCCESS.name());
+                        KanjiaActivityVO kanjiaActivityVO = kanjiaActivityService.getKanjiaActivityVO(kanjiaActivitySearchParams);
+                        //可以砍价金额购买，则处理信息
+                        if (Boolean.TRUE.equals(kanjiaActivityVO.getPass())) {
+                            cartSkuVO.setKanjiaId(kanjiaActivityVO.getId());
+                            cartSkuVO.setPurchasePrice(kanjiaActivityVO.getPurchasePrice());
+                            cartSkuVO.setSubTotal(kanjiaActivityVO.getPurchasePrice());
+                            cartSkuVO.getPriceDetailDTO().setGoodsPrice(kanjiaActivityVO.getPurchasePrice());
+                        }
+                        PromotionSkuVO promotionSkuVO = new PromotionSkuVO(PromotionTypeEnum.KANJIA.name(), cartSkuVO.getKanjiaId());
+                        cartSkuVO.getPriceDetailDTO().getJoinPromotion().add(promotionSkuVO);
+
+                        //记录优惠由来
+                        cartSkuVO.getPriceDetailDTO().setDiscountPriceItem(
+                                DiscountPriceItem.builder()
+                                        .discountPrice(CurrencyUtil.sub(cartSkuVO.getGoodsSku().getPrice(), cartSkuVO.getPurchasePrice()))
+                                        .promotionId(promotionSkuVO.getActivityId())
+                                        .promotionTypeEnum(PromotionTypeEnum.KANJIA)
+                                        .skuId(cartSkuVO.getGoodsSku().getId())
+                                        .goodsId(cartSkuVO.getGoodsSku().getGoodsId())
+                                        .build()
+                        );
+                    }
+                }
+                return;
+            case PINTUAN:
+                for (CartVO cartVO : tradeDTO.getCartList()) {
+                    for (CartSkuVO cartSkuVO : cartVO.getCheckedSkuList()) {
+                        PromotionSkuVO promotionSkuVO = new PromotionSkuVO(PromotionTypeEnum.PINTUAN.name(), cartSkuVO.getPintuanId());
+                        cartSkuVO.getPriceDetailDTO().getJoinPromotion().add(promotionSkuVO);
+
+                        //记录优惠由来
+                        cartSkuVO.getPriceDetailDTO().setDiscountPriceItem(
+                                DiscountPriceItem.builder()
+                                        .discountPrice(CurrencyUtil.sub(cartSkuVO.getGoodsSku().getPrice(), cartSkuVO.getPurchasePrice()))
+                                        .promotionId(promotionSkuVO.getActivityId())
+                                        .promotionTypeEnum(PromotionTypeEnum.PINTUAN)
+                                        .skuId(cartSkuVO.getGoodsSku().getId())
+                                        .goodsId(cartSkuVO.getGoodsSku().getGoodsId())
+                                        .build()
+                        );
+                    }
+                }
+                return;
+            case CART:
+            case BUY_NOW:
+            case VIRTUAL:
+                //循环购物车
+                for (CartVO cartVO : tradeDTO.getCartList()) {
+                    //循环sku
+                    for (CartSkuVO cartSkuVO : cartVO.getCheckedSkuList()) {
+                        //赋予商品促销信息
+                        for (Map.Entry<String, Object> entry : cartSkuVO.getPromotionMap().entrySet()) {
+                            if (ignorePromotion(entry.getKey())) {
+                                continue;
+                            }
+
+                            Object v = entry.getValue();
+                            JSONObject promotionsObj;
+                            if (v instanceof String) {
+                                promotionsObj = JSON.parseObject((String) v);
+                            } else if (v instanceof JSONObject) {
+                                promotionsObj = (JSONObject) v;
+                            } else if (v instanceof Map) {
+                                promotionsObj = JSON.parseObject(JSON.toJSONString(v));
+                            } else {
+                                promotionsObj = JSON.parseObject(JSON.toJSONString(v));
+                            }
+                            PromotionSkuVO promotionSkuVO = new PromotionSkuVO(entry.getKey().split("-")[0], promotionsObj.getString("id"));
+                            cartSkuVO.setSubTotal(CurrencyUtil.mul(cartSkuVO.getPurchasePrice(), cartSkuVO.getNum()));
+                            // subTotal 已是会员实付小计，补回平台补贴保留结算基数，避免再次扣减会员优惠。
+                            cartSkuVO.getPriceDetailDTO().setGoodsPrice(CurrencyUtil.add(cartSkuVO.getSubTotal(), cartSkuVO.getPriceDetailDTO().getPaidMemberSubsidy()));
+
+                            cartSkuVO.getPriceDetailDTO().getJoinPromotion().add(promotionSkuVO);
+
+                            if (isSkuPricePromotion(promotionSkuVO.getPromotionType())) {
+                                PromotionTypeEnum type = PromotionTypeEnum.valueOf(promotionSkuVO.getPromotionType());
+                                if (cartSkuVO.getPriceDetailDTO().getDiscountPriceDetail() == null) {
+                                    cartSkuVO.getPriceDetailDTO().setDiscountPriceDetail(new ArrayList<>());
+                                }
+                                DiscountPriceItem item = DiscountPriceItem.builder()
+                                        .discountPrice(CurrencyUtil.sub(cartSkuVO.getGoodsSku().getPrice(), cartSkuVO.getPurchasePrice()))
+                                        .promotionId(promotionSkuVO.getActivityId())
+                                        .promotionTypeEnum(type)
+                                        .skuId(cartSkuVO.getGoodsSku().getId())
+                                        .goodsId(cartSkuVO.getGoodsSku().getGoodsId())
+                                        .build();
+                                cartSkuVO.getPriceDetailDTO().getDiscountPriceDetail().add(item);
+                                cartSkuVO.getPriceDetailDTO().setDiscountPriceItem(item);
+                            }
+
+
+                        }
+                    }
+                }
+                return;
+            default:
+        }
+    }
+
+    /**
+     * 渲染普通购买中的单品立减，价格以服务端实时规则重算，每件减额乘购买数量仅计入一次。
+     * 保留原价作为商品总基数，立减作为优惠，避免活动价再减一次；会员补贴不与单品立减重复发放。
+     * 后续满件/满额与优惠券使用立减后的商品金额，成交规则及实际减额保留在订单价格明细中。
+     *
+     * @param tradeDTO 当前交易
+     */
+    private void renderSingleReduction(TradeDTO tradeDTO) {
+        if (tradeDTO.getCartTypeEnum() != cn.lili.modules.order.cart.entity.enums.CartTypeEnum.CART
+                && tradeDTO.getCartTypeEnum() != cn.lili.modules.order.cart.entity.enums.CartTypeEnum.BUY_NOW
+                && tradeDTO.getCartTypeEnum() != cn.lili.modules.order.cart.entity.enums.CartTypeEnum.VIRTUAL) {
+            return;
+        }
+        for (CartVO cart : tradeDTO.getCartList()) {
+            for (CartSkuVO sku : cart.getCheckedSkuList()) {
+                FullDiscount activity = SingleReductionSupport.findActivity(sku.getGoodsSku(), sku.getPromotionMap());
+                if (activity == null || sku.getNum() == null || sku.getNum() <= 0) {
+                    continue;
+                }
+                Double unitPrice = CurrencyUtil.sub(sku.getGoodsSku().getPrice(), activity.getFullMinus());
+                // 防御异常重叠旧数据：更低的其他单品活动价仍优先，不将其替换为较高立减价。
+                if (sku.getPurchasePrice() != null && sku.getPurchasePrice() < unitPrice) {
+                    continue;
+                }
+                PriceDetailDTO price = sku.getPriceDetailDTO();
+                double original = CurrencyUtil.mul(sku.getGoodsSku().getPrice(), sku.getNum());
+                double reduction = CurrencyUtil.mul(activity.getFullMinus(), sku.getNum());
+                sku.setPurchasePrice(unitPrice);
+                sku.setUtilPrice(unitPrice);
+                sku.setSubTotal(CurrencyUtil.mul(unitPrice, sku.getNum()));
+                price.setOriginalPrice(original);
+                price.setGoodsPrice(original);
+                price.setPaidMemberSubsidy(0D);
+                price.setDiscountPrice(reduction);
+                price.getDiscountPriceDetail().removeIf(item -> item.getPromotionTypeEnum() == PromotionTypeEnum.SINGLE_REDUCTION
+                        || item.getPromotionTypeEnum() == PromotionTypeEnum.PAID_MEMBER);
+                price.addDiscountPriceItem(DiscountPriceItem.builder()
+                        .promotionTypeEnum(PromotionTypeEnum.SINGLE_REDUCTION).promotionId(activity.getId())
+                        .activityType(activity.getActivityType()).promotionRule(activity.getTitle())
+                        .discountPrice(reduction).skuId(sku.getGoodsSku().getId()).goodsId(sku.getGoodsSku().getGoodsId()).build());
+                price.getJoinPromotion().removeIf(item -> PromotionTypeEnum.SINGLE_REDUCTION.name().equals(item.getPromotionType()));
+                price.getJoinPromotion().add(new PromotionSkuVO(PromotionTypeEnum.SINGLE_REDUCTION.name(), activity.getId()));
+            }
+        }
+    }
+
+    /**
+     * 检查促销库存
+     *
+     * @param tradeDTO 购物车视图
+     */
+    private void checkPromotionQuantity(TradeDTO tradeDTO) {
+        for (CartSkuVO cartSkuVO : tradeDTO.getCheckedSkuList()) {
+            List<PromotionSkuVO> joinPromotion = cartSkuVO.getPriceDetailDTO().getJoinPromotion();
+            if (!joinPromotion.isEmpty()) {
+                for (PromotionSkuVO promotionSkuVO : joinPromotion) {
+                    this.checkPromotionGoodsQuantity(cartSkuVO, promotionSkuVO);
+                }
+            }
+        }
+    }
+
+    /**
+     * 校验需要库存管理的促销商品余量，库存不足时拒绝参与该促销。
+     *
+     * @param cartSkuVO 购物车商品
+     * @param promotionSkuVO 商品关联促销
+     */
+    private void checkPromotionGoodsQuantity(CartSkuVO cartSkuVO, PromotionSkuVO promotionSkuVO) {
+        if (!PromotionTypeEnum.haveStock(promotionSkuVO.getPromotionType())) {
+            return;
+        }
+        String promotionGoodsStockCacheKey = PromotionGoodsService.getPromotionGoodsStockCacheKey(PromotionTypeEnum.valueOf(promotionSkuVO.getPromotionType()), promotionSkuVO.getActivityId(), cartSkuVO.getGoodsSku().getId());
+        Object quantity = cache.get(promotionGoodsStockCacheKey);
+
+        if (quantity == null) {
+            //如果促销有库存信息
+            PromotionTypeEnum promotionTypeEnum = PromotionTypeEnum.valueOf(promotionSkuVO.getPromotionType());
+            switch (promotionTypeEnum) {
+                case KANJIA:
+                    quantity = kanjiaActivityGoodsService.getKanjiaGoodsBySkuId(cartSkuVO.getGoodsSku().getId()).getStock();
+                    break;
+                case POINTS_GOODS:
+                    quantity = pointsGoodsService.getPointsGoodsDetailBySkuId(cartSkuVO.getGoodsSku().getId()).getActiveStock();
+                    break;
+                case SECKILL:
+                case PINTUAN:
+                    quantity = promotionGoodsService.getPromotionGoodsStock(PromotionTypeEnum.valueOf(promotionSkuVO.getPromotionType()), promotionSkuVO.getActivityId(), cartSkuVO.getGoodsSku().getId());
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        //设置购物车未选中
+        if (quantity != null && cartSkuVO.getNum() > (Integer) quantity) {
+            cartSkuVO.setChecked(false);
+            //设置失效消息
+            cartSkuVO.setErrorMessage("促销商品库存不足,现有库存数量[" + quantity + "]");
+        }
+    }
+
+    /**
+     * 判断促销是否属于改变SKU成交价的类型。
+     *
+     * @param promotionType 促销类型
+     * @return 是否为SKU价格促销
+     */
+    private boolean isSkuPricePromotion(String promotionType) {
+        return PromotionTypeEnum.SECKILL.name().equals(promotionType);
+    }
+
+    /**
+     * 购物车促销类型
+     */
+    private boolean ignorePromotion(String promotionKey) {
+
+        // 忽略积分活动活动 忽略砍价活动 忽略优惠券活动 忽略拼团活动
+        return promotionKey.startsWith(PromotionTypeEnum.SINGLE_REDUCTION.name() + "-")
+                || PromotionTypeEnum.isRetired(promotionKey.split("-", 2)[0])
+                || promotionKey.contains(PromotionTypeEnum.POINTS_GOODS.name())
+                || promotionKey.contains(PromotionTypeEnum.KANJIA.name())
+                || promotionKey.contains(PromotionTypeEnum.COUPON.name())
+                || promotionKey.contains(PromotionTypeEnum.PINTUAN.name());
+    }
+
+}

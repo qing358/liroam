@@ -1,0 +1,140 @@
+package cn.lili.modules.order.order.serviceimpl;
+
+import cn.lili.modules.order.order.support.OrderStatusSupport;
+import cn.lili.modules.order.order.entity.dos.Order;
+import cn.lili.modules.order.order.entity.dto.OrderMessage;
+import cn.lili.modules.order.order.entity.enums.OrderStatusEnum;
+import cn.lili.modules.order.order.entity.enums.OrderTypeEnum;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+/**
+ * virtualOrderConfirm 仅 VIRTUAL+PAID 写 TAKE；E_COUPON 误入时拒绝。
+ *
+ * @author Mike
+ * @date 2026-07-31
+ */
+class OrderServiceImplVirtualConfirmTest {
+
+    private OrderServiceImpl orderService;
+    private ECouponFulfillmentService fulfillmentService;
+
+    /**
+     * 初始化订单实体的MyBatis-Plus元数据。
+     */
+    @BeforeAll
+    static void initOrderEntityCache() {
+        MapperBuilderAssistant assistant = new MapperBuilderAssistant(new MybatisConfiguration(), "");
+        TableInfoHelper.initTableInfo(assistant, Order.class);
+    }
+
+    /**
+     * 初始化当前用例的模拟依赖及测试数据。
+     */
+    @BeforeEach
+    void setUp() {
+        orderService = spy(new OrderServiceImpl());
+        fulfillmentService = mock(ECouponFulfillmentService.class);
+        ReflectionTestUtils.setField(orderService, "eCouponFulfillmentService", fulfillmentService);
+        ReflectionTestUtils.setField(orderService, "orderStatusSupport", new OrderStatusSupport(
+                mock(cn.lili.modules.order.order.mapper.OrderMapper.class),
+                mock(cn.lili.modules.order.order.service.OrderItemService.class),
+                mock(cn.lili.modules.order.trade.service.OrderLogService.class),
+                mock(cn.lili.modules.promotion.service.PickupCardOrderService.class),
+                mock(cn.lili.modules.system.service.SettingService.class),
+                mock(cn.lili.message.LiliMessageTemplate.class),
+                mock(cn.lili.common.properties.RocketmqCustomProperties.class),
+                mock(org.springframework.context.ApplicationEventPublisher.class),
+                mock(cn.lili.modules.order.order.service.ReceiptService.class),
+                mock(cn.lili.modules.order.order.support.OrderPaymentSupport.class)));
+    }
+
+    /** E_COUPON 误入 virtualOrderConfirm 时不转发履约、不写 TAKE。 */
+    @Test
+    void virtualOrderConfirmRejectsECouponMisroute() {
+        Order order = new Order();
+        order.setSn("O-ECOUPON");
+        order.setOrderType(OrderTypeEnum.E_COUPON.name());
+        order.setOrderStatus(OrderStatusEnum.PAID.name());
+        doReturn(order).when(orderService).getBySn("O-ECOUPON");
+
+        orderService.virtualOrderConfirm("O-ECOUPON");
+
+        verify(fulfillmentService, never()).fulfillAfterPayment(any());
+        verify(orderService, never()).update(any(LambdaUpdateWrapper.class));
+        verify(orderService, never()).sendUpdateStatusMessage(any(OrderMessage.class));
+    }
+
+    /**
+     * 验证虚拟订单状态条件更新失败时不执行核销。
+     */
+    @Test
+    void virtualOrderConfirmSkipsTakeWhenCasUpdateFails() {
+        Order order = new Order();
+        order.setSn("O-VIRTUAL");
+        order.setOrderType(OrderTypeEnum.VIRTUAL.name());
+        order.setOrderStatus(OrderStatusEnum.COMPLETED.name());
+        doReturn(order).when(orderService).getBySn("O-VIRTUAL");
+        doReturn(false).when(orderService).update(any(LambdaUpdateWrapper.class));
+
+        orderService.virtualOrderConfirm("O-VIRTUAL");
+
+        verify(fulfillmentService, never()).fulfillAfterPayment(any());
+        verify(orderService, never()).sendUpdateStatusMessage(any(OrderMessage.class));
+    }
+
+    /**
+     * 验证仅已付款虚拟订单确认后设置核销状态。
+     */
+    @Test
+    void virtualOrderConfirmSetsTakeOnlyForVirtualPaid() {
+        Order order = new Order();
+        order.setSn("O-VIRTUAL");
+        order.setOrderType(OrderTypeEnum.VIRTUAL.name());
+        order.setOrderStatus(OrderStatusEnum.PAID.name());
+        doReturn(order).when(orderService).getBySn("O-VIRTUAL");
+        doReturn(true).when(orderService).update(any(LambdaUpdateWrapper.class));
+        doNothing().when(orderService).sendUpdateStatusMessage(any(OrderMessage.class));
+
+        orderService.virtualOrderConfirm("O-VIRTUAL");
+
+        verify(orderService).update(any(LambdaUpdateWrapper.class));
+        verify(orderService).sendUpdateStatusMessage(any(OrderMessage.class));
+    }
+
+    /** 未知或空 orderType 不进入任何确认分支。 */
+    @Test
+    void afterOrderConfirmRejectsUnknownAndNullOrderTypes() {
+        Order unknownOrder = new Order();
+        unknownOrder.setSn("O-UNKNOWN");
+        unknownOrder.setOrderType("UNKNOWN");
+        unknownOrder.setOrderStatus(OrderStatusEnum.PAID.name());
+        Order nullTypeOrder = new Order();
+        nullTypeOrder.setSn("O-NULL-TYPE");
+        nullTypeOrder.setOrderStatus(OrderStatusEnum.PAID.name());
+        doReturn(unknownOrder).when(orderService).getBySn("O-UNKNOWN");
+        doReturn(nullTypeOrder).when(orderService).getBySn("O-NULL-TYPE");
+
+        orderService.afterOrderConfirm("O-UNKNOWN");
+        orderService.afterOrderConfirm("O-NULL-TYPE");
+
+        verify(orderService, never()).normalOrderConfirm(any());
+        verify(orderService, never()).virtualOrderConfirm(any());
+        verify(fulfillmentService, never()).fulfillAfterPayment(any());
+        verify(fulfillmentService, never()).reserveByOrder(any());
+    }
+}
