@@ -21,6 +21,7 @@ import com.liroam.fulfillment.FulfillmentRules;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
+import com.liroam.fulfillment.courier.CourierTracking;
 import com.liroam.fulfillment.delivery.CardShipments;
 import com.liroam.fulfillment.task.ManualTasks;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
@@ -29,6 +30,7 @@ import com.liroam.pricing.price.ShellPriceWriter;
 import com.liroam.pricing.snapshot.OrderLineSnapshots;
 import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
+import com.liroam.shell.logistics.ShellCourierTracking;
 import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
@@ -43,9 +45,10 @@ import cn.lili.modules.goods.service.GoodsSkuService;
 import cn.lili.modules.order.order.service.OrderItemService;
 import cn.lili.modules.order.order.service.OrderPackageService;
 import cn.lili.modules.order.order.service.OrderService;
+import cn.lili.modules.system.service.LogisticsService;
 
 /**
- * 壳挂接点（domain-design §5）：H1/H1′ 支付收单与补偿扫描、H2 交易落库校验与快照、H5 发货回写、H7 售价写回，以及操作人端口。
+ * 壳挂接点（domain-design §5）：H1/H1′ 支付收单与补偿扫描、H2 交易落库校验与快照、H5 发货回写与物流轨迹、H7 售价写回，以及操作人端口。
  * worker 类任务只在 {@code liroam.worker.enabled=true} 的进程（manager-api）开。
  */
 @AutoConfiguration(after = { LiroamFulfillmentAutoConfiguration.class, LiroamPricingAutoConfiguration.class })
@@ -65,6 +68,11 @@ public class LiroamShellBridgeAutoConfiguration {
     @Bean
     ShellSkuDirectory liroamShellGoodsSkus(GoodsSkuService goodsSkuService) {
         return new ShellGoodsSkus(goodsSkuService);
+    }
+
+    @Bean
+    CourierTracking liroamShellCourierTracking(LogisticsService logisticsService, OrderService orderService) {
+        return new ShellCourierTracking(logisticsService, orderService);
     }
 
     @Bean

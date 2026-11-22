@@ -19,6 +19,9 @@ import com.liroam.common.testing.TestKeys;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.card.CardActions;
 import com.liroam.fulfillment.card.CardQueries;
+import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.fulfillment.courier.mock.MockCourierAutoConfiguration;
+import com.liroam.fulfillment.courier.mock.MockCourierTracking;
 import com.liroam.fulfillment.web.BuyerCardController;
 import com.liroam.fulfillment.web.ManagerCardController;
 import com.liroam.fulfillment.worker.FulfillmentSchedules;
@@ -35,7 +38,7 @@ class FulfillmentWiringTest {
     }
 
     private static final AutoConfigurations CONFIGS = AutoConfigurations.of(LiroamCommonAutoConfiguration.class, LiroamCatalogAutoConfiguration.class,
-            LiroamFulfillmentAutoConfiguration.class);
+            LiroamFulfillmentAutoConfiguration.class, MockCourierAutoConfiguration.class);
 
     private ApplicationContextRunner plain() {
         return new ApplicationContextRunner().withConfiguration(CONFIGS)
@@ -56,7 +59,15 @@ class FulfillmentWiringTest {
     void defaultsHaveDomainBeansButNoSchedulesOrControllers() {
         plain().withPropertyValues("liroam.web.surface=buyer").run(ctx -> assertThat(ctx).hasNotFailed()
                 .hasSingleBean(CardQueries.class).hasSingleBean(CardActions.class)
-                .doesNotHaveBean(FulfillmentSchedules.class).doesNotHaveBean(BuyerCardController.class).doesNotHaveBean(ManagerCardController.class));
+                .doesNotHaveBean(FulfillmentSchedules.class).doesNotHaveBean(BuyerCardController.class).doesNotHaveBean(ManagerCardController.class)
+                .hasSingleBean(CardTracking.class).doesNotHaveBean(MockCourierTracking.class));
+    }
+
+    @Test
+    void mockCourierOnlyUnderDevOrTestProfile() {
+        plain().withPropertyValues("spring.profiles.active=test").run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(MockCourierTracking.class));
+        plain().withPropertyValues("spring.profiles.active=dev").run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(MockCourierTracking.class));
+        plain().withPropertyValues("spring.profiles.active=prod").run(ctx -> assertThat(ctx).doesNotHaveBean(MockCourierTracking.class));
     }
 
     @Test

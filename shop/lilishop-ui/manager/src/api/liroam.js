@@ -15,9 +15,14 @@ function upload(url, file, fields = {}) {
 // 卡台账
 export const listCards = (params) => getRequest("/liroam/cards", params);
 export const getCard = (id) => getRequest(`/liroam/cards/${encodeURIComponent(id)}`);
+/** 实体卡物流轨迹；未寄出时 result 为 null */
+export const getCardTracking = (id) => getRequest(`/liroam/cards/${encodeURIComponent(id)}/tracking`);
 export const saveCardCredential = (id, lpa) => postRequest(`/liroam/cards/${encodeURIComponent(id)}/credential`, { lpa }, JSON_HEADERS);
 /** shipment: { logisticsId, logisticsName, logisticsNo } */
 export const saveCardShipment = (id, shipment) => postRequest(`/liroam/cards/${encodeURIComponent(id)}/shipment`, shipment, JSON_HEADERS);
+/** { multiWaybillMode: MANUAL|SPLIT, trackingSource, trackingSources[] } */
+export const getShippingSettings = () => getRequest("/liroam/cards/settings/shipping");
+export const saveShippingSettings = (body) => putRequest("/liroam/cards/settings/shipping", body, JSON_HEADERS);
 /** result: VERIFIED | REJECTED */
 export const reviewCardKyc = (id, result, note) => postRequest(`/liroam/cards/${encodeURIComponent(id)}/kyc`, { result, note }, JSON_HEADERS);
 export const importCredentials = (file) => upload("/liroam/cards/credentials/import", file);

@@ -45,6 +45,9 @@ public final class FulfillmentSettings {
     public static final SettingKey<MultiWaybillMode> SHIPPING_MULTI_WAYBILL_MODE = SettingKey.global("shipping.multi_waybill_mode",
             MultiWaybillMode.class, MultiWaybillMode.MANUAL, "实体卡分多个运单时壳订单发货方式：MANUAL 转人工分包，SPLIT 按运单自动分包");
 
+    public static final SettingKey<String> LOGISTICS_TRACKING_SOURCE = SettingKey.global("logistics.tracking_source", String.class, "shell",
+            "实体卡物流轨迹来源（CourierTracking.key）：shell 走壳物流插件（快递鸟/快递100）");
+
     public static final SettingKey<Integer> ALERT_COMMAND_RETRY_ATTEMPTS = SettingKey.global("alert.command_retry_attempts", Integer.class, 3,
             "指令重试到第几次仍未成功即告警");
     public static final SettingKey<Integer> ALERT_RATE_LIMITED_PER_HOUR = SettingKey.global("alert.rate_limited_per_hour", Integer.class, 20,

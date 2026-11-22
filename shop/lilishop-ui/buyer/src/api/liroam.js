@@ -17,6 +17,11 @@ export function getCardCredential(id) {
   return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/credential`, method: Method.GET, needToken: true });
 }
 
+/** 实体卡物流轨迹 {logisticsCompany, logisticsNo, shippedText, message, events:[{timeText, description}]}；未寄出时 result 为 null */
+export function getCardTracking(id) {
+  return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/tracking`, method: Method.GET, needToken: true });
+}
+
 /** 买家自报已完成实名（实名后交付的卡随即发放），返回最新 CardView */
 export function declareCardKyc(id) {
   return request({ url: `/buyer/liroam/cards/${encodeURIComponent(id)}/kyc-declaration`, method: Method.POST, needToken: true, headers: JSON_HEADERS, data: {} });

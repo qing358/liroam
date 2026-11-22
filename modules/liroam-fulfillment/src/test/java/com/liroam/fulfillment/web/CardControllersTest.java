@@ -6,29 +6,41 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import com.liroam.common.setting.SettingScope;
+import com.liroam.common.setting.Settings;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.LiroamApiExceptionHandler;
 import com.liroam.common.web.UserFacingException;
+import com.liroam.fulfillment.FulfillmentSettings;
 import com.liroam.fulfillment.TopUpIntents;
 import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
+import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.fulfillment.courier.CourierTracking;
+import com.liroam.fulfillment.courier.mock.MockCourierTracking;
+import com.liroam.fulfillment.delivery.MultiWaybillMode;
+import com.liroam.fulfillment.store.CardCredentials;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
 import com.liroam.fulfillment.poll.CardRefresh;
@@ -73,10 +85,13 @@ class CardControllersTest {
     static void start() {
         h = FulfillmentHarness.start("fulfillment_web");
         c = h.catalog;
+        CardTracking tracking = new CardTracking(h.bean(JdbcClient.class), h.bean(CardCredentials.class), h.bean(Settings.class),
+                () -> List.of(new MockCourierTracking(h.clock), new SilentCourier()));
         buyer = MockMvcBuilders.standaloneSetup(new BuyerCardController(actor, h.bean(CardQueries.class), h.bean(CardRefresh.class),
-                h.bean(TopUpIntents.class), h.bean(CardKyc.class))).setControllerAdvice(new LiroamApiExceptionHandler()).build();
+                h.bean(TopUpIntents.class), h.bean(CardKyc.class), tracking)).setControllerAdvice(new LiroamApiExceptionHandler()).build();
         manager = MockMvcBuilders.standaloneSetup(new ManagerCardController(actor, h.bean(CardQueries.class), h.bean(CredentialEntry.class),
-                h.bean(CredentialImports.class), h.bean(CardPool.class), h.bean(ManualTasks.class), h.bean(CardKyc.class)))
+                h.bean(CredentialImports.class), h.bean(CardPool.class), h.bean(ManualTasks.class), h.bean(CardKyc.class), tracking,
+                h.bean(Settings.class)))
                 .setControllerAdvice(new LiroamApiExceptionHandler()).build();
     }
 
@@ -305,5 +320,99 @@ class CardControllersTest {
                 .andExpect(jsonPath("$.result.payload").doesNotExist())
                 .andExpect(jsonPath("$.result.logisticsCompany").value("顺丰速运"))
                 .andExpect(jsonPath("$.result.logisticsNo").value("SF1"));
+    }
+
+    private long shippedSim(String order, String member, String waybill) throws Exception {
+        h.importPoolA(1, false, "PHYSICAL");
+        long sim = h.acceptCard(order, c.skuAPhysical, member);
+        h.drain();
+        ok(manager.perform(post("/manager/liroam/cards/{id}/shipment", sim).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"logisticsId\":\"LOG-SF\",\"logisticsName\":\"顺丰速运\",\"logisticsNo\":\"" + waybill + "\"}")));
+        return sim;
+    }
+
+    @Test
+    void buyerAndManagerSeeCourierTrackFromConfiguredSource() throws Exception {
+        h.bean(Settings.class).set(FulfillmentSettings.LOGISTICS_TRACKING_SOURCE, SettingScope.GLOBAL, MockCourierTracking.KEY, "manager:admin");
+        long sim = shippedSim("O-11", "m1", "SF11");
+        long esim = deliveredA("O-12", "m1");
+        h.clock.advance(Duration.ofHours(25));
+
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}/tracking", sim)))
+                .andExpect(jsonPath("$.result.logisticsCompany").value("顺丰速运"))
+                .andExpect(jsonPath("$.result.logisticsNo").value("SF11"))
+                .andExpect(jsonPath("$.result.shippedText").value("2026-11-22 12:00"))
+                .andExpect(jsonPath("$.result.message").doesNotExist())
+                .andExpect(jsonPath("$.result.events.length()").value(3))
+                .andExpect(jsonPath("$.result.events[0].timeText").value("2026-11-23 12:00"))
+                .andExpect(jsonPath("$.result.events[0].description").value("派送中：快递员正在派送"))
+                .andExpect(jsonPath("$.result.events[2].description").value("已揽收：快递员已取件"));
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}/tracking", esim))).andExpect(jsonPath("$.result").doesNotExist());
+        actor.memberId = "m2";
+        refused(buyer.perform(get("/buyer/liroam/cards/{id}/tracking", sim)), "找不到这张卡");
+
+        h.clock.advance(Duration.ofHours(12));
+        ok(manager.perform(get("/manager/liroam/cards/{id}/tracking", sim)))
+                .andExpect(jsonPath("$.result.events.length()").value(4))
+                .andExpect(jsonPath("$.result.events[0].description").value("已签收：本人签收"));
+        refused(manager.perform(get("/manager/liroam/cards/{id}/tracking", 999_999)), "找不到这张卡");
+    }
+
+    @Test
+    void trackingFallsBackToWaybillWhenSourceMissingOrSilent() throws Exception {
+        long sim = shippedSim("O-13", "m1", "SF13");
+
+        assertThat(h.bean(Settings.class).get(FulfillmentSettings.LOGISTICS_TRACKING_SOURCE)).as("默认走壳物流插件").isEqualTo("shell");
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}/tracking", sim)))
+                .andExpect(jsonPath("$.result.logisticsNo").value("SF13"))
+                .andExpect(jsonPath("$.result.events.length()").value(0))
+                .andExpect(jsonPath("$.result.message").value("物流查询暂不可用，请凭运单号到快递公司官网查询"));
+
+        h.bean(Settings.class).set(FulfillmentSettings.LOGISTICS_TRACKING_SOURCE, SettingScope.GLOBAL, SilentCourier.KEY, "manager:admin");
+        ok(buyer.perform(get("/buyer/liroam/cards/{id}/tracking", sim)))
+                .andExpect(jsonPath("$.result.events.length()").value(0))
+                .andExpect(jsonPath("$.result.message").value("暂未查到物流轨迹，快递揽收后通常数小时内更新"));
+    }
+
+    @Test
+    void managerReadsAndUpdatesShippingSettings() throws Exception {
+        ok(manager.perform(get("/manager/liroam/cards/settings/shipping")))
+                .andExpect(jsonPath("$.result.multiWaybillMode").value("MANUAL"))
+                .andExpect(jsonPath("$.result.trackingSource").value("shell"))
+                .andExpect(jsonPath("$.result.trackingSources[0]").value("mock"))
+                .andExpect(jsonPath("$.result.trackingSources[1]").value("silent"));
+
+        refused(manager.perform(put("/manager/liroam/cards/settings/shipping").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"multiWaybillMode\":\"SPLIT\",\"trackingSource\":\"nope\"}")), "未装配物流轨迹来源「nope」");
+        assertThat(h.bean(Settings.class).get(FulfillmentSettings.SHIPPING_MULTI_WAYBILL_MODE)).as("整笔不改").isEqualTo(MultiWaybillMode.MANUAL);
+
+        ok(manager.perform(put("/manager/liroam/cards/settings/shipping").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"multiWaybillMode\":\"SPLIT\",\"trackingSource\":\"mock\"}")))
+                .andExpect(jsonPath("$.result.multiWaybillMode").value("SPLIT"))
+                .andExpect(jsonPath("$.result.trackingSource").value("mock"));
+        ok(manager.perform(put("/manager/liroam/cards/settings/shipping").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"multiWaybillMode\":\"MANUAL\"}")))
+                .andExpect(jsonPath("$.result.multiWaybillMode").value("MANUAL"))
+                .andExpect(jsonPath("$.result.trackingSource").value("mock"));
+        assertThat(h.count("lr_audit_log WHERE actor = 'manager:admin' AND target_id LIKE 'shipping.multi_waybill_mode@%'")).isEqualTo(2);
+
+        actor.operator = null;
+        refused(manager.perform(get("/manager/liroam/cards/settings/shipping")), "请先登录");
+    }
+
+    /** 查不到轨迹的来源（壳插件未配置或快递接口无数据时的样子）。 */
+    static final class SilentCourier implements CourierTracking {
+
+        static final String KEY = "silent";
+
+        @Override
+        public String key() {
+            return KEY;
+        }
+
+        @Override
+        public Optional<Track> track(Waybill waybill) {
+            return Optional.empty();
+        }
     }
 }

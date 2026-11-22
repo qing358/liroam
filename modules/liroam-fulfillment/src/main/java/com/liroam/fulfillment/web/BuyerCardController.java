@@ -20,9 +20,11 @@ import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.card.CardQueries.CredentialView;
 import com.liroam.fulfillment.card.CardQueries.TopUpOption;
 import com.liroam.fulfillment.card.CardView;
+import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.fulfillment.courier.CardTracking.TrackingView;
 import com.liroam.fulfillment.poll.CardRefresh;
 
-/** 买家「我的卡」：列表、详情（顺带按需刷新用量）、查看激活码/物流、加包选项与选卡、实名自报。 */
+/** 买家「我的卡」：列表、详情（顺带按需刷新用量）、查看激活码/物流与轨迹、加包选项与选卡、实名自报。 */
 @RestController
 @RequestMapping("/buyer/liroam/cards")
 public class BuyerCardController {
@@ -35,13 +37,15 @@ public class BuyerCardController {
     private final CardRefresh refresh;
     private final TopUpIntents intents;
     private final CardKyc kyc;
+    private final CardTracking tracking;
 
-    public BuyerCardController(CurrentActor actor, CardQueries queries, CardRefresh refresh, TopUpIntents intents, CardKyc kyc) {
+    public BuyerCardController(CurrentActor actor, CardQueries queries, CardRefresh refresh, TopUpIntents intents, CardKyc kyc, CardTracking tracking) {
         this.actor = actor;
         this.queries = queries;
         this.refresh = refresh;
         this.intents = intents;
         this.kyc = kyc;
+        this.tracking = tracking;
     }
 
     @GetMapping
@@ -61,6 +65,12 @@ public class BuyerCardController {
     @GetMapping("/{id}/credential")
     public ApiResult<CredentialView> credential(@PathVariable long id) {
         return ApiResult.ok(queries.credentialForMember(id, actor.requireMemberId()).orElse(null));
+    }
+
+    /** {@code result = null}：不是实体卡或还没寄出。 */
+    @GetMapping("/{id}/tracking")
+    public ApiResult<TrackingView> tracking(@PathVariable long id) {
+        return ApiResult.ok(tracking.forMember(id, actor.requireMemberId()).orElse(null));
     }
 
     @GetMapping("/{id}/topup-options")

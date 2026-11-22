@@ -23,6 +23,7 @@
       <div class="mb_10">
         <el-button type="primary" @click="credentialImportVisible = true">导入激活码 CSV</el-button>
         <el-button @click="poolImportVisible = true">导入卡池 CSV</el-button>
+        <el-button @click="openShippingSettings">发货设置</el-button>
       </div>
       <el-table v-loading="loading" border :data="data" style="width: 100%">
         <el-table-column prop="cardNo" label="卡号" min-width="160" fixed="left" show-overflow-tooltip />
@@ -82,14 +83,21 @@
               <template #default="{ row }">{{ pick(row, "statusText", "status") }}</template>
             </el-table-column>
             <el-table-column prop="remainingText" label="流量剩余" min-width="100" />
-            <el-table-column label="语音剩余" min-width="90">
-              <template #default="{ row }">{{ row.voiceRemainingText || "—" }}</template>
+            <el-table-column label="语音" min-width="130">
+              <template #default="{ row }">{{ row.voiceUsageText || row.voiceRemainingText || "—" }}</template>
             </el-table-column>
-            <el-table-column label="短信剩余" min-width="90">
-              <template #default="{ row }">{{ row.smsRemainingText || "—" }}</template>
+            <el-table-column label="短信" min-width="120">
+              <template #default="{ row }">{{ row.smsUsageText || row.smsRemainingText || "—" }}</template>
             </el-table-column>
             <el-table-column prop="expiresText" label="到期" min-width="140" />
           </el-table>
+          <template v-if="track">
+            <h4 class="liroam-section-title">物流 · {{ track.logisticsCompany }} {{ track.logisticsNo }}（{{ track.shippedText }} 寄出）</h4>
+            <el-timeline v-if="listOf(track.events).length">
+              <el-timeline-item v-for="(e, i) in track.events" :key="i" :timestamp="e.timeText" :type="i === 0 ? 'primary' : ''">{{ e.description }}</el-timeline-item>
+            </el-timeline>
+            <div v-else class="liroam-hint">{{ track.message }}</div>
+          </template>
           <h4 class="liroam-section-title">指令</h4>
           <el-table :data="listOf(detail.commands)" border size="small" empty-text="暂无指令">
             <el-table-column label="指令" width="140">
@@ -160,6 +168,28 @@
       </template>
     </el-dialog>
 
+    <el-dialog v-model="shippingVisible" title="发货设置" width="560px">
+      <el-form label-width="120px">
+        <el-form-item label="一单多个运单">
+          <el-radio-group v-model="shippingForm.multiWaybillMode">
+            <el-radio value="MANUAL">转人工分包</el-radio>
+            <el-radio value="SPLIT">按运单自动分包</el-radio>
+          </el-radio-group>
+          <div class="liroam-hint">实体卡分几个快递寄出时，订单发货怎么做：转人工会生成待办，由运营在订单管理分包发货；自动分包按运单逐包发货，eSIM 随第一个包。</div>
+        </el-form-item>
+        <el-form-item label="物流轨迹来源">
+          <el-select v-model="shippingForm.trackingSource" style="width: 220px">
+            <el-option v-for="key in shippingSources" :key="key" :label="TRACKING_SOURCE_TEXT[key] || key" :value="key" />
+          </el-select>
+          <div class="liroam-hint">壳物流插件需在「设置 › 物流设置」选快递鸟或快递100并填账号；未配好时买家只看到运单号。</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shippingVisible = false">取消</el-button>
+        <el-button type="primary" :loading="shippingSaving" @click="saveShippingSettings">保存</el-button>
+      </template>
+    </el-dialog>
+
     <FileImportDialog
       v-model="credentialImportVisible"
       title="导入激活码 CSV"
@@ -193,7 +223,10 @@
 <script setup>
 import { onMounted, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
-import { getCard, importCredentials, importPool, listCards, listLogistics, reviewCardKyc, saveCardCredential, saveCardShipment } from "@/api/liroam";
+import {
+  getCard, getCardTracking, getShippingSettings, importCredentials, importPool, listCards, listLogistics, reviewCardKyc, saveCardCredential, saveCardShipment,
+  saveShippingSettings as saveShippingSettingsApi,
+} from "@/api/liroam";
 import { CARD_FORMS, CARD_STATUSES, cardActions, cardFormText, listOf, pageOf, pick } from "@/utils/liroam";
 import FileImportDialog from "../components/FileImportDialog.vue";
 
@@ -228,6 +261,7 @@ const total = ref(0);
 const detailVisible = ref(false);
 const detailLoading = ref(false);
 const detail = ref(null);
+const track = ref(null);
 
 const credentialVisible = ref(false);
 const credentialCard = ref(null);
@@ -243,6 +277,40 @@ const shipmentCard = ref(null);
 const shipmentForm = reactive({ logisticsId: "", logisticsNo: "" });
 const shipmentSaving = ref(false);
 const logistics = ref([]);
+
+const TRACKING_SOURCE_TEXT = { shell: "壳物流插件（快递鸟/快递100）", mock: "模拟轨迹（仅本机/测试）" };
+const shippingVisible = ref(false);
+const shippingSaving = ref(false);
+const shippingSources = ref([]);
+const shippingForm = reactive({ multiWaybillMode: "MANUAL", trackingSource: "" });
+
+async function openShippingSettings() {
+  try {
+    const res = await getShippingSettings();
+    if (!res || !res.success) return;
+    shippingForm.multiWaybillMode = res.result.multiWaybillMode;
+    shippingForm.trackingSource = res.result.trackingSource;
+    shippingSources.value = listOf(res.result.trackingSources);
+    shippingVisible.value = true;
+  } catch {
+    // 请求层已提示错误
+  }
+}
+
+async function saveShippingSettings() {
+  shippingSaving.value = true;
+  try {
+    const res = await saveShippingSettingsApi({ ...shippingForm });
+    if (res && res.success) {
+      ElMessage.success("发货设置已保存");
+      shippingVisible.value = false;
+    }
+  } catch {
+    // 请求层已提示错误
+  } finally {
+    shippingSaving.value = false;
+  }
+}
 
 const kycVisible = ref(false);
 const kycCard = ref(null);
@@ -271,10 +339,12 @@ async function load() {
 async function openDetail(row) {
   detailVisible.value = true;
   detail.value = row;
+  track.value = null;
   detailLoading.value = true;
   try {
-    const res = await getCard(row.id);
+    const [res, tracking] = await Promise.all([getCard(row.id), getCardTracking(row.id)]);
     if (res && res.success && res.result) detail.value = res.result;
+    if (tracking && tracking.success) track.value = tracking.result || null;
   } catch {
     // 请求层已提示错误
   } finally {

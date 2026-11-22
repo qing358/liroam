@@ -43,11 +43,11 @@
           <el-table-column label="流量剩余" min-width="120">
             <template #default="{ row }">{{ row.remainingText || "—" }}</template>
           </el-table-column>
-          <el-table-column v-if="card.voiceRemainingText" label="语音剩余" min-width="100">
-            <template #default="{ row }">{{ row.voiceRemainingText || "—" }}</template>
+          <el-table-column v-if="card.voiceRemainingText" label="语音" min-width="140">
+            <template #default="{ row }">{{ row.voiceUsageText || row.voiceRemainingText || "—" }}</template>
           </el-table-column>
-          <el-table-column v-if="card.smsRemainingText" label="短信剩余" min-width="100">
-            <template #default="{ row }">{{ row.smsRemainingText || "—" }}</template>
+          <el-table-column v-if="card.smsRemainingText" label="短信" min-width="130">
+            <template #default="{ row }">{{ row.smsUsageText || row.smsRemainingText || "—" }}</template>
           </el-table-column>
           <el-table-column label="到期" min-width="160">
             <template #default="{ row }">{{ row.expiresText || "—" }}</template>

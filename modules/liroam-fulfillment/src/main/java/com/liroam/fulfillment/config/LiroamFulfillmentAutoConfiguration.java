@@ -38,6 +38,8 @@ import com.liroam.fulfillment.delivery.ShellDeliveries;
 import com.liroam.fulfillment.card.CardActions;
 import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
+import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.fulfillment.courier.CourierTracking;
 import com.liroam.fulfillment.credential.CredentialDeliveries;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
@@ -250,6 +252,13 @@ public class LiroamFulfillmentAutoConfiguration {
                 liroamFulfillmentRules, liroamSensitiveCipher);
     }
 
+    /** 轨迹来源按 {@link CourierTracking} Bean 收集：壳插件在 shell-bridge，mock 在 {@code ..fulfillment.courier.mock..} 只 dev/test 装配。 */
+    @Bean
+    CardTracking liroamCardTracking(JdbcClient liroamJdbcClient, CardCredentials liroamCardCredentials, Settings liroamSettings,
+            ObjectProvider<CourierTracking> sources) {
+        return new CardTracking(liroamJdbcClient, liroamCardCredentials, liroamSettings, () -> sources.orderedStream().toList());
+    }
+
     @Bean
     CardActions liroamCardActions(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, CardPlans liroamCardPlans,
             FulfillmentLines liroamFulfillmentLines, SupplierCommands liroamSupplierCommands, SupplierDirectory liroamSupplierDirectory,
@@ -298,8 +307,8 @@ public class LiroamFulfillmentAutoConfiguration {
 
         @Bean
         BuyerCardController liroamBuyerCardController(CurrentActor actor, CardQueries liroamCardQueries, CardRefresh liroamCardRefresh,
-                TopUpIntents liroamTopUpIntents, CardKyc liroamCardKyc) {
-            return new BuyerCardController(actor, liroamCardQueries, liroamCardRefresh, liroamTopUpIntents, liroamCardKyc);
+                TopUpIntents liroamTopUpIntents, CardKyc liroamCardKyc, CardTracking liroamCardTracking) {
+            return new BuyerCardController(actor, liroamCardQueries, liroamCardRefresh, liroamTopUpIntents, liroamCardKyc, liroamCardTracking);
         }
     }
 
@@ -310,9 +319,10 @@ public class LiroamFulfillmentAutoConfiguration {
 
         @Bean
         ManagerCardController liroamManagerCardController(CurrentActor actor, CardQueries liroamCardQueries, CredentialEntry liroamCredentialEntry,
-                CredentialImports liroamCredentialImports, CardPool liroamCardPool, ManualTasks liroamManualTasks, CardKyc liroamCardKyc) {
+                CredentialImports liroamCredentialImports, CardPool liroamCardPool, ManualTasks liroamManualTasks, CardKyc liroamCardKyc,
+                CardTracking liroamCardTracking, Settings liroamSettings) {
             return new ManagerCardController(actor, liroamCardQueries, liroamCredentialEntry, liroamCredentialImports, liroamCardPool,
-                    liroamManualTasks, liroamCardKyc);
+                    liroamManualTasks, liroamCardKyc, liroamCardTracking, liroamSettings);
         }
     }
 }

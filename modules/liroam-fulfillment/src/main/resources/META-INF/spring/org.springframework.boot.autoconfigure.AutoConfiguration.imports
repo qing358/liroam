@@ -1,1 +1,2 @@
 com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration
+com.liroam.fulfillment.courier.mock.MockCourierAutoConfiguration

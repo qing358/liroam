@@ -9,29 +9,36 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.liroam.common.setting.SettingScope;
+import com.liroam.common.setting.Settings;
 import com.liroam.common.web.ApiResult;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.common.web.PageResult;
 import com.liroam.common.web.UserFacingException;
+import com.liroam.fulfillment.FulfillmentSettings;
 import com.liroam.fulfillment.card.AdminCardView;
 import com.liroam.fulfillment.card.CardKyc;
 import com.liroam.fulfillment.card.CardQueries;
 import com.liroam.fulfillment.card.CardQueries.CardFilter;
+import com.liroam.fulfillment.courier.CardTracking;
+import com.liroam.fulfillment.courier.CardTracking.TrackingView;
 import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
 import com.liroam.fulfillment.credential.Shipment;
+import com.liroam.fulfillment.delivery.MultiWaybillMode;
 import com.liroam.fulfillment.pool.CardPool;
 import com.liroam.fulfillment.state.KycStatus;
 import com.liroam.fulfillment.task.ManualTasks;
 import com.liroam.fulfillment.task.ManualTasks.TaskView;
 
-/** 后台卡台账：分页筛选、详情（含指令历史）、人工录码、实体卡录物流、实名核验、交码导入、卡池导入、人工待办。 */
+/** 后台卡台账：分页筛选、详情（含指令历史）、人工录码、实体卡录物流与查轨迹、发货设置、实名核验、交码导入、卡池导入、人工待办。 */
 @RestController
 @RequestMapping("/manager/liroam/cards")
 public class ManagerCardController {
@@ -62,9 +69,11 @@ public class ManagerCardController {
     private final CardPool pool;
     private final ManualTasks tasks;
     private final CardKyc kyc;
+    private final CardTracking tracking;
+    private final Settings settings;
 
     public ManagerCardController(CurrentActor actor, CardQueries queries, CredentialEntry entry, CredentialImports imports, CardPool pool,
-            ManualTasks tasks, CardKyc kyc) {
+            ManualTasks tasks, CardKyc kyc, CardTracking tracking, Settings settings) {
         this.actor = actor;
         this.queries = queries;
         this.entry = entry;
@@ -72,6 +81,8 @@ public class ManagerCardController {
         this.pool = pool;
         this.tasks = tasks;
         this.kyc = kyc;
+        this.tracking = tracking;
+        this.settings = settings;
     }
 
     @GetMapping
@@ -86,6 +97,47 @@ public class ManagerCardController {
     public ApiResult<AdminCardView.Detail> detail(@PathVariable long id) {
         actor.requireOperator();
         return ApiResult.ok(queries.detail(id).orElseThrow(() -> new UserFacingException("找不到这张卡")));
+    }
+
+    /** @param trackingSources 本进程已装配、可选的轨迹来源 */
+    public record ShippingSettingsView(MultiWaybillMode multiWaybillMode, String trackingSource, List<String> trackingSources) {
+    }
+
+    /** 只改传了的字段；先校验再写。 */
+    public record ShippingSettingsUpdate(MultiWaybillMode multiWaybillMode, String trackingSource) {
+    }
+
+    @GetMapping("/settings/shipping")
+    public ApiResult<ShippingSettingsView> shippingSettings() {
+        actor.requireOperator();
+        return ApiResult.ok(shippingView());
+    }
+
+    @PutMapping("/settings/shipping")
+    public ApiResult<ShippingSettingsView> updateShippingSettings(@RequestBody ShippingSettingsUpdate body) {
+        String operator = actor.requireOperator();
+        String source = body.trackingSource() == null ? null : body.trackingSource().strip();
+        if (source != null && !tracking.sourceKeys().contains(source)) {
+            throw new UserFacingException("未装配物流轨迹来源「" + source + "」");
+        }
+        if (body.multiWaybillMode() != null) {
+            settings.set(FulfillmentSettings.SHIPPING_MULTI_WAYBILL_MODE, SettingScope.GLOBAL, body.multiWaybillMode(), operator);
+        }
+        if (source != null) {
+            settings.set(FulfillmentSettings.LOGISTICS_TRACKING_SOURCE, SettingScope.GLOBAL, source, operator);
+        }
+        return ApiResult.ok(shippingView());
+    }
+
+    private ShippingSettingsView shippingView() {
+        return new ShippingSettingsView(settings.get(FulfillmentSettings.SHIPPING_MULTI_WAYBILL_MODE),
+                settings.get(FulfillmentSettings.LOGISTICS_TRACKING_SOURCE), tracking.sourceKeys());
+    }
+
+    @GetMapping("/{id}/tracking")
+    public ApiResult<TrackingView> tracking(@PathVariable long id) {
+        actor.requireOperator();
+        return ApiResult.ok(tracking.forOperator(id).orElse(null));
     }
 
     @PostMapping("/{id}/credential")

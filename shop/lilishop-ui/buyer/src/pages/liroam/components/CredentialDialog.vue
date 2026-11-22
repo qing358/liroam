@@ -9,7 +9,11 @@
         <dt>运单号</dt>
         <dd><span>{{ shipment.no }}</span><el-button link type="primary" @click="copy(shipment.no)">复制</el-button></dd>
       </dl>
-      <p class="credential-tip">实体卡已寄出，可凭运单号在物流公司官网查询；收到后按卡附说明插卡使用。</p>
+      <el-timeline v-if="track && track.events.length" class="credential-track">
+        <el-timeline-item v-for="(e, i) in track.events" :key="i" :timestamp="e.timeText" :type="i === 0 ? 'primary' : ''">{{ e.description }}</el-timeline-item>
+      </el-timeline>
+      <p v-else-if="track && track.message" class="credential-track-empty">{{ track.message }}</p>
+      <p class="credential-tip">实体卡收到后按卡附说明插卡使用。</p>
     </div>
     <div v-else-if="credential" class="credential">
       <div v-if="credential.lpa && isLpa" class="credential-qr">
@@ -43,7 +47,7 @@
 import { computed, ref } from "vue";
 import vueQr from "vue-qr";
 import { Message } from "@/utils/message";
-import { getCardCredential } from "@/api/liroam";
+import { getCardCredential, getCardTracking } from "@/api/liroam";
 import { normalizeCredential, failureMessage, shipmentOf } from "@/utils/liroam";
 
 defineOptions({ name: "LiroamCredentialDialog" });
@@ -58,6 +62,7 @@ const emit = defineEmits(["update:modelValue"]);
 const loading = ref(false);
 const credential = ref(null);
 const shipment = ref(null);
+const track = ref(null);
 const errorText = ref("");
 const isLpa = computed(() => /^LPA:/i.test(credential.value?.lpa || ""));
 
@@ -65,12 +70,14 @@ async function load() {
   loading.value = true;
   credential.value = null;
   shipment.value = null;
+  track.value = null;
   errorText.value = "";
   try {
     const res = await getCardCredential(props.cardId);
     if (res && res.success) {
       shipment.value = shipmentOf(res.result);
       credential.value = shipment.value ? null : normalizeCredential(res.result);
+      if (shipment.value) loadTrack();
       if (!credential.value && !shipment.value) errorText.value = props.physical ? "实体卡尚未寄出，请稍后再看" : "激活码尚未发放，请稍后再看";
     } else {
       errorText.value = failureMessage(res, "暂时无法查看激活码");
@@ -79,6 +86,15 @@ async function load() {
     errorText.value = "暂时无法查看激活码，请稍后重试";
   } finally {
     loading.value = false;
+  }
+}
+
+async function loadTrack() {
+  try {
+    const res = await getCardTracking(props.cardId);
+    track.value = res && res.success && res.result ? { message: res.result.message, events: res.result.events || [] } : null;
+  } catch {
+    track.value = null;
   }
 }
 
@@ -102,6 +118,8 @@ function copy(text) {
   dd { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 4px 0 0; font-size: 14px; color: #303133; word-break: break-all; }
 }
 .credential-lpa { font-family: monospace; font-size: 12px; }
+.credential-track { margin: 20px 0 0; padding-left: 2px; }
+.credential-track-empty { margin: 16px 0 0; font-size: 13px; color: #606266; }
 .credential-tip { margin: 20px 0 0; font-size: 12px; color: #e6a23c; }
 .credential-empty { padding: 32px 0; text-align: center; color: #909399; }
 </style>
