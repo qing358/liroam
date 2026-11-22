@@ -11,6 +11,7 @@ import com.liroam.catalog.CardForm;
 import com.liroam.catalog.SkuBinding.KycGateMode;
 import com.liroam.common.time.UtcColumns;
 import com.liroam.fulfillment.DisplayTime;
+import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.state.CardAssetStatus;
 import com.liroam.fulfillment.state.CardPlanStatus;
 import com.liroam.fulfillment.state.KycStatus;
@@ -22,7 +23,7 @@ public final class CardViewProjector {
     public record CardRow(long id, String cardNo, String productName, String usageRegionName, String form, CardAssetStatus status,
             boolean refundHold, String iccidLast4, String supplierCode, String ownerMemberId, String orderSn, LocalDateTime expiresAt,
             LocalDateTime lastPolledAt, LocalDateTime updatedAt, LocalDateTime createdAt, boolean capData, boolean capVoice, boolean capSms,
-            String kycStatus, String kycGateMode) {
+            String kycStatus, String kycGateMode, String sourceType) {
     }
 
     /** 套餐台账行（已联查套餐模板）；语音、短信的额度与已用为上游镜像值，没同步过为空。 */
@@ -49,10 +50,15 @@ public final class CardViewProjector {
                 card.status().name(),
                 statusText, remainingText(live), time(card.expiresAt()),
                 time(card.lastPolledAt() != null ? card.lastPolledAt() : card.updatedAt()), canTopUp,
-                canApplyRefund(card.status(), card.refundHold()), card.refundHold(), card.iccidLast4(), card.supplierCode(),
+                refundOnSite(card.sourceType()) && canApplyRefund(card.status(), card.refundHold()), card.refundHold(), card.iccidLast4(), card.supplierCode(),
                 capabilityText(card), card.capVoice() ? voiceText(live) : null, card.capSms() ? smsText(live) : null,
                 kyc.name(), kyc.text(), kycBlocking, kyc.declarable() && !REFUND_CLOSED.contains(card.status()) && !card.refundHold(),
                 plans.stream().map(p -> plan(card, p)).toList());
+    }
+
+    /** 渠道单的钱由渠道收，整卡售后走渠道，本站不受理；在本站买的加包不受此限。 */
+    public static boolean refundOnSite(String sourceType) {
+        return !SourceType.CHANNEL.name().equals(sourceType);
     }
 
     /** 「可申请退款」的唯一判定：退款冻结即有进行中的退款单，不能重复申请。 */

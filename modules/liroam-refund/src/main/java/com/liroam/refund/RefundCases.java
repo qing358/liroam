@@ -125,6 +125,9 @@ public class RefundCases {
     public RefundCaseView apply(long cardAssetId, Long cardPlanId, String memberId, String reason) {
         CardTarget card = cardTarget(cardAssetId).filter(c -> c.ownerMemberId() != null && c.ownerMemberId().equals(memberId))
                 .orElseThrow(() -> new UserFacingException("找不到这张卡"));
+        if (cardPlanId == null && !CardViewProjector.refundOnSite(card.sourceType())) {
+            throw new UserFacingException("渠道订单的卡请到下单平台申请售后");
+        }
         if (card.refundHold() || hasActiveCase(card.id())) {
             throw new UserFacingException("这张卡已有退款在处理中");
         }

@@ -19,6 +19,8 @@ import com.liroam.common.setting.SettingScope;
 import com.liroam.common.setting.Settings;
 import com.liroam.common.web.UserFacingException;
 import com.liroam.fulfillment.card.CardActions;
+import com.liroam.fulfillment.card.CardQueries;
+import com.liroam.fulfillment.card.CardView;
 import com.liroam.fulfillment.worker.CommandExecutor;
 import com.liroam.fulfillment.worker.FulfillmentWorker;
 import com.liroam.refund.RefundFixture.Reversal;
@@ -208,6 +210,29 @@ class RefundCasesTest {
                 .containsExactly(Decision.DEFAULT_REJECT, CardAction.NONE);
         assertThatThrownBy(() -> f.cases.apply(card, null, "m1", null)).isInstanceOf(UserFacingException.class)
                 .hasMessage("这张卡已终止，不能再申请退款");
+    }
+
+    @Test
+    void channelCard_buyerCannotApplyOnSite_viewHidesRefund() {
+        long card = delivered(f)[0];
+        f.h.jdbc.update("UPDATE lr_fulfillment_line l JOIN lr_card_asset c ON c.fulfillment_line_id = l.id SET l.source_type = 'CHANNEL' "
+                + "WHERE c.id = ?", card);
+
+        assertThat(f.h.bean(CardQueries.class).getForMember(card, "m1")).get().extracting(CardView::canRefund).isEqualTo(false);
+        assertThatThrownBy(() -> f.cases.apply(card, null, "m1", null)).isInstanceOf(UserFacingException.class)
+                .hasMessage("渠道订单的卡请到下单平台申请售后");
+        assertThat(f.held(card)).isFalse();
+        assertThat(f.h.count("lr_refund_case")).isZero();
+    }
+
+    @Test
+    void channelCard_topUpBoughtOnSiteCanStillBeRefunded() {
+        long[] ids = topUp(f, "PENDING", false);
+        f.h.jdbc.update("UPDATE lr_fulfillment_line l JOIN lr_card_asset c ON c.fulfillment_line_id = l.id SET l.source_type = 'CHANNEL' "
+                + "WHERE c.id = ?", ids[0]);
+
+        assertThat(f.cases.apply(ids[0], ids[1], "m1", null)).extracting(RefundCaseView::status, RefundCaseView::cardPlanId)
+                .containsExactly("HELD", ids[1]);
     }
 
     @Test

@@ -47,7 +47,7 @@
 ## 渠道（P5 已落地，mock 渠道）
 
 - `liroam-channel`：渠道只经 `ChannelAdapter`（拉单 / 回传 / 日对账单）接入，`lr_channel.adapter_key` 选实现；渠道单走唯一履约入口（CHANNEL 行，不建壳订单），交码后回传渠道，`CHANNEL_DAILY` 日对账；买家凭订单号 + 绑定手机号认领到「我的卡」。后台「渠道」菜单（`li_menu` id 170–172）。
-- `liroam-channel-jd`：现只有模拟适配器 `mock-jd`（dev/test）；`node scripts/dev.mjs demo` 建渠道 `JD` 与一条 SKU 映射。真开放平台适配器待资质、AppKey/Secret 与 SKU 映射表。渠道退款 / 取消（§9.4）未做。
+- `liroam-channel-jd`：现只有模拟适配器 `mock-jd`（dev/test）；`node scripts/dev.mjs demo` 建渠道 `JD` 与一条 SKU 映射。真开放平台适配器待资质、AppKey/Secret 与 SKU 映射表。渠道退款 / 取消（§9.4）未做；买家不能在本站对渠道卡整卡申请退款（「我的卡」不出按钮、接口拒绝），在本站买的加包照常可退。
 
 ## 运营闭环（P5 已落地，mock 渠道 / 假支付对账单）
 

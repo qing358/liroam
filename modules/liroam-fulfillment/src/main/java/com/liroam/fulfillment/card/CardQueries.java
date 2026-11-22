@@ -52,7 +52,7 @@ public class CardQueries {
     private static final String CARD_SELECT = """
             SELECT c.id, c.card_no, p.name AS product_name, COALESCE(r.name_zh, g.name_zh) AS usage_region_name, c.form, c.status, c.refund_hold,
                    c.iccid_last4, s.code AS supplier_code, c.owner_member_id, l.source_ref AS order_sn, c.expires_at, c.last_polled_at,
-                   c.updated_at, c.created_at, p.cap_data, p.cap_voice, p.cap_sms, c.kyc_status, b.kyc_gate_mode
+                   c.updated_at, c.created_at, p.cap_data, p.cap_voice, p.cap_sms, c.kyc_status, b.kyc_gate_mode, l.source_type
               FROM lr_card_asset c
               JOIN lr_card_product p ON p.id = c.card_product_id
               JOIN lr_supplier s ON s.id = c.supplier_id
