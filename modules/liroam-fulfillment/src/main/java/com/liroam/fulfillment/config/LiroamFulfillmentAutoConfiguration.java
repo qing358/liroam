@@ -32,6 +32,8 @@ import com.liroam.fulfillment.credential.CredentialEntry;
 import com.liroam.fulfillment.credential.CredentialImports;
 import com.liroam.fulfillment.delivery.DeliveryProgress;
 import com.liroam.fulfillment.delivery.LineProgress;
+import com.liroam.fulfillment.poll.CardRefresh;
+import com.liroam.fulfillment.poll.PollScheduler;
 import com.liroam.fulfillment.poll.PollTiers;
 import com.liroam.fulfillment.poll.UsageMirror;
 import com.liroam.fulfillment.pool.CardPool;
@@ -142,6 +144,19 @@ public class LiroamFulfillmentAutoConfiguration {
     @Bean
     UsageMirror liroamUsageMirror(CardAssets liroamCardAssets, CardPlans liroamCardPlans, PollTiers liroamPollTiers) {
         return new UsageMirror(liroamCardAssets, liroamCardPlans, liroamPollTiers);
+    }
+
+    @Bean
+    PollScheduler liroamPollScheduler(TransactionTemplate liroamFulfillmentTx, JdbcClient liroamJdbcClient, CardAssets liroamCardAssets,
+            SupplierCommands liroamSupplierCommands, PollTiers liroamPollTiers, Settings liroamSettings, Clock liroamFulfillmentClock) {
+        return new PollScheduler(liroamFulfillmentTx, liroamJdbcClient, liroamCardAssets, liroamSupplierCommands, liroamPollTiers, liroamSettings,
+                liroamFulfillmentClock);
+    }
+
+    @Bean
+    CardRefresh liroamCardRefresh(TransactionTemplate liroamFulfillmentTx, CardAssets liroamCardAssets, SupplierCommands liroamSupplierCommands,
+            Settings liroamSettings, Clock liroamFulfillmentClock) {
+        return new CardRefresh(liroamFulfillmentTx, liroamCardAssets, liroamSupplierCommands, liroamSettings, liroamFulfillmentClock);
     }
 
     @Bean

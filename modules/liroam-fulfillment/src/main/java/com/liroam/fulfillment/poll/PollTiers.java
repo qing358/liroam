@@ -2,7 +2,9 @@ package com.liroam.fulfillment.poll;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 import com.liroam.common.setting.SettingKey;
 import com.liroam.common.setting.SettingScope;
@@ -66,8 +68,11 @@ public class PollTiers {
         cards.schedulePoll(card.id(), tier.get().name(), now.plus(interval));
     }
 
+    /** 已交码、尚未作废/终止的卡才查上游。 */
+    public static final Set<CardAssetStatus> POLLABLE = EnumSet.of(CardAssetStatus.DELIVERED, CardAssetStatus.IN_USE, CardAssetStatus.SUSPENDED,
+            CardAssetStatus.EXPIRED);
+
     public static boolean pollable(CardAssetStatus status) {
-        return status == CardAssetStatus.DELIVERED || status == CardAssetStatus.IN_USE || status == CardAssetStatus.SUSPENDED
-                || status == CardAssetStatus.EXPIRED;
+        return POLLABLE.contains(status);
     }
 }
