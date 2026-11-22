@@ -7,7 +7,6 @@ import com.liroam.catalog.SkuBinding;
 import com.liroam.catalog.SkuBinding.ListingState;
 import com.liroam.catalog.SkuBinding.SkuKind;
 import com.liroam.catalog.SkuBindings;
-import com.liroam.catalog.Supplier;
 import com.liroam.catalog.SupplierDirectory;
 import com.liroam.fulfillment.FulfillmentRejected.Reason;
 import com.liroam.fulfillment.FulfillmentRequest.SourceType;
@@ -35,17 +34,8 @@ public class FulfillmentRules {
         if (r.qty() <= 0) {
             throw new FulfillmentRejected(Reason.INVALID_QTY, "qty=" + r.qty());
         }
-        SkuBinding sku = bindings.findById(r.skuBindingId())
-                .orElseThrow(() -> new FulfillmentRejected(Reason.SKU_NOT_BOUND, "sku_binding_id=" + r.skuBindingId()));
-        if (sku.listingState() != ListingState.LISTED) {
-            throw new FulfillmentRejected(Reason.SKU_NOT_LISTED, "sku=" + sku.shellSkuId() + " state=" + sku.listingState());
-        }
         SkuKind expectedKind = r.sourceType() == SourceType.TOPUP ? SkuKind.TOP_UP : SkuKind.NEW_CARD;
-        if (sku.skuKind() != expectedKind) {
-            throw new FulfillmentRejected(Reason.SKU_KIND_MISMATCH, r.sourceType() + " 不能履约 " + sku.skuKind() + " SKU " + sku.shellSkuId());
-        }
-        Supplier supplier = suppliers.find(sku.supplierId()).filter(s -> s.enabled() && s.listingEnabled())
-                .orElseThrow(() -> new FulfillmentRejected(Reason.SUPPLIER_NOT_LISTABLE, "supplier_id=" + sku.supplierId()));
+        SkuBinding sku = sellable(bindings.findById(r.skuBindingId()), "sku_binding_id=" + r.skuBindingId(), expectedKind);
         if (r.sourceType() == SourceType.TOPUP) {
             if (r.topupCardAssetId() == null) {
                 throw new FulfillmentRejected(Reason.TOPUP_CARD_REQUIRED, r.sourceLineRef());
@@ -53,14 +43,40 @@ public class FulfillmentRules {
             if (r.qty() != 1) {
                 throw new FulfillmentRejected(Reason.TOPUP_QTY_NOT_ONE, "qty=" + r.qty());
             }
-            long cardId = r.topupCardAssetId();
-            TopUpView card = cards.findForTopUp(cardId)
-                    .orElseThrow(() -> new FulfillmentRejected(Reason.TOPUP_CARD_NOT_FOUND, "card_asset_id=" + cardId));
-            topUpBlocker(card, r.ownerMemberId(), supplier.id())
-                    .ifPresent(reason -> {
-                        throw new FulfillmentRejected(reason, "card_asset_id=" + cardId + " status=" + card.status());
-                    });
+            topUpCard(sku, r.ownerMemberId(), r.topupCardAssetId());
         }
+    }
+
+    /** 加包页选卡（{@code TopUpIntents.open}）：与 {@link #verify} 的 TOPUP 分支同一组检查、同一份拒绝原因。 */
+    public SkuBinding verifyTopUp(String shellSkuId, String memberId, Long cardAssetId) {
+        SkuBinding sku = sellable(bindings.findByShellSkuId(shellSkuId), "li_goods_sku_id=" + shellSkuId, SkuKind.TOP_UP);
+        if (cardAssetId == null) {
+            throw new FulfillmentRejected(Reason.TOPUP_CARD_REQUIRED, "li_goods_sku_id=" + shellSkuId);
+        }
+        topUpCard(sku, memberId, cardAssetId);
+        return sku;
+    }
+
+    private SkuBinding sellable(Optional<SkuBinding> found, String ref, SkuKind expectedKind) {
+        SkuBinding sku = found.orElseThrow(() -> new FulfillmentRejected(Reason.SKU_NOT_BOUND, ref));
+        if (sku.listingState() != ListingState.LISTED) {
+            throw new FulfillmentRejected(Reason.SKU_NOT_LISTED, "sku=" + sku.shellSkuId() + " state=" + sku.listingState());
+        }
+        if (sku.skuKind() != expectedKind) {
+            throw new FulfillmentRejected(Reason.SKU_KIND_MISMATCH, expectedKind + " 不能用 " + sku.skuKind() + " SKU " + sku.shellSkuId());
+        }
+        suppliers.find(sku.supplierId()).filter(s -> s.enabled() && s.listingEnabled())
+                .orElseThrow(() -> new FulfillmentRejected(Reason.SUPPLIER_NOT_LISTABLE, "supplier_id=" + sku.supplierId()));
+        return sku;
+    }
+
+    private void topUpCard(SkuBinding sku, String memberId, long cardId) {
+        TopUpView card = cards.findForTopUp(cardId)
+                .orElseThrow(() -> new FulfillmentRejected(Reason.TOPUP_CARD_NOT_FOUND, "card_asset_id=" + cardId));
+        topUpBlocker(card, memberId, sku.supplierId())
+                .ifPresent(reason -> {
+                    throw new FulfillmentRejected(reason, "card_asset_id=" + cardId + " status=" + card.status());
+                });
     }
 
     /** 加包挂卡的四拒（CT-FUL-02）；{@code skuSupplierId} 为加包 SKU 的供应商。 */

@@ -69,10 +69,11 @@ class PaidOrderCompensationScannerTest {
                 }, inv.getArgument(0, String.class)));
         JdbcClient client = JdbcClient.create(ds);
         SkuBindings bindings = new SkuBindings(client);
-        FulfillmentEntry entry = new FulfillmentEntry(new FulfillmentRules(bindings, new SupplierDirectory(client), new CardAssets(client)),
-                new FulfillmentLines(client));
-        scanner = new PaidOrderCompensationScanner(client, new PaidOrderFulfillment(orderItems, bindings, new TopUpIntents(client), entry),
-                new TransactionTemplate(new DataSourceTransactionManager(ds)),
+        FulfillmentRules rules = new FulfillmentRules(bindings, new SupplierDirectory(client), new CardAssets(client));
+        FulfillmentEntry entry = new FulfillmentEntry(rules, new FulfillmentLines(client));
+        TransactionTemplate tx = new TransactionTemplate(new DataSourceTransactionManager(ds));
+        scanner = new PaidOrderCompensationScanner(client,
+                new PaidOrderFulfillment(orderItems, bindings, new TopUpIntents(tx, client, rules, Clock.systemUTC()), entry), tx,
                 new PaidOrderCompensationScanner.Settings(Duration.ofHours(24), ZoneId.of("Asia/Shanghai"), 200), NOW);
     }
 

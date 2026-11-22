@@ -99,8 +99,9 @@ public class LiroamFulfillmentAutoConfiguration {
     }
 
     @Bean
-    TopUpIntents liroamTopUpIntents(JdbcClient liroamJdbcClient) {
-        return new TopUpIntents(liroamJdbcClient);
+    TopUpIntents liroamTopUpIntents(TransactionTemplate liroamFulfillmentTx, JdbcClient liroamJdbcClient, FulfillmentRules liroamFulfillmentRules,
+            Clock liroamFulfillmentClock) {
+        return new TopUpIntents(liroamFulfillmentTx, liroamJdbcClient, liroamFulfillmentRules, liroamFulfillmentClock);
     }
 
     @Bean
