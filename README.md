@@ -46,6 +46,7 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 
 - 上游基线 SQL（`shop/docker/init/mysql/lilishop.sql`，只在空数据卷首次启动时导入）：平台管理端 `admin` / `123456`；商家端 `13011111111` / `111111`（店铺「家家乐」）。
 - `deploy/dev-seed.sql`（每次 `up` 幂等执行，只针对本机 liroam 库，不进任何正式迁移）：补登录滑块素材（上游基线为空，否则三端登录页滑块无法生成）；打开上游的本机验收开关 `loginBypassEnabled`，服务端跳过 LOGIN 滑块校验，便于接口脚本直接登录。
+- 旅行卡演示目录（P2）：`up` 之后执行 `node scripts/dev.mjs demo`（幂等，可重复）。写 `deploy/dev-demo.sql`：两家模拟供应商 `SUP_A`（`mock-shape-a`，池卡 + 导入/人工交码）与 `SUP_B`（`mock-shape-b`，下单即建、接口交码）、套餐模板、5 个壳虚拟商品及旅行卡 SKU 绑定（A：日本/中国内地各一张新卡 + 日本加油包；B：日本新卡 + 加油包）；再经后台接口为两家各导入并启用 `docs/media` 里的资费表、同步模拟汇率、逐个手工定价（写回壳售价）、给 A 导 20 张池卡。商品页入口在命令输出末行。模拟适配器只在 dev/test 装配。
 - 买家端：在买家 PC 端「立即注册」自建账号。基线 `SMS_SETTING.isTestModel=true`，短信不真发，验证码固定 `111111`（上游演示约定）。
 
 ## 密钥与环境变量（只写变量名）

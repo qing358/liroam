@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -62,11 +63,16 @@ function resolveJavaHome() {
   throw new Error(`未找到 JDK 21：按 .sdkmanrc 执行 sdk install java ${version ?? '21.x-tem'}，或设置 LIROAM_JAVA_HOME。`);
 }
 
-function applyDevSeed() {
-  const sql = fs.readFileSync(path.join(rootDir, 'deploy/dev-seed.sql'), 'utf8');
+function runSql(file) {
+  const sql = fs.readFileSync(path.join(rootDir, file), 'utf8');
   const result = spawnSync('docker', ['compose', '--env-file', portsPath, '--env-file', secretsPath, '-f', composeFile,
-    'exec', '-T', 'mysql', 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot lilishop'], { cwd: rootDir, input: sql, encoding: 'utf8' });
-  if (result.status !== 0) throw new Error(`本机演示配置 deploy/dev-seed.sql 执行失败：${result.stderr}`);
+    'exec', '-T', 'mysql', 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --batch lilishop'], { cwd: rootDir, input: sql, encoding: 'utf8' });
+  if (result.status !== 0) throw new Error(`${file} 执行失败：${result.stderr}`);
+  return result.stdout;
+}
+
+function applyDevSeed() {
+  runSql('deploy/dev-seed.sql');
   compose(['exec', '-T', 'redis', 'redis-cli', 'DEL', '{setting}::VERIFICATION_SETTING', '{VERIFICATION}_'], { capture: true });
   console.log('已应用本机演示配置 deploy/dev-seed.sql');
 }
@@ -317,10 +323,92 @@ async function health() {
   process.exitCode = failed ? 1 : 0;
 }
 
+
+// 本机演示目录（P2 竖切）：两家模拟供应商、资费表导入启用、旅行卡 SKU 绑定与定价、池卡。幂等，可重复执行；要求 up 已起好后端。
+const DEMO_SHEET = 'docs/media/202611-资费报价-想象智能-202611(20261117）.xlsx';
+const DEMO_POOL_SIZE = 20;
+
+async function demo() {
+  const config = buildConfig(loadEnv());
+  for (const be of BACKENDS) {
+    if (!(await backendUp(config[be.urlKey]).catch(() => false))) throw new Error(`${be.name} 未就绪，先执行 node scripts/dev.mjs up`);
+  }
+  const api = managerClient(config.managerApiUrl);
+  await api.login();
+
+  runSql('deploy/dev-demo.sql');
+  const suppliers = parseTsv(runSql('deploy/dev-demo-suppliers.sql'));
+  for (const sup of suppliers) {
+    const sheets = await api.get(`/manager/liroam/tariff-sheets?supplierId=${sup.id}&pageSize=50`);
+    if ((sheets.records || []).some((r) => r.status === 'ACTIVE')) continue;
+    const form = new FormData();
+    form.append('file', new Blob([fs.readFileSync(path.join(rootDir, DEMO_SHEET))]), path.basename(DEMO_SHEET));
+    const report = await api.post(`/manager/liroam/tariff-sheets?supplierId=${sup.id}`, form);
+    await api.post(`/manager/liroam/tariff-sheets/${report.sheetId}/activate`);
+    console.log(`- ${sup.code}：资费表已导入并启用（#${report.sheetId}）`);
+  }
+
+  const skus = parseTsv(runSql('deploy/dev-demo.sql'));
+  if (!skus.length) throw new Error('旅行卡 SKU 绑定为空：资费表里没有资源 45412_C 或缺日本/中国区域');
+  await api.post('/manager/liroam/fx/sync');
+  for (const sku of skus) {
+    const price = await api.post(`/manager/liroam/sku-bindings/${sku.binding_id}/price`, { priceFen: Math.round(Number(sku.price) * 100) });
+    console.log(`- SKU ${sku.li_goods_sku_id}（${sku.supplier}）售价 ${price.priceFen / 100} 元`);
+  }
+  const poolProducts = [...new Map(skus.filter((s) => s.supplier === 'SUP_A').map((s) => [s.card_product_id, s])).values()];
+  for (const sku of poolProducts) {
+    const csv = ['iccid'];
+    for (let i = 1; i <= DEMO_POOL_SIZE; i += 1) csv.push(`89852${String(sku.card_product_id).padStart(6, '0')}${String(i).padStart(8, '0')}`);
+    const form = new FormData();
+    form.append('file', new Blob([csv.join('\n')]), 'demo-pool.csv');
+    const report = await api.post(`/manager/liroam/pool/import?supplierId=${sku.supplier_id}&cardProductId=${sku.card_product_id}`, form);
+    console.log(`- SUP_A 卡产品 #${sku.card_product_id} 池卡导入：${JSON.stringify(report)}`);
+  }
+  compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });
+  console.log(`\n演示目录就绪。买家端商品页：${config.buyerPcUrl}/goodsDetail?skuId=9100000000000001001&goodsId=9100000000000000001`);
+}
+
+function parseTsv(out) {
+  const lines = out.trim().split('\n').filter(Boolean);
+  if (lines.length < 2) return [];
+  const head = lines[0].split('\t');
+  return lines.slice(1).map((line) => Object.fromEntries(line.split('\t').map((v, i) => [head[i], v])));
+}
+
+// 上游基线演示管理员（admin / 123456，见上游 lilishop.sql）；只在本机演示库使用
+function managerClient(baseUrl) {
+  let token = '';
+  const call = async (method, url, body) => {
+    const headers = { accessToken: token };
+    let payload = body;
+    if (body && !(body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+      payload = JSON.stringify(body);
+    }
+    const res = await fetch(`${baseUrl}${url}`, { method, headers, body: payload });
+    const json = await res.json().catch(() => ({}));
+    if (!json.success) throw new Error(`${method} ${url} 失败：${json.message ?? res.status}`);
+    return json.result;
+  };
+  return {
+    async login() {
+      const form = new FormData();
+      form.append('username', process.env.LIROAM_DEMO_ADMIN_USER || 'admin');
+      form.append('password', crypto.createHash('md5').update(process.env.LIROAM_DEMO_ADMIN_PASSWORD || '123456').digest('hex'));
+      const res = await fetch(`${baseUrl}/manager/passport/user/login`, { method: 'POST', headers: { uuid: `demo-${Date.now()}` }, body: form });
+      const json = await res.json();
+      if (!json.success) throw new Error(`管理端登录失败：${json.message}`);
+      token = json.result.accessToken;
+    },
+    get: (url) => call('GET', url),
+    post: (url, body) => call('POST', url, body),
+  };
+}
+
 const command = process.argv[2] || 'status';
-const handlers = { up, down, status, health };
+const handlers = { up, down, status, health, demo };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo`);
   process.exit(2);
 }
 try {

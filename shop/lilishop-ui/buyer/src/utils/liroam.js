@@ -9,6 +9,14 @@ export function fenToYuan(fen) {
   return sign + Math.floor(abs / 100) + "." + String(abs % 100).padStart(2, "0");
 }
 
+/**
+ * 加购 cartType：旅行卡一律走普通订单（BUY_NOW / 购物车），付款后进待发货，交码后由后端发货；
+ * 壳的核销型虚拟订单（VIRTUAL）付款后进「待核销」，后端会拒绝旅行卡走这条路。
+ */
+export function checkoutCartType({ goodsType, travelCard } = {}) {
+  return goodsType === "VIRTUAL_GOODS" && !travelCard ? "VIRTUAL" : "BUY_NOW";
+}
+
 /** 接口可能直接给数组，也可能给分页 `{records}`。 */
 export function listOf(result) {
   if (Array.isArray(result)) return result;

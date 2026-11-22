@@ -33,6 +33,7 @@ import com.liroam.pricing.snapshot.SnapshotRequest;
 import cn.lili.common.exception.ServiceException;
 import cn.lili.modules.order.cart.entity.dto.TradeDTO;
 import cn.lili.modules.order.order.entity.dos.OrderItem;
+import cn.lili.modules.order.order.entity.enums.OrderTypeEnum;
 import cn.lili.modules.order.order.entity.vo.OrderVO;
 import cn.lili.modules.order.order.event.TradeIntoDbEvent;
 import cn.lili.modules.order.order.service.OrderItemService;
@@ -64,11 +65,16 @@ class TradeOrderPreparationTest {
     }
 
     private static TradeIntoDbEvent trade(String memberId, String... orderSns) {
+        return trade(OrderTypeEnum.NORMAL, memberId, orderSns);
+    }
+
+    private static TradeIntoDbEvent trade(OrderTypeEnum orderType, String memberId, String... orderSns) {
         TradeDTO dto = new TradeDTO();
         dto.setMemberId(memberId);
         dto.setOrderVO(java.util.Arrays.stream(orderSns).map(sn -> {
             OrderVO vo = new OrderVO();
             vo.setSn(sn);
+            vo.setOrderType(orderType.name());
             // 事件里的 OrderVO.orderItems 是另一批 new 出来的对象，行号与落库行不同，必须按订单号回查落库行
             vo.setOrderItems(List.of(item("I-NOT-PERSISTED", "S-CARD", 1, 1, 1)));
             return vo;
@@ -144,6 +150,28 @@ class TradeOrderPreparationTest {
         doThrow(new IllegalStateException("db down")).when(snapshots).record(any());
 
         assertThatThrownBy(() -> listener.onTradeIntoDb(trade("m1", "O-1"))).isInstanceOf(ServiceException.class);
+    }
+
+    /** 壳的核销型虚拟订单（cartType=VIRTUAL → orderType VIRTUAL）付款后进「待核销」，不进待发货，H5 无法收尾。 */
+    @Test
+    void travelCardInNonNormalOrderBlocksTheTrade() {
+        when(items.getByOrderSn("O-1")).thenReturn(List.of(item("I-1", "S-CARD", 1, 10, 10)));
+        when(bindings.findByShellSkuIds(anyCollection())).thenReturn(Map.of("S-CARD", binding(11, "S-CARD", SkuKind.NEW_CARD)));
+
+        assertThatThrownBy(() -> listener.onTradeIntoDb(trade(OrderTypeEnum.VIRTUAL, "m1", "O-1")))
+                .isInstanceOf(ServiceException.class).hasMessageContaining(TradeOrderPreparation.ORDER_TYPE_MESSAGE);
+        verify(rules, never()).verify(any());
+        verify(snapshots, never()).record(any());
+    }
+
+    @Test
+    void nonNormalOrderWithoutTravelCardsIsUntouched() {
+        when(items.getByOrderSn("O-1")).thenReturn(List.of(item("I-2", "S-PLAIN", 1, 5, 5)));
+        when(bindings.findByShellSkuIds(anyCollection())).thenReturn(Map.of());
+
+        listener.onTradeIntoDb(trade(OrderTypeEnum.VIRTUAL, "m1", "O-1"));
+
+        verify(rules, never()).verify(any());
     }
 
     @Test

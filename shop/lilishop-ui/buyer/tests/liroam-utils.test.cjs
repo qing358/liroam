@@ -8,10 +8,18 @@ const path = require('node:path');
 
 function load() {
   const source = fs.readFileSync(path.join(__dirname, '../src/utils/liroam.js'), 'utf8').replace(/^export /gm, '');
-  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage };')();
+  return new Function(source + '; return { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType };')();
 }
 
-const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage } = load();
+const { fenToYuan, listOf, normalizeCredential, cardFormText, failureMessage, checkoutCartType } = load();
+
+test('结算方式：旅行卡一律立即购买（普通订单），其它虚拟商品沿用壳的核销型 VIRTUAL，实物为 BUY_NOW', () => {
+  assert.equal(checkoutCartType({ goodsType: 'VIRTUAL_GOODS', travelCard: true }), 'BUY_NOW');
+  assert.equal(checkoutCartType({ goodsType: 'PHYSICAL_GOODS', travelCard: true }), 'BUY_NOW');
+  assert.equal(checkoutCartType({ goodsType: 'VIRTUAL_GOODS', travelCard: false }), 'VIRTUAL');
+  assert.equal(checkoutCartType({ goodsType: 'PHYSICAL_GOODS', travelCard: false }), 'BUY_NOW');
+  assert.equal(checkoutCartType({}), 'BUY_NOW');
+});
 
 test('卡形态：formText 优先，已知形态翻译，未知原样，缺失为空串', () => {
   assert.equal(cardFormText({ form: 'ESIM', formText: '电子卡' }), '电子卡');

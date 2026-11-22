@@ -36,4 +36,4 @@
 ## 本项目
 - 语言 / 框架：Java 21 / Spring Boot 4（Lilishop v5.0.6，`shop/`）；自研模块进 `modules/`；本机编排 Node（`scripts/`）。
 - 验证命令：`node --test 'scripts/**/*.test.mjs'`；仓根 `mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify`（需 JDK 21；自研集成测试连本项目 MySQL 39306，口令取 `.env` 或 `LIROAM_MYSQL_ROOT_PASSWORD`）；本机联调 `node scripts/dev.mjs health`。
-- 其它红线：不碰本机其它项目的 3306 / 6379 等服务，端口只在 `deploy/ports.env` 登记；改上游代码须记入 `docs/upstream.md` 改动清单；演示数据只走 `deploy/dev-seed.sql`，不进正式迁移。
+- 其它红线：不碰本机其它项目的 3306 / 6379 等服务，端口只在 `deploy/ports.env` 登记；改上游代码须记入 `docs/upstream.md` 改动清单；演示数据只走 `deploy/dev-seed.sql`（`up`）与 `deploy/dev-demo*.sql`（`dev.mjs demo`），不进正式迁移。

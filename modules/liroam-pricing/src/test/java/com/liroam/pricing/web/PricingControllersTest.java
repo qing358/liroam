@@ -74,6 +74,24 @@ class PricingControllersTest {
     }
 
     @Test
+    void manualPriceActivatesAVersionAndWritesTheShellPrice() throws Exception {
+        long jp = f.sku("JP-1", c.supplier, c.product, "JP", "ESIM", c.plan2gb);
+        f.setFx("0.9");
+        f.fxSync.run("system:fx");
+
+        mvc.perform(post("/manager/liroam/sku-bindings/{id}/price", jp).contentType(MediaType.APPLICATION_JSON).content("{\"priceFen\":3990}"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.result.skuBindingId").value(jp))
+                .andExpect(jsonPath("$.result.priceFen").value(3990));
+        org.assertj.core.api.Assertions.assertThat(f.writer.lastPrice).containsEntry("JP-1", 3990L);
+
+        mvc.perform(post("/manager/liroam/sku-bindings/{id}/price", jp).contentType(MediaType.APPLICATION_JSON).content("{\"priceFen\":0}"))
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.message", containsString("售价")));
+        org.assertj.core.api.Assertions.assertThat(f.writer.lastPrice).containsEntry("JP-1", 3990L);
+    }
+
+    @Test
     void repriceSuggestionsListConfirmReject() throws Exception {
         long jp = f.sku("JP-1", c.supplier, c.product, "JP", "ESIM", c.plan2gb);
         long cn = f.sku("CN-1", c.supplier, c.product, "CN", "ESIM", c.plan2gb);

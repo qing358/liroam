@@ -22,9 +22,8 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { Message } from "@/utils/message";
 import { addCartGoods } from "@/api/cart.js";
-import { goodsSkuDetail } from "@/api/goods";
 import { getTopUpOptions, openTopUpIntent } from "@/api/liroam";
-import { fenToYuan, listOf, failureMessage } from "@/utils/liroam";
+import { fenToYuan, listOf, failureMessage, checkoutCartType } from "@/utils/liroam";
 
 defineOptions({ name: "LiroamTopUpDialog" });
 
@@ -62,13 +61,9 @@ async function load() {
   }
 }
 
-/** 与商品详情「立即购买」同一路径：BUY_NOW（虚拟商品为 VIRTUAL）加入购物车后进结算页。 */
-async function buyNow(skuId, goodsId) {
-  let cartType = "BUY_NOW";
-  if (goodsId) {
-    const detail = await goodsSkuDetail({ goodsId, skuId });
-    if (detail && detail.success && detail.result?.data?.goodsType === "VIRTUAL_GOODS") cartType = "VIRTUAL";
-  }
+/** 与商品详情「立即购买」同一路径；加包 SKU 是旅行卡，走普通订单（见 checkoutCartType）。 */
+async function buyNow(skuId) {
+  const cartType = checkoutCartType({ travelCard: true });
   const res = await addCartGoods({ num: 1, skuId, cartType });
   if (!res || !res.success) {
     Message.warning(failureMessage(res, "加入结算失败"));
@@ -85,8 +80,7 @@ async function submit() {
       Message.warning(failureMessage(res, "暂时无法为这张卡加包"));
       return;
     }
-    const chosen = options.value.find((item) => item.skuId === selectedSkuId.value) || {};
-    await buyNow(res.result?.skuId || selectedSkuId.value, res.result?.goodsId || chosen.goodsId);
+    await buyNow(res.result?.skuId || selectedSkuId.value);
   } catch {
     // 请求层已提示网络错误
   } finally {

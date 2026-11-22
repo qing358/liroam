@@ -241,7 +241,7 @@
               <div class="add-buy-car">
                 <el-button
                   class="goods-action-btn"
-                  v-if="!isECouponGoods && skuDetail.goodsType !== 'VIRTUAL_GOODS'"
+                  v-if="!isECouponGoods && (travelCard || skuDetail.goodsType !== 'VIRTUAL_GOODS')"
                   :loading="loading"
                   :disabled="isOutOfStock"
                   @click="addShoppingCartBtn"
@@ -294,6 +294,8 @@ import {
   cancelCollect,
 } from "@/api/member.js";
 import { addCartGoods } from "@/api/cart.js";
+import { getUsageRegion } from "@/api/liroam";
+import { checkoutCartType } from "@/utils/liroam";
 import playIcon from "@/assets/iconfont/play.svg";
 /** 卡密商品（E_COUPON）判定与库存工具，见 @/constants/goodsType */
 import {
@@ -397,6 +399,21 @@ const isOutOfStock = computed(() => {
   }
   return (Number(skuDetail.value.quantity) || 0) <= 0;
 });
+
+// 旅行卡（有使用区域说明的 SKU）走普通订单，可加购物车混买
+const travelCard = ref(false);
+watch(
+  () => skuDetail.value && skuDetail.value.id,
+  (skuId) => {
+    travelCard.value = false;
+    if (!skuId) return;
+    getUsageRegion(skuId)
+      .then((res) => {
+        if (skuDetail.value && skuDetail.value.id === skuId) travelCard.value = !!(res && res.success && res.result);
+      })
+      .catch(() => {});
+  }
+);
 
 watch(
   () => props.detail,
@@ -595,7 +612,7 @@ function startCheckout(action, loadingKey) {
     cartType: "BUY_NOW",
   };
   if (skuDetail.value.goodsType === "VIRTUAL_GOODS") {
-    params.cartType = "VIRTUAL";
+    params.cartType = checkoutCartType({ goodsType: skuDetail.value.goodsType, travelCard: travelCard.value });
   } else if (isECouponGoods.value) {
     params.cartType = resolveECouponCartType({
       routeWay: route.query.way,

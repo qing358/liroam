@@ -268,3 +268,8 @@ lili:
       after-sale-group: lili_after_sale_group
     # 消息发送超时时间（毫秒）
     send-message-timeout: 30000
+
+# 轻游自有接口挂载面（docs/upstream.md「自有接口挂载面」）
+liroam:
+  web:
+    surface: buyer

@@ -34,7 +34,7 @@ public class TradeIntoDbListener {
         }
         for (OrderVO order : trade.getOrderVO()) {
             try {
-                preparation.prepare(order.getSn(), trade.getMemberId());
+                preparation.prepare(order.getSn(), trade.getMemberId(), order.getOrderType());
             } catch (ServiceException e) {
                 throw e;
             } catch (FulfillmentRejected e) {

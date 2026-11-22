@@ -96,6 +96,15 @@ public class PricingManagerController {
         return ApiResult.ok(tariffs.cardProductRegions(id));
     }
 
+    public record ManualPrice(long priceFen) {
+    }
+
+    /** 运营直接定售价（首发定价、人工改价）；激活即写回壳 SKU 价格。 */
+    @PostMapping("/sku-bindings/{id}/price")
+    public ApiResult<ActivePrice> activateManual(@PathVariable long id, @RequestBody ManualPrice body) {
+        return ApiResult.ok(prices.activateManual(id, body.priceFen(), actor.requireOperator()));
+    }
+
     @GetMapping("/reprice-suggestions")
     public ApiResult<PageResult<RepriceSuggestionRow>> suggestions(@RequestParam(required = false) String status,
             @RequestParam(defaultValue = "1") int pageNumber, @RequestParam(defaultValue = "10") int pageSize) {
