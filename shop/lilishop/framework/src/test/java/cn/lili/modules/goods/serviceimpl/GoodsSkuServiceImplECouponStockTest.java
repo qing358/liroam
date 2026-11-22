@@ -1,0 +1,149 @@
+package cn.lili.modules.goods.serviceimpl;
+
+import cn.lili.common.enums.ResultCode;
+import cn.lili.common.exception.ServiceException;
+import cn.lili.modules.goods.entity.dos.GoodsSku;
+import cn.lili.modules.goods.entity.dto.GoodsOperationDTO;
+import cn.lili.modules.goods.entity.enums.GoodsTypeEnum;
+import cn.lili.modules.goods.support.GoodsStockAggregateSupport;
+import cn.lili.modules.goods.service.GoodsSkuService;
+import cn.lili.modules.goods.mapper.GoodsSkuMapper;
+import cn.lili.modules.goods.support.GoodsSkuStockManager;
+import cn.lili.cache.Cache;
+import cn.lili.modules.promotion.service.PromotionGoodsService;
+import org.springframework.context.ApplicationEventPublisher;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+
+/**
+ * E_COUPON SKU quantity 读写规则：普通库存入口禁止手工修改。
+ *
+ * @author Mike
+ * @date 2026-08-02
+ */
+@ExtendWith(MockitoExtension.class)
+class GoodsSkuServiceImplECouponStockTest {
+
+    @InjectMocks
+    private GoodsSkuServiceImpl goodsSkuService;
+
+    @Mock
+    private GoodsStockAggregateSupport goodsService;
+
+    @Mock
+    private GoodsSkuMapper mapper;
+    @Mock
+    private Cache cache;
+
+    private GoodsSkuServiceImpl serviceSpy;
+
+    /**
+     * 初始化当前用例的模拟依赖及测试数据。
+     */
+    @BeforeEach
+    void setUp() {
+        serviceSpy = spy(goodsSkuService);
+        ReflectionTestUtils.setField(serviceSpy, "goodsSkuStockManager",
+                new GoodsSkuStockManager(mapper, goodsService, mock(PromotionGoodsService.class), cache,
+                        mock(ApplicationEventPublisher.class)));
+    }
+
+    /**
+     * 验证新建卡密SKU忽略手工库存数量。
+     */
+    @Test
+    void renderGoodsSkuListIgnoresManualQuantityForNewECouponSku() {
+        GoodsSku sku = buildECouponSku("", 999);
+        sku.setId(null);
+        GoodsOperationDTO dto = GoodsOperationDTO.builder()
+                .salesModel("RETAIL")
+                .goodsGalleryList(new ArrayList<>())
+                .build();
+
+        doReturn(null).when(serviceSpy).getGoodsSkuByIdFromCache((String) null);
+        serviceSpy.renderGoodsSkuList(List.of(sku), dto);
+
+        assertThat(sku.getQuantity()).isZero();
+    }
+
+    /**
+     * 验证卡密SKU拒绝手动修改库存。
+     */
+    @Test
+    void updateStockRejectsECouponManualUpdate() {
+        GoodsSku sku = buildECouponSku("sku-1", 10);
+        when(cache.get(GoodsSkuService.getCacheKeys("sku-1"))).thenReturn(sku);
+
+        ServiceException ex = assertThrows(ServiceException.class,
+                () -> serviceSpy.updateStock("sku-1", 99));
+        assertThat(ex.getResultCode()).isEqualTo(ResultCode.CARD_KEY_STOCK_MANUAL_FORBIDDEN);
+    }
+
+    /**
+     * 验证按类型更新库存时拒绝手工调整卡密库存。
+     */
+    @Test
+    void updateStockByTypeRejectsECouponManualUpdate() {
+        GoodsSku sku = buildECouponSku("sku-1", 10);
+        when(cache.get(GoodsSkuService.getCacheKeys("sku-1"))).thenReturn(sku);
+
+        ServiceException ex = assertThrows(ServiceException.class,
+                () -> serviceSpy.updateStock("sku-1", 1, "ADD"));
+        assertThat(ex.getResultCode()).isEqualTo(ResultCode.CARD_KEY_STOCK_MANUAL_FORBIDDEN);
+    }
+
+    /**
+     * 验证更新卡密商品库存时使用卡池同步逻辑。
+     */
+    @Test
+    void updateGoodsStockUsesCardKeySyncForECoupon() {
+        GoodsSku sku = buildECouponSku("sku-1", 5);
+        GoodsSkuStockManager manager = spy(new GoodsSkuStockManager(mapper, goodsService,
+                mock(PromotionGoodsService.class), cache, mock(ApplicationEventPublisher.class)));
+        doNothing().when(manager).updateStockFromCardKeySync("sku-1", 5);
+        ReflectionTestUtils.setField(serviceSpy, "goodsSkuStockManager", manager);
+
+        assertDoesNotThrow(() -> serviceSpy.updateGoodsStock(List.of(sku)));
+
+        verify(manager).updateStockFromCardKeySync("sku-1", 5);
+        verify(manager, never()).updateStock(eq("sku-1"), anyInt());
+        verify(goodsService).updateStock("goods-1");
+    }
+
+    /**
+     * 构造指定库存的卡密SKU测试数据。
+     *
+     * @param id       测试数据ID
+     * @param quantity 商品数量
+     * @return 指定库存的卡密SKU测试数据
+     */
+    private GoodsSku buildECouponSku(String id, int quantity) {
+        GoodsSku sku = new GoodsSku();
+        sku.setId(id);
+        sku.setGoodsId("goods-1");
+        sku.setGoodsType(GoodsTypeEnum.E_COUPON.name());
+        sku.setQuantity(quantity);
+        return sku;
+    }
+}

@@ -1,0 +1,49 @@
+package cn.lili.modules.member.entity.enums;
+
+/**
+ * 积分发放/变动来源枚举
+ *
+ * @author Bulbasaur
+ * @since 2026/07/17
+ */
+public enum PointSourceEnum {
+
+    REGISTER("用户注册"),
+    COMMENT("客户评价"),
+    ORDER("订单支付/下单"),
+    FULL_DISCOUNT("订单满优惠"),
+    BENEFIT("等级权益"),
+    SIGN("签到"),
+    REFUND_BACK("退款回退"),
+    ADMIN("后台调整"),
+    ORDER_PAY("订单积分扣减"),
+    /**
+     * 积分兑券成功扣减；发券失败整体回滚，券过期不返还。
+     */
+    COUPON_EXCHANGE("积分兑券"),
+    /**
+     * 免费抽奖积分奖励；发奖和记录共同提交，失败整体回滚。
+     */
+    LOTTERY("抽奖奖励"),
+    UNKNOWN("未知");
+
+    private final String description;
+
+    /**
+     * 初始化积分来源的业务名称。
+     *
+     * @param description 积分来源名称
+     */
+    PointSourceEnum(String description) {
+        this.description = description;
+    }
+
+    /**
+     * 获取积分来源的业务名称。
+     *
+     * @return 积分来源名称
+     */
+    public String description() {
+        return description;
+    }
+}

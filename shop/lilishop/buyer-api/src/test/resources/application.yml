@@ -1,0 +1,161 @@
+# ===================================================================
+# 买家端测试专用配置文件 (buyer-api/src/test/resources/application.yml)
+# 作用说明：
+# 供 buyer-api 单元测试与集成测试环境加载执行
+# ===================================================================
+
+server:
+  servlet:
+    context-path: /
+
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      min-spare: 50
+      max: 1000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+spring:
+
+  cache:
+    type: redis
+  # Redis
+  data:
+    redis:
+      host: 192.168.31.100
+      port: 30379
+      password: lilishop
+      lettuce:
+        pool:
+          max-active: 200
+          max-wait: 20s
+          max-idle: 10
+          min-idle: 8
+  # 文件大小上传配置
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  jackson:
+    time-zone: GMT+8
+    serialization:
+      # 关闭 jackson 对 json 做解析
+      fail-on-empty-beans: false
+  datasource:
+    url: jdbc:mysql://192.168.31.100:3306/lilishop?useUnicode=true&characterEncoding=utf-8&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: root
+    password: lilishop
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+
+# 忽略鉴权url
+ignored:
+  urls:
+    - /editor-app/**
+    - /MP_verify_qSyvBPhDsPdxvOhC.txt
+    - /weixin/**
+    - /source/**
+    - /buyer/payment/cashier/**
+    - /buyer/payment/cashierRefund/**
+    - /buyer/other/pageData/**
+    - /buyer/other/article/**
+    - /buyer/goods/**
+    - /buyer/store/**
+    - /buyer/passport/connect/**
+    - /buyer/members/**
+    - /buyer/passport/member/userLogin
+    - /buyer/passport/member/smsLogin
+    - /buyer/passport/member/register
+    - /buyer/passport/member/resetByMobile
+    - /buyer/passport/member/resetPassword
+    - /buyer/passport/member/refresh/**
+    - /buyer/passport/member/pc_session
+    - /buyer/passport/member/session_login/**
+    - /buyer/passport/member/app_scanner
+    - /buyer/passport/member/app_confirm
+    - /buyer/passport/member/logout
+    - /buyer/promotion/pintuan/**
+    - /buyer/promotion/seckill/**
+    - /buyer/promotion/pointsGoods/**
+    - /buyer/promotion/coupon
+    - /buyer/member/evaluation/*/goodsEvaluation
+    - /buyer/member/evaluation/*/evaluationNumber
+    - /buyer/other/appVersion/**
+    - /buyer/broadcast/studio/**
+    - /swagger-ui.html
+
+# Swagger界面内容配置
+swagger:
+  title: lili API接口文档
+  description: lili Api Documentation
+  version: 1.0.0
+  termsOfServiceUrl: https://pickmall.cn
+  contact:
+    name: lili
+    url: https://pickmall.cn
+    email: admin@pickmall.com
+
+# Mybatis-plus
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  configuration:
+    # 缓存开启
+    cache-enabled: true
+
+# 日志
+logging:
+  level:
+    cn.lili: info
+  file:
+    path: lili-logs
+    max-history: 7
+    max-size: 5MB
+
+# 加密参数
+jasypt:
+  encryptor:
+    password: lili
+
+lili:
+  system:
+    isDemoSite: true
+  statistics:
+    # 在线人数统计 X 小时。这里设为 48，即统计过去 48 小时每小时在线人数
+    onlineMember: 48
+    # 当前在线人数刷新时间间隔，单位秒，设置为 600，则每 10 分钟刷新一次
+    currentOnlineUpdate: 600
+
+  # jwt 细节设定
+  jwt-setting:
+    # 令牌签名密钥
+    secret: ${LILI_JWT_SECRET:cuAihCz53DZRjZwbsGcZJ2Ai6At+T142uphtJMsk7iQ=}
+    # token过期时间（分钟）
+    tokenExpireTime: 60
+
+  # 使用Spring @Cacheable注解失效时间
+  cache:
+    # 过期时间，单位秒；永久不过期设为 -1
+    timeout: 1500
+  # 多线程配置
+  thread:
+    corePoolSize: 5
+    maxPoolSize: 50
+    queueCapacity: 50
+  data:
+    rocketmq:
+      promotion-topic: lili_promotion_topic
+      promotion-group: lili_promotion_group
+      goods-topic: lili_goods_topic
+      goods-group: lili_goods_group
+      order-topic: lili_order_topic
+      order-group: lili_order_group
+      member-topic: lili_member_topic
+      member-group: lili_member_group
+      notice-topic: lili_notice_topic
+      notice-group: lili_notice_group
+      notice-send-topic: lili_send_notice_topic
+      notice-send-group: lili_send_notice_group
