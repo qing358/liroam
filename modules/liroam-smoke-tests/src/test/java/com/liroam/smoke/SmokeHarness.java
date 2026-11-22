@@ -22,6 +22,7 @@ import com.liroam.fulfillment.FulfillmentRequest;
 import com.liroam.fulfillment.FulfillmentRequest.SourceType;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
+import com.liroam.fulfillment.courier.mock.MockCourierAutoConfiguration;
 import com.liroam.fulfillment.pool.CardPool;
 import com.liroam.fulfillment.pool.CardPool.PoolItemRow;
 import com.liroam.fulfillment.testing.MutableClock;
@@ -39,7 +40,7 @@ import com.liroam.supplier.mock.config.LiroamSupplierMockAutoConfiguration;
 /**
  * 冒烟装配：已迁移的测试库 + common / catalog / supplier-mock / fulfillment 自动配置（test profile），
  * 供应商 A、B 分别指向真实的 {@value MockShapeAAdapter#ADAPTER_KEY} / {@value MockShapeBAdapter#ADAPTER_KEY}；
- * 壳只换成记录型发货回写（H5 端口）与可拨时钟。目录种子与履约测试同一份 {@link TestCatalog}，先于启动写入，走启动时的适配器校验。
+ * 模拟快递轨迹（dev/test）一并装配；壳只换成记录型发货回写（H5 端口）与可拨时钟。目录种子与履约测试同一份 {@link TestCatalog}，先于启动写入，走启动时的适配器校验。
  */
 final class SmokeHarness implements AutoCloseable {
 
@@ -72,7 +73,7 @@ final class SmokeHarness implements AutoCloseable {
         context.registerBean(ShellOrderDelivery.class, () -> shell);
         context.registerBean(RecordingCredentialEvents.class);
         context.register(LiroamCommonAutoConfiguration.class, LiroamCatalogAutoConfiguration.class, LiroamSupplierMockAutoConfiguration.class,
-                LiroamFulfillmentAutoConfiguration.class);
+                LiroamFulfillmentAutoConfiguration.class, MockCourierAutoConfiguration.class);
         context.refresh();
     }
 

@@ -40,9 +40,16 @@
 ## 主路径全卡型（P4 已落地，mock 上游）
 
 - 卡型：纯流量 / 语音短信（投影出分钟、条数，无能力为空）/ 实名（`KycGateMode` NONE·PROMPT·BLOCK_DELIVERY；买家自报或后台核验后自动交付）/ 实体卡（后台录物流 = SHIPMENT 交码，同一 `CredentialDelivered`）。含号码 SKU 受全局开关 `sell.numbered_sku_enabled` 控制（默认关）。
-- 壳发货分流 `ShellShipping`：纯 eSIM/软卡 → 无物流发货；实体卡同一运单 → 壳 `WHOLE` 发货；多运单、缺物流、含非旅行卡商品 → 人工待办。
+- 壳发货分流 `ShellShipping`：纯 eSIM/软卡 → 无物流发货；实体卡同一运单 → 壳 `WHOLE` 发货；多运单按开关 `shipping.multi_waybill_mode`（默认 MANUAL 转人工，SPLIT 按运单分包发货）；缺物流、含非旅行卡商品 → 人工待办。
 - 后台「旅行卡商品」（`/manager/liroam/catalog`）配卡产品含号码、套餐模板、套餐映射、SKU 绑定与闸、上下架；绑定形状由映射推导，形态须与壳商品类型一致。
 - 生产基线：运营告警 `/manager/liroam/ops/alerts`（各模块 `OpsAlertSource`，阈值 `alert.*`，worker 进程每 5 分钟 WARN 日志）；版本迁移只增不改（`AdditiveMigrationsTest`）；`dev.mjs backup` / `restore-drill`。支付不改壳：本机余额支付，真沙箱待商户号（上线清单）。
+
+## 卡型与履约扩展（P6 已落地，mock 上游 / mock 快递）
+
+- 语音短信用量：SPI `PlanUsage` 带语音秒数、短信条数总量与已用；套餐「用完」= 所有有额度的维度都用尽；买家「我的卡」与后台台账出「已用 / 总量」。
+- 实体卡物流轨迹：端口 `CourierTracking`（按 `logistics.tracking_source` 选来源，默认 `shell` = 壳物流插件快递鸟/快递100；`mock` 只 dev/test）；买家卡详情与后台台账看轨迹，查不到给「凭运单号到快递官网查」兜底。后台台账「发货设置」改多运单开关与轨迹来源。
+- 纯软卡：资费表「纯软件卡 Profile」卡费解析为 SOFT；卡产品默认不卖软卡，运营在「旅行卡商品」按卡产品「开卖软卡」（资费表无软卡卡费不能开、有在售软卡 SKU 不能关）；资费表注明不支持软卡的区域拒绝建软卡 SKU；买家端交码弹窗出软卡写卡指引。
+- 调价：后台「调价」页 = 调价报表（售价 / 最近成本 / 毛利率 / 最低毛利 / 待确认建议 + 当前汇率）、建议批量确认 / 驳回（逐条独立，部分失败列原因）、按涨跌幅或目标毛利率批量改价（先预览，执行同口径重算，任一 SKU 低于最低毛利整批拒绝）；有待确认建议即出告警 `REPRICE_PENDING`。调价开关默认仍 `MANUAL_CONFIRM`。
 
 ## 工程方法
 

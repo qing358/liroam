@@ -19,6 +19,7 @@ import com.liroam.common.testing.TestKeys;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.ShellOrderDelivery;
 import com.liroam.fulfillment.config.LiroamFulfillmentAutoConfiguration;
+import com.liroam.fulfillment.courier.CardTracking;
 import com.liroam.pricing.config.LiroamPricingAutoConfiguration;
 import com.liroam.pricing.catalog.ShellSkuDirectory;
 import com.liroam.pricing.price.ShellPriceWriter;
@@ -26,6 +27,7 @@ import com.liroam.refund.config.LiroamRefundAutoConfiguration;
 import com.liroam.schema.LiroamSchemaAutoConfiguration;
 import com.liroam.shell.goods.ShellGoodsSkus;
 import com.liroam.shell.goods.ShellSkuPriceWriter;
+import com.liroam.shell.logistics.ShellCourierTracking;
 import com.liroam.shell.order.ShellShipping;
 import com.liroam.shell.order.OrderPaidFulfillmentListener;
 import com.liroam.shell.order.PaidOrderCompensationScanner;
@@ -36,7 +38,9 @@ import cn.lili.cache.Cache;
 import cn.lili.modules.goods.service.GoodsService;
 import cn.lili.modules.goods.service.GoodsSkuService;
 import cn.lili.modules.order.order.service.OrderItemService;
+import cn.lili.modules.order.order.service.OrderPackageService;
 import cn.lili.modules.order.order.service.OrderService;
+import cn.lili.modules.system.service.LogisticsService;
 
 /** 壳进程里的装配：监听器两个 API 进程都有；补偿扫描只在开了 worker 的进程（manager-api）。 */
 class ShellBridgeWiringTest {
@@ -57,6 +61,8 @@ class ShellBridgeWiringTest {
                 .withBean(PlatformTransactionManager.class, () -> new DataSourceTransactionManager(dataSource))
                 .withBean(OrderItemService.class, () -> mock(OrderItemService.class))
                 .withBean(OrderService.class, () -> mock(OrderService.class))
+                .withBean(OrderPackageService.class, () -> mock(OrderPackageService.class))
+                .withBean(LogisticsService.class, () -> mock(LogisticsService.class))
                 .withBean(GoodsSkuService.class, () -> mock(GoodsSkuService.class))
                 .withBean(GoodsService.class, () -> mock(GoodsService.class))
                 .withBean(Cache.class, () -> mock(Cache.class))
@@ -79,6 +85,8 @@ class ShellBridgeWiringTest {
             assertThat(ctx.getBean(ShellPriceWriter.class)).isInstanceOf(ShellSkuPriceWriter.class);
             assertThat(ctx.getBean(ShellSkuDirectory.class)).isInstanceOf(ShellGoodsSkus.class);
             assertThat(ctx.getBean(CurrentActor.class)).isInstanceOf(ShellCurrentActor.class);
+            assertThat(ctx).hasSingleBean(ShellCourierTracking.class);
+            assertThat(ctx.getBean(CardTracking.class).sourceKeys()).containsExactly(ShellCourierTracking.KEY);
         });
     }
 
