@@ -24,10 +24,10 @@ public final class CardViewProjector {
             String kycStatus, String kycGateMode) {
     }
 
-    /** 套餐台账行（已联查套餐模板）。 */
+    /** 套餐台账行（已联查套餐模板）；语音、短信的额度与已用为上游镜像值，没同步过为空。 */
     public record PlanRow(long id, long cardAssetId, String name, CardPlanStatus status, Long remainingBytes, LocalDateTime expiresAt,
             Long templateQuotaBytes, int validityDays, Long voiceRemainingSeconds, Long templateVoiceSeconds, Integer smsRemaining,
-            Integer templateSmsCount) {
+            Integer templateSmsCount, Long voiceQuotaSeconds, Long voiceUsedSeconds, Integer smsQuota, Integer smsUsed) {
     }
 
     /** 作废/终止后不能再申请；其余状态都可申请，批不批由退款规则定（已激活的默认驳回、后台可例外批）。 */
@@ -90,7 +90,27 @@ public final class CardViewProjector {
                         ? "激活后 " + p.validityDays() + " 天有效" : NONE;
         List<PlanRow> self = LIVE.contains(p.status()) ? List.of(p) : List.of();
         return new CardView.PlanView(p.id(), p.name(), p.status().name(), planStatusText(p.status()), self.isEmpty() ? NONE : remainingText(self),
-                card.capVoice() ? voiceText(self) : null, card.capSms() ? smsText(self) : null, expires);
+                card.capVoice() ? voiceText(self) : null, card.capSms() ? smsText(self) : null,
+                card.capVoice() ? usageText(p.voiceQuotaSeconds(), p.voiceUsedSeconds(), p.voiceRemainingSeconds(), p.templateVoiceSeconds(), 60, "分钟") : null,
+                card.capSms() ? usageText(toLong(p.smsQuota()), toLong(p.smsUsed()), toLong(p.smsRemaining()), toLong(p.templateSmsCount()), 1, "条") : null,
+                expires);
+    }
+
+    /**
+     * 「已用 X / 共 Y 单位」：额度取镜像值，没有则取模板；已用取镜像值，没有则额度减余量，都没同步过为 0。额度未知为「—」。
+     * 分钟数按整分钟向下取。
+     */
+    private static String usageText(Long quota, Long used, Long remaining, Long templateQuota, int perUnit, String unit) {
+        Long total = quota != null ? quota : templateQuota;
+        if (total == null) {
+            return NONE;
+        }
+        long spent = used != null ? used : remaining != null ? Math.max(total - remaining, 0) : 0;
+        return "已用 " + spent / perUnit + " / 共 " + total / perUnit + " " + unit;
+    }
+
+    private static Long toLong(Integer n) {
+        return n == null ? null : n.longValue();
     }
 
     private static String capabilityText(CardRow card) {

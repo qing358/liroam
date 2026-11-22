@@ -41,7 +41,8 @@ public record CardView(
         plans = List.copyOf(plans);
     }
 
+    /** @param voiceUsageText 如「已用 15 / 共 100 分钟」；卡产品无语音能力时为 null（短信同） */
     public record PlanView(long id, String name, String status, String statusText, String remainingText, String voiceRemainingText,
-            String smsRemainingText, String expiresText) {
+            String smsRemainingText, String voiceUsageText, String smsUsageText, String expiresText) {
     }
 }

@@ -95,11 +95,25 @@ public class CardPlans {
         jdbc.sql("""
                 UPDATE lr_card_plan
                    SET upstream_plan_ref = COALESCE(upstream_plan_ref, ?), quota_bytes = ?, used_bytes = ?, remaining_bytes = ?,
-                       voice_remaining_seconds = ?, sms_remaining = ?, starts_at = ?, expires_at = ?, starts_at_raw = ?, expires_at_raw = ?,
+                       voice_quota_seconds = ?, voice_used_seconds = ?, voice_remaining_seconds = ?, sms_quota = ?, sms_used = ?, sms_remaining = ?,
+                       starts_at = ?, expires_at = ?, starts_at_raw = ?, expires_at_raw = ?,
                        raw_json = IF(JSON_VALID(?), CAST(? AS JSON), JSON_QUOTE(?)), mirrored_at = ?
                  WHERE id = ?
                 """).params(usage.upstreamPlanRef(), usage.quotaBytes(), usage.usedBytes(), usage.remainingBytes(),
-                usage.voiceRemainingSeconds(), usage.smsRemaining(), UtcColumns.toColumn(usage.startsAt()), UtcColumns.toColumn(usage.expiresAt()),
+                usage.voiceQuotaSeconds(), usage.voiceUsedSeconds(), usage.voiceRemainingSeconds(), usage.smsQuota(), usage.smsUsed(),
+                usage.smsRemaining(), UtcColumns.toColumn(usage.startsAt()), UtcColumns.toColumn(usage.expiresAt()),
                 usage.startsAtRaw(), usage.expiresAtRaw(), rawJson, rawJson, rawJson, UtcColumns.toColumn(now), planId).update();
+    }
+
+    /** 套餐流量不限量：模板未设流量额度且卡产品有流量能力（无流量能力的纯语音套餐不算）。 */
+    public boolean unlimitedData(long planId) {
+        return jdbc.sql("""
+                SELECT t.data_quota_bytes IS NULL AND p.cap_data = 1
+                  FROM lr_card_plan cp
+                  JOIN lr_plan_template t ON t.id = cp.plan_template_id
+                  JOIN lr_card_asset a ON a.id = cp.card_asset_id
+                  JOIN lr_card_product p ON p.id = a.card_product_id
+                 WHERE cp.id = ?
+                """).param(planId).query(Boolean.class).single();
     }
 }

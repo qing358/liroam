@@ -39,7 +39,7 @@ import com.liroam.supplier.spi.WebhookParser;
  * 只能终止、加包为同卡新订阅、600 次/分钟；上游用字节与 ISO-8601，另报语音秒与短信条。
  * <p>
  * 回调：{@code application/x-www-form-urlencoded}，字段 {@code card_ref, plan_ref, status, quota_bytes, used_bytes,
- * voice_seconds, sms, starts_at, expires_at}；头 {@value #SIGNATURE_HEADER} = hex(HMAC-SHA256(密钥, 原始请求体))。
+ * voice_seconds, sms, starts_at, expires_at}（语音秒、短信条为额度；可选 {@code voice_used_seconds, sms_used} 已用，缺省 0）；头 {@value #SIGNATURE_HEADER} = hex(HMAC-SHA256(密钥, 原始请求体))。
  */
 @Simulated
 public final class MockShapeBAdapter extends AbstractMockAdapter {
@@ -109,7 +109,8 @@ public final class MockShapeBAdapter extends AbstractMockAdapter {
             }
             WirePlan plan = new WirePlan(required(fields, "plan_ref"), Long.parseLong(required(fields, "quota_bytes")),
                     Long.parseLong(required(fields, "used_bytes")), Long.parseLong(required(fields, "voice_seconds")),
-                    Integer.parseInt(required(fields, "sms")), required(fields, "starts_at"), required(fields, "expires_at"));
+                    Long.parseLong(fields.getOrDefault("voice_used_seconds", "0")), Integer.parseInt(required(fields, "sms")),
+                    Integer.parseInt(fields.getOrDefault("sms_used", "0")), required(fields, "starts_at"), required(fields, "expires_at"));
             return Outcome.ok(new UsageSnapshot(required(fields, "card_ref"), status, List.of(plan(plan)), Json.write(fields)));
         } catch (IllegalArgumentException | DateTimeParseException e) {
             return Outcome.rejected("BAD_PAYLOAD", "回调内容不完整或格式不对");

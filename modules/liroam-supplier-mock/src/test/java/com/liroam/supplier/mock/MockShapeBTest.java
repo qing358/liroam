@@ -101,6 +101,22 @@ class MockShapeBTest {
         assertThat(p.smsRemaining()).isEqualTo(50);
         assertThat(p.expiresAt()).isEqualTo(Instant.parse("2026-12-22T04:00:00Z"));
         assertThat(p.expiresAtRaw()).isEqualTo("2026-12-22T04:00:00Z");
+        assertThat(p).extracting(PlanUsage::voiceQuotaSeconds, PlanUsage::voiceUsedSeconds, PlanUsage::smsQuota, PlanUsage::smsUsed)
+                .containsExactly(6000L, 0L, 50, 0);
+    }
+
+    @Test
+    void consoleCallsAreReportedAsUsedAndRemainingVoiceSms() {
+        ProvisionCommand c = command("3GB-30D-100MIN-50SMS");
+        ProvisionResult r = ok(adapter.provision(c));
+
+        console.useCalls(MockShapeBAdapter.ADAPTER_KEY, r.upstreamRef(), 900L, 60);
+        console.useCalls(MockShapeBAdapter.ADAPTER_KEY, r.upstreamRef(), null, null);
+        UsageSnapshot s = ok(adapter.queryUsage(new CardRef(c.cardAssetId(), r.iccid(), r.upstreamRef())));
+
+        assertThat(s.status()).isEqualTo(CardStatus.ACTIVE);
+        assertThat(s.plans().getFirst()).extracting(PlanUsage::voiceUsedSeconds, PlanUsage::voiceRemainingSeconds, PlanUsage::smsUsed,
+                PlanUsage::smsRemaining).containsExactly(900L, 5100L, 50, 0);
     }
 
     @Test

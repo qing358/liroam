@@ -14,6 +14,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.liroam.catalog.SkuBindings;
+import com.liroam.common.setting.Settings;
 import com.liroam.common.web.CurrentActor;
 import com.liroam.fulfillment.FulfillmentEntry;
 import com.liroam.fulfillment.FulfillmentRules;
@@ -40,6 +41,7 @@ import cn.lili.cache.Cache;
 import cn.lili.modules.goods.service.GoodsService;
 import cn.lili.modules.goods.service.GoodsSkuService;
 import cn.lili.modules.order.order.service.OrderItemService;
+import cn.lili.modules.order.order.service.OrderPackageService;
 import cn.lili.modules.order.order.service.OrderService;
 
 /**
@@ -66,9 +68,10 @@ public class LiroamShellBridgeAutoConfiguration {
     }
 
     @Bean
-    ShellOrderDelivery liroamShellShipping(OrderService orderService, OrderItemService orderItemService, SkuBindings liroamSkuBindings,
-            CardShipments liroamCardShipments, ManualTasks liroamManualTasks) {
-        return new ShellShipping(orderService, orderItemService, liroamSkuBindings, liroamCardShipments, liroamManualTasks);
+    ShellOrderDelivery liroamShellShipping(OrderService orderService, OrderItemService orderItemService, OrderPackageService orderPackageService,
+            SkuBindings liroamSkuBindings, CardShipments liroamCardShipments, ManualTasks liroamManualTasks, Settings liroamSettings) {
+        return new ShellShipping(orderService, orderItemService, orderPackageService, liroamSkuBindings, liroamCardShipments, liroamManualTasks,
+                liroamSettings);
     }
 
     @Bean

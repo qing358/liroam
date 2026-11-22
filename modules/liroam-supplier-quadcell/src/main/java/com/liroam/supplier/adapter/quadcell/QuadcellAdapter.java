@@ -399,7 +399,8 @@ public final class QuadcellAdapter implements SupplierAdapter {
         Long used = quota != null && remaining != null ? quota - remaining : null;
         String startsRaw = text(pack, "actDate");
         String expiresRaw = text(pack, "expDate");
-        return new PlanUsage(packId(pack).orElse(null), quota, used, remaining, null, null, time(startsRaw), time(expiresRaw), startsRaw, expiresRaw);
+        return new PlanUsage(packId(pack).orElse(null), quota, used, remaining, null, null, null, null, null, null, time(startsRaw), time(expiresRaw),
+                startsRaw, expiresRaw);
     }
 
     private Long bytes(Double megabytes) {

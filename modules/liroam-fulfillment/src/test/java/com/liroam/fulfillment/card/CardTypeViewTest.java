@@ -68,13 +68,103 @@ class CardTypeViewTest {
         long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE card_asset_id = ?", Long.class, card);
         String planRef = h.jdbc.queryForObject("SELECT upstream_plan_ref FROM lr_card_plan WHERE id = ?", String.class, plan);
         h.bean(com.liroam.fulfillment.poll.UsageMirror.class).apply(card, new UsageSnapshot(null, UsageSnapshot.CardStatus.ACTIVE,
-                java.util.List.of(new PlanUsage(planRef, 5L << 30, 1L << 30, 4L << 30, 2730L, 47, null, null, null, null)), "{}"), h.clock.instant());
+                java.util.List.of(new PlanUsage(planRef, 5L << 30, 1L << 30, 4L << 30, 6000L, 3270L, 2730L, 50, 3, 47, null, null, null, null)), "{}"),
+                h.clock.instant());
 
         CardView after = queries.getForMember(card, "m1").orElseThrow();
         assertThat(after).extracting(CardView::remainingText, CardView::voiceRemainingText, CardView::smsRemainingText)
                 .containsExactly("4 GB", "45 分钟", "47 条");
         assertThat(after.plans()).extracting(CardView.PlanView::voiceRemainingText, CardView.PlanView::smsRemainingText)
                 .containsExactly(tuple("45 分钟", "47 条"));
+        assertThat(after.plans()).extracting(CardView.PlanView::voiceUsageText, CardView.PlanView::smsUsageText)
+                .containsExactly(tuple("已用 54 / 共 100 分钟", "已用 3 / 共 50 条"));
+        assertThat(h.jdbc.queryForMap("SELECT voice_quota_seconds, voice_used_seconds, sms_quota, sms_used FROM lr_card_plan WHERE id = ?", plan))
+                .containsEntry("voice_quota_seconds", 6000L).containsEntry("voice_used_seconds", 3270L)
+                .containsEntry("sms_quota", 50).containsEntry("sms_used", 3);
+    }
+
+    @Test
+    void voiceSmsUsageBeforeAnyMirrorComesFromTheTemplate() {
+        long card = h.acceptCard("O-4", c.skuBNew, "m1");
+        h.drain();
+
+        CardView v = queries.getForMember(card, "m1").orElseThrow();
+
+        assertThat(v.plans()).extracting(CardView.PlanView::voiceUsageText, CardView.PlanView::smsUsageText)
+                .containsExactly(tuple("已用 0 / 共 100 分钟", "已用 0 / 共 50 条"));
+    }
+
+    @Test
+    void dataOnlyPlanHasNoVoiceOrSmsUsage() {
+        h.importPoolA(1, true);
+        long card = h.acceptCard("O-5", c.skuANew, "m1");
+        h.drain();
+
+        assertThat(queries.getForMember(card, "m1").orElseThrow().plans())
+                .extracting(CardView.PlanView::voiceUsageText, CardView.PlanView::smsUsageText).containsExactly(tuple(null, null));
+    }
+
+    /** 套餐「用完」= 每个有额度的维度都用尽；只用完流量、语音或短信还有余量时仍在用。 */
+    @Test
+    void planIsDepletedOnlyWhenEveryMeteredDimensionIsUsedUp() {
+        long card = h.acceptCard("O-6", c.skuBNew, "m1");
+        h.drain();
+        long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE card_asset_id = ?", Long.class, card);
+        String planRef = h.jdbc.queryForObject("SELECT upstream_plan_ref FROM lr_card_plan WHERE id = ?", String.class, plan);
+        var mirror = h.bean(com.liroam.fulfillment.poll.UsageMirror.class);
+
+        mirror.apply(card, new UsageSnapshot(null, UsageSnapshot.CardStatus.ACTIVE,
+                java.util.List.of(new PlanUsage(planRef, 5L << 30, 5L << 30, 0L, 6000L, 600L, 5400L, 50, 50, 0, h.clock.instant(), null, null, null)),
+                "{}"), h.clock.instant());
+        assertThat(h.jdbc.queryForObject("SELECT status FROM lr_card_plan WHERE id = ?", String.class, plan)).isEqualTo("IN_USE");
+        assertThat(queries.getForMember(card, "m1").orElseThrow()).extracting(CardView::remainingText, CardView::voiceRemainingText,
+                CardView::smsRemainingText).containsExactly("0 B", "90 分钟", "0 条");
+
+        mirror.apply(card, new UsageSnapshot(null, UsageSnapshot.CardStatus.ACTIVE,
+                java.util.List.of(new PlanUsage(planRef, 5L << 30, 5L << 30, 0L, 6000L, 6000L, 0L, 50, 50, 0, h.clock.instant(), null, null, null)),
+                "{}"), h.clock.instant());
+        assertThat(h.jdbc.queryForObject("SELECT status FROM lr_card_plan WHERE id = ?", String.class, plan)).isEqualTo("DEPLETED");
+    }
+
+    @Test
+    void dataOnlyPlanIsDepletedWhenDataRunsOut() {
+        h.importPoolA(1, true);
+        long card = h.acceptCard("O-7", c.skuANew, "m1");
+        h.drain();
+        long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE card_asset_id = ?", Long.class, card);
+        String planRef = h.jdbc.queryForObject("SELECT upstream_plan_ref FROM lr_card_plan WHERE id = ?", String.class, plan);
+
+        h.bean(com.liroam.fulfillment.poll.UsageMirror.class).apply(card, new UsageSnapshot(null, UsageSnapshot.CardStatus.ACTIVE,
+                java.util.List.of(new PlanUsage(planRef, 3L << 30, 3L << 30, 0L, null, null, null, null, null, null, h.clock.instant(), null, null, null)),
+                "{}"), h.clock.instant());
+
+        assertThat(h.jdbc.queryForObject("SELECT status FROM lr_card_plan WHERE id = ?", String.class, plan)).isEqualTo("DEPLETED");
+    }
+
+    /** 不限流量的语音卡：语音、短信用尽也不算用完（流量仍可用）。 */
+    @Test
+    void unlimitedDataPlanIsNotDepletedByVoiceAndSms() {
+        long template = h.jdbc.queryForObject("SELECT plan_template_id FROM lr_sku_binding WHERE id = ?", Long.class, c.skuBNew);
+        Long quota = h.jdbc.queryForObject("SELECT data_quota_bytes FROM lr_plan_template WHERE id = ?", Long.class, template);
+        h.jdbc.update("UPDATE lr_plan_template SET data_quota_bytes = NULL WHERE id = ?", template);
+        try {
+            assertUnlimitedDataPlanStaysInUse();
+        } finally {
+            h.jdbc.update("UPDATE lr_plan_template SET data_quota_bytes = ? WHERE id = ?", quota, template);
+        }
+    }
+
+    private void assertUnlimitedDataPlanStaysInUse() {
+        long card = h.acceptCard("O-8", c.skuBNew, "m1");
+        h.drain();
+        long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE card_asset_id = ?", Long.class, card);
+        String planRef = h.jdbc.queryForObject("SELECT upstream_plan_ref FROM lr_card_plan WHERE id = ?", String.class, plan);
+
+        h.bean(com.liroam.fulfillment.poll.UsageMirror.class).apply(card, new UsageSnapshot(null, UsageSnapshot.CardStatus.ACTIVE,
+                java.util.List.of(new PlanUsage(planRef, null, 7L << 30, null, 6000L, 6000L, 0L, 50, 50, 0, h.clock.instant(), null, null, null)),
+                "{}"), h.clock.instant());
+
+        assertThat(h.jdbc.queryForObject("SELECT status FROM lr_card_plan WHERE id = ?", String.class, plan)).isEqualTo("IN_USE");
     }
 
     @Test

@@ -60,7 +60,7 @@ public class CardQueries {
     private static final String PLAN_SELECT = """
             SELECT cp.id, cp.card_asset_id, t.name, cp.status, cp.remaining_bytes, cp.expires_at, t.data_quota_bytes AS template_quota_bytes,
                    t.validity_days, cp.voice_remaining_seconds, t.voice_seconds AS template_voice_seconds, cp.sms_remaining,
-                   t.sms_count AS template_sms_count
+                   t.sms_count AS template_sms_count, cp.voice_quota_seconds, cp.voice_used_seconds, cp.sms_quota, cp.sms_used
               FROM lr_card_plan cp JOIN lr_plan_template t ON t.id = cp.plan_template_id
             """;
 

@@ -90,7 +90,7 @@ public final class ContractStubAdapter implements SupplierAdapter {
     private PlanUsage plan(StubUpstream.Plan plan) {
         long unit = upstream.bytesPerUnit();
         return new PlanUsage(plan.ref(), plan.quotaUnits() * unit, plan.usedUnits() * unit,
-                (plan.quotaUnits() - plan.usedUnits()) * unit, null, null,
+                (plan.quotaUnits() - plan.usedUnits()) * unit, null, null, null, null, null, null,
                 null, upstream.parseTime(plan.expiresRaw()), null, plan.expiresRaw());
     }
 

@@ -143,7 +143,7 @@ class PollTest {
         String planRef = h.jdbc.queryForObject("SELECT upstream_plan_ref FROM lr_card_plan WHERE card_asset_id = ?", String.class, card);
         UsageMirror mirror = h.bean(UsageMirror.class);
         TransactionTemplate tx = h.bean(TransactionTemplate.class);
-        PlanUsage empty = new PlanUsage(planRef, 2048L, 2048L, 0L, null, null, null, SEEDED_EXPIRY, null, null);
+        PlanUsage empty = new PlanUsage(planRef, 2048L, 2048L, 0L, null, null, null, null, null, null, null, SEEDED_EXPIRY, null, null);
 
         tx.executeWithoutResult(s -> mirror.apply(card, new UsageSnapshot(null, CardStatus.ACTIVE, List.of(empty), "{}"), h.clock.instant()));
         assertThat(h.jdbc.queryForObject("SELECT status FROM lr_card_plan WHERE card_asset_id = ?", String.class, card)).isEqualTo("DEPLETED");

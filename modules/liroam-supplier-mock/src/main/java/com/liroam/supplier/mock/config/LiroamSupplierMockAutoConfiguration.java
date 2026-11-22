@@ -4,16 +4,19 @@ import java.time.Clock;
 import java.util.List;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 
 import com.liroam.common.safety.Simulated;
+import com.liroam.common.web.WebSurface;
 import com.liroam.supplier.mock.MockFaults;
 import com.liroam.supplier.mock.MockShapeAAdapter;
 import com.liroam.supplier.mock.MockShapeBAdapter;
 import com.liroam.supplier.mock.MockSupplierProperties;
 import com.liroam.supplier.mock.MockUpstreamConsole;
+import com.liroam.supplier.mock.MockUpstreamController;
 
 /**
  * 两家模拟供应商，只在 dev/test profile 装配；Bean 名即 {@code lr_supplier.adapter_key}。
@@ -46,5 +49,12 @@ public class LiroamSupplierMockAutoConfiguration {
     @Simulated
     MockUpstreamConsole liroamMockUpstreamConsole(MockShapeAAdapter mockShapeA, MockShapeBAdapter mockShapeB) {
         return new MockUpstreamConsole(List.of(mockShapeA, mockShapeB));
+    }
+
+    /** worker 在 manager-api 进程，模拟上游的内存也在那边，只在管理端挂接口。 */
+    @Bean
+    @ConditionalOnProperty(name = WebSurface.PROPERTY, havingValue = WebSurface.MANAGER)
+    MockUpstreamController liroamMockUpstreamController(MockUpstreamConsole liroamMockUpstreamConsole) {
+        return new MockUpstreamController(liroamMockUpstreamConsole);
     }
 }

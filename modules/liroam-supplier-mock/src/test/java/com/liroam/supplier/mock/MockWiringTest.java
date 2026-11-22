@@ -38,6 +38,14 @@ class MockWiringTest {
     }
 
     @Test
+    void upstreamConsoleEndpointOnlyOnManagerSurface() {
+        runner.withPropertyValues("spring.profiles.active=dev", "liroam.web.surface=manager")
+                .run(ctx -> assertThat(ctx).hasNotFailed().hasSingleBean(MockUpstreamController.class));
+        runner.withPropertyValues("spring.profiles.active=dev", "liroam.web.surface=buyer")
+                .run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(MockUpstreamController.class));
+    }
+
+    @Test
     void noProfileOrProductionProfileWiresNoMock() {
         runner.run(ctx -> assertThat(ctx).hasNotFailed().doesNotHaveBean(SupplierAdapter.class).doesNotHaveBean(MockFaults.class));
         runner.withPropertyValues("spring.profiles.active=prod")

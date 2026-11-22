@@ -17,13 +17,17 @@ public record UsageSnapshot(String cardUpstreamRef, CardStatus status, List<Plan
 
     public enum CardStatus { INACTIVE, ACTIVE, SUSPENDED, TERMINATED, EXPIRED }
 
-    /** 某个维度未声明时对应字段为空。 */
+    /** 某个维度未声明（或上游不报）时对应字段为空；流量额度为空 = 不限量或上游不报。 */
     public record PlanUsage(
             String upstreamPlanRef,
             Long quotaBytes,
             Long usedBytes,
             Long remainingBytes,
+            Long voiceQuotaSeconds,
+            Long voiceUsedSeconds,
             Long voiceRemainingSeconds,
+            Integer smsQuota,
+            Integer smsUsed,
             Integer smsRemaining,
             Instant startsAt,
             Instant expiresAt,

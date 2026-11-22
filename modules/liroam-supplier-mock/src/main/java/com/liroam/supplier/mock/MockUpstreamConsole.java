@@ -42,6 +42,11 @@ public final class MockUpstreamConsole {
         return base(upstream(adapterKey).markInUse(upstreamRef, usedBytes));
     }
 
+    /** 卡已激活，基础套餐已用语音 {@code voiceUsedSeconds} 秒、短信 {@code smsUsed} 条（覆盖为该值，截在 0～额度之间；为空不改）。 */
+    public BasePlan useCalls(String adapterKey, String upstreamRef, Long voiceUsedSeconds, Integer smsUsed) {
+        return base(upstream(adapterKey).markCalls(upstreamRef, voiceUsedSeconds, smsUsed));
+    }
+
     /** 卡上全部套餐到期（无论是否激活过）。 */
     public BasePlan expire(String adapterKey, String upstreamRef) {
         return base(upstream(adapterKey).markExpired(upstreamRef));

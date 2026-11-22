@@ -77,7 +77,13 @@ public abstract class AbstractMockAdapter implements SupplierAdapter {
     final PlanUsage plan(WirePlan p) {
         WireFormat wire = upstream.wire();
         return new PlanUsage(p.ref(), wire.toBytes(p.quota()), wire.toBytes(p.used()), wire.toBytes(p.quota() - p.used()),
-                p.voiceSeconds(), p.sms(), wire.parseTime(p.startsAt()), wire.parseTime(p.expiresAt()), p.startsAt(), p.expiresAt());
+                p.voiceQuotaSeconds(), p.voiceUsedSeconds(), minus(p.voiceQuotaSeconds(), p.voiceUsedSeconds()),
+                p.smsQuota(), p.smsUsed(), p.smsQuota() == null ? null : Math.max(p.smsQuota() - p.smsUsed(), 0),
+                wire.parseTime(p.startsAt()), wire.parseTime(p.expiresAt()), p.startsAt(), p.expiresAt());
+    }
+
+    private static Long minus(Long quota, Long used) {
+        return quota == null ? null : Math.max(quota - used, 0);
     }
 
     private UsageSnapshot snapshot(WireCard card) {

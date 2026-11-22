@@ -88,10 +88,34 @@ public class UsageMirror {
         if (status == CardPlanStatus.IN_USE) {
             if (expired) {
                 plans.move(plan, CardPlanStatus.EXPIRED);
-            } else if (usage.remainingBytes() != null && usage.remainingBytes() <= 0) {
+            } else if (usedUp(usage, plans.unlimitedData(plan.id()))) {
                 plans.move(plan, CardPlanStatus.DEPLETED);
             }
         }
+    }
+
+    /**
+     * 用完 = 每个有额度的维度都用尽（至少有一个）。上游不报余量的维度不参与；额度为 0 的维度（如纯语音包的流量）不参与；
+     * 不限流量的套餐永不因语音、短信用尽而算用完。
+     */
+    private static boolean usedUp(PlanUsage u, boolean unlimitedData) {
+        if (unlimitedData) {
+            return false;
+        }
+        List<Meter> counted = List.of(new Meter(u.quotaBytes(), u.remainingBytes()), new Meter(u.voiceQuotaSeconds(), u.voiceRemainingSeconds()),
+                        new Meter(toLong(u.smsQuota()), toLong(u.smsRemaining())))
+                .stream().filter(Meter::counted).toList();
+        return !counted.isEmpty() && counted.stream().allMatch(m -> m.remaining() <= 0);
+    }
+
+    private record Meter(Long quota, Long remaining) {
+        boolean counted() {
+            return remaining != null && (quota == null || quota > 0);
+        }
+    }
+
+    private static Long toLong(Integer n) {
+        return n == null ? null : n.longValue();
     }
 
     private void mirrorCard(Card card, CardStatus upstream, List<Plan> cardPlans, Instant now) {

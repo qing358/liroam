@@ -73,7 +73,7 @@ final class MockUpstream {
         }
     }
 
-    record Plan(String ref, MockPackage pkg, long usedBytes, Instant startsAt, Instant expiresAt) {
+    record Plan(String ref, MockPackage pkg, long usedBytes, long voiceUsedSeconds, int smsUsed, Instant startsAt, Instant expiresAt) {
     }
 
     enum Lifecycle { LIVE, SUSPENDED, TERMINATED }
@@ -105,8 +105,9 @@ final class MockUpstream {
         }
     }
 
-    /** 线路上的一个套餐：流量为上游单位，未计量的维度为空。 */
-    record WirePlan(String ref, long quota, long used, Long voiceSeconds, Integer sms, String startsAt, String expiresAt) {
+    /** 线路上的一个套餐：流量为上游单位，语音秒、短信条；未计量的维度为空。 */
+    record WirePlan(String ref, long quota, long used, Long voiceQuotaSeconds, Long voiceUsedSeconds, Integer smsQuota, Integer smsUsed,
+            String startsAt, String expiresAt) {
     }
 
     record WireCard(String ref, String status, List<WirePlan> plans, String json) {
@@ -178,7 +179,7 @@ final class MockUpstream {
     }
 
     private static Plan plan(String ref, MockPackage pkg, Instant startsAt) {
-        return new Plan(ref, pkg, 0, startsAt, startsAt.plus(Duration.ofDays(pkg.days())));
+        return new Plan(ref, pkg, 0, 0, 0, startsAt, startsAt.plus(Duration.ofDays(pkg.days())));
     }
 
     private Card newCard(String iccid, MockPackage pkg) {
@@ -330,9 +331,10 @@ final class MockUpstream {
     private WireCard render(Card card) {
         Instant now = clock.instant();
         String status = wire.statusCode(card.status(now));
+        boolean meters = wire.metersVoiceAndSms();
         List<WirePlan> plans = card.plans().stream().map(p -> new WirePlan(p.ref(), wire.toUnits(p.pkg().quotaBytes()), wire.toUnits(p.usedBytes()),
-                wire.metersVoiceAndSms() ? p.pkg().voiceSeconds() : null, wire.metersVoiceAndSms() ? p.pkg().sms() : null,
-                wire.formatTime(p.startsAt()), wire.formatTime(p.expiresAt()))).toList();
+                meters ? p.pkg().voiceSeconds() : null, meters ? p.voiceUsedSeconds() : null, meters ? p.pkg().sms() : null,
+                meters ? p.smsUsed() : null, wire.formatTime(p.startsAt()), wire.formatTime(p.expiresAt()))).toList();
         Map<String, Object> json = new LinkedHashMap<>();
         json.put("ref", card.ref());
         json.put("status", status);
@@ -341,9 +343,11 @@ final class MockUpstream {
             m.put("ref", p.ref());
             m.put("quota", p.quota());
             m.put("used", p.used());
-            if (wire.metersVoiceAndSms()) {
-                m.put("voice_seconds", p.voiceSeconds());
-                m.put("sms", p.sms());
+            if (meters) {
+                m.put("voice_seconds", p.voiceQuotaSeconds());
+                m.put("voice_used_seconds", p.voiceUsedSeconds());
+                m.put("sms", p.smsQuota());
+                m.put("sms_used", p.smsUsed());
             }
             m.put("starts_at", p.startsAt());
             m.put("expires_at", p.expiresAt());
@@ -364,17 +368,33 @@ final class MockUpstream {
 
     Card markInUse(String ref, long usedBytes) {
         return consoleMutate(ref, card -> {
-            List<Plan> plans = new ArrayList<>(card.plans());
-            Plan base = plans.getFirst();
-            plans.set(0, new Plan(base.ref(), base.pkg(), Math.clamp(usedBytes, 0, base.pkg().quotaBytes()), base.startsAt(), base.expiresAt()));
-            return card.withPlans(true, plans);
+            Plan base = card.base();
+            return withBase(card, new Plan(base.ref(), base.pkg(), Math.clamp(usedBytes, 0, base.pkg().quotaBytes()), base.voiceUsedSeconds(),
+                    base.smsUsed(), base.startsAt(), base.expiresAt()));
         });
+    }
+
+    /** 基础套餐已用语音秒、短信条（覆盖为该值，截在 0～额度之间；为空不改），卡同时视为已激活。 */
+    Card markCalls(String ref, Long voiceUsedSeconds, Integer smsUsed) {
+        return consoleMutate(ref, card -> {
+            Plan base = card.base();
+            long voice = voiceUsedSeconds == null ? base.voiceUsedSeconds() : Math.clamp(voiceUsedSeconds, 0, base.pkg().voiceSeconds());
+            int sms = smsUsed == null ? base.smsUsed() : Math.clamp(smsUsed, 0, base.pkg().sms());
+            return withBase(card, new Plan(base.ref(), base.pkg(), base.usedBytes(), voice, sms, base.startsAt(), base.expiresAt()));
+        });
+    }
+
+    private static Card withBase(Card card, Plan base) {
+        List<Plan> plans = new ArrayList<>(card.plans());
+        plans.set(0, base);
+        return card.withPlans(true, plans);
     }
 
     Card markExpired(String ref) {
         Instant past = now().minusSeconds(1);
         return consoleMutate(ref, card -> card.withPlans(card.activated(), card.plans().stream()
-                .map(p -> p.expiresAt().isAfter(past) ? new Plan(p.ref(), p.pkg(), p.usedBytes(), p.startsAt(), past) : p).toList()));
+                .map(p -> p.expiresAt().isAfter(past)
+                        ? new Plan(p.ref(), p.pkg(), p.usedBytes(), p.voiceUsedSeconds(), p.smsUsed(), p.startsAt(), past) : p).toList()));
     }
 
     int provisions(String requestNo) {

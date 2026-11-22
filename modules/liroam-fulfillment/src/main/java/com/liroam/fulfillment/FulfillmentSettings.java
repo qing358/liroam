@@ -5,6 +5,7 @@ import java.time.Duration;
 
 import com.liroam.common.setting.SettingKey;
 import com.liroam.common.setting.SettingScope.Type;
+import com.liroam.fulfillment.delivery.MultiWaybillMode;
 
 /** 履约相关运营配置（domain-design §13）；值存 {@code lr_setting}，这里是唯一注册处。 */
 public final class FulfillmentSettings {
@@ -40,6 +41,9 @@ public final class FulfillmentSettings {
 
     public static final SettingKey<Duration> CREDENTIAL_TIMEOUT = SettingKey.scoped("credential.timeout", Duration.class, Duration.ofHours(2),
             "开通后多久未交码转人工待办", Type.SUPPLIER);
+
+    public static final SettingKey<MultiWaybillMode> SHIPPING_MULTI_WAYBILL_MODE = SettingKey.global("shipping.multi_waybill_mode",
+            MultiWaybillMode.class, MultiWaybillMode.MANUAL, "实体卡分多个运单时壳订单发货方式：MANUAL 转人工分包，SPLIT 按运单自动分包");
 
     public static final SettingKey<Integer> ALERT_COMMAND_RETRY_ATTEMPTS = SettingKey.global("alert.command_retry_attempts", Integer.class, 3,
             "指令重试到第几次仍未成功即告警");
