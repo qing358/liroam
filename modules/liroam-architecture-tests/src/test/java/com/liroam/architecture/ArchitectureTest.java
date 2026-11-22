@@ -32,7 +32,7 @@ class ArchitectureTest {
     void importsEveryModule() {
         Set<String> roots = production.stream().map(JavaClass::getPackageName)
                 .map(p -> p.split("\\.").length > 2 ? p.split("\\.")[2] : p).collect(Collectors.toSet());
-        assertThat(roots).contains("common", "schema", "supplier", "catalog", "pricing", "fulfillment", "shell");
+        assertThat(roots).contains("common", "schema", "supplier", "catalog", "pricing", "fulfillment", "refund", "shell");
         assertThat(production.stream().map(JavaClass::getPackageName)).as("mock 供应商受规则约束").contains("com.liroam.supplier.mock");
         assertThat(production.stream().map(JavaClass::getName)).noneMatch(n -> n.contains(".contract."));
     }

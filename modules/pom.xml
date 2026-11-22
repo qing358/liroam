@@ -25,6 +25,7 @@
         <module>liroam-supplier-mock</module>
         <module>liroam-pricing</module>
         <module>liroam-fulfillment</module>
+        <module>liroam-refund</module>
         <module>liroam-shell-bridge</module>
         <module>liroam-architecture-tests</module>
     </modules>
@@ -92,6 +93,11 @@
                 <artifactId>liroam-fulfillment</artifactId>
                 <version>${project.version}</version>
                 <type>test-jar</type>
+            </dependency>
+            <dependency>
+                <groupId>com.liroam</groupId>
+                <artifactId>liroam-refund</artifactId>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.liroam</groupId>

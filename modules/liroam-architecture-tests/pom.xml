@@ -28,6 +28,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.liroam</groupId>
+            <artifactId>liroam-refund</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>cn.lili</groupId>
             <artifactId>framework</artifactId>
             <scope>test</scope>
