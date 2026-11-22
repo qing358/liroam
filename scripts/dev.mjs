@@ -339,7 +339,7 @@ async function demo() {
   runSql('deploy/dev-demo.sql');
   const suppliers = parseTsv(runSql('deploy/dev-demo-suppliers.sql'));
   for (const sup of suppliers) {
-    const sheets = await api.get(`/manager/liroam/tariff-sheets?supplierId=${sup.id}&pageSize=50`);
+    const sheets = await api.get(`/manager/liroam/tariff-sheets?supplierId=${sup.id}&pageNumber=1&pageSize=50`);
     if ((sheets.records || []).some((r) => r.status === 'ACTIVE')) continue;
     const form = new FormData();
     form.append('file', new Blob([fs.readFileSync(path.join(rootDir, DEMO_SHEET))]), path.basename(DEMO_SHEET));
@@ -361,7 +361,7 @@ async function demo() {
     for (let i = 1; i <= DEMO_POOL_SIZE; i += 1) csv.push(`89852${String(sku.card_product_id).padStart(6, '0')}${String(i).padStart(8, '0')}`);
     const form = new FormData();
     form.append('file', new Blob([csv.join('\n')]), 'demo-pool.csv');
-    const report = await api.post(`/manager/liroam/pool/import?supplierId=${sku.supplier_id}&cardProductId=${sku.card_product_id}`, form);
+    const report = await api.post(`/manager/liroam/cards/pool/import?supplierId=${sku.supplier_id}&cardProductId=${sku.card_product_id}`, form);
     console.log(`- SUP_A 卡产品 #${sku.card_product_id} 池卡导入：${JSON.stringify(report)}`);
   }
   compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });

@@ -3,6 +3,9 @@
 -- 卡产品与可用区域来自资费表导入（demo 命令先导入、启用资费表，再执行本文件第二遍补齐绑定）；售价由 demo 命令经后台手工定价写回壳。
 -- 固定 id 号段 9100000000000000001–9100000000000009999（壳 li_goods / li_goods_sku），lr_ 表用 code / 唯一键防重。
 
+-- lr_ 表为 utf8mb4_general_ci；连接与临时表统一到同一排序规则，避免与服务端默认 0900_ai_ci 混比。
+SET NAMES utf8mb4 COLLATE utf8mb4_general_ci;
+
 INSERT IGNORE INTO lr_supplier (code, name, adapter_key, enabled, listing_enabled) VALUES
     ('SUP_A', '演示供应商 A（池卡 · 导入交码）', 'mock-shape-a', 1, 1),
     ('SUP_B', '演示供应商 B（下单即建 · 接口交码）', 'mock-shape-b', 1, 1);
@@ -24,7 +27,7 @@ CREATE TEMPORARY TABLE demo_sku (
     package_code VARCHAR(64)  NOT NULL,
     sku_kind     VARCHAR(16)  NOT NULL,
     price        DECIMAL(10, 2) NOT NULL
-);
+) DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 INSERT INTO demo_sku VALUES
     (9100000000000000001, 9100000000000001001, '日本 eSIM 7 天 5GB（演示 A）', 'SUP_A', 'JP', 9100001, '5GB-7D', 'NEW_CARD', 39.90),
     (9100000000000000002, 9100000000000001002, '中国内地 eSIM 7 天 5GB（演示 A）', 'SUP_A', 'CN', 9100001, '5GB-7D', 'NEW_CARD', 29.90),
