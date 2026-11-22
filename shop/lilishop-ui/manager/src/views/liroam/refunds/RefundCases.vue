@@ -3,12 +3,12 @@
     <el-card>
       <el-form inline label-width="70px" class="search-form">
         <el-form-item label="状态">
-          <el-select v-model="status" placeholder="全部" clearable style="width: 160px" @change="load">
+          <el-select v-model="status" placeholder="全部" clearable style="width: 160px" @change="reload">
             <el-option v-for="item in REFUND_STATUSES" :key="item.value" :label="item.label" :value="item.value" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" class="search-btn" @click="load">刷新</el-button>
+          <el-button type="primary" class="search-btn" @click="reload">刷新</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -51,6 +51,7 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-pagination v-model:current-page="page" :page-size="20" :total="total" layout="total, prev, pager, next" class="mt_10" @current-change="load" />
     </el-card>
   </div>
 </template>
@@ -59,7 +60,7 @@
 import { onMounted, ref } from "vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { actOnRefund, listRefunds } from "@/api/liroam";
-import { fenToYuan, listOf, pick } from "@/utils/liroam";
+import { fenToYuan, pageOf, pick } from "@/utils/liroam";
 
 defineOptions({ name: "liroam-refund-cases" });
 
@@ -80,17 +81,28 @@ const ACTIONS = {
 const status = ref("");
 const loading = ref(false);
 const data = ref([]);
+const page = ref(1);
+const total = ref(0);
 
 async function load() {
   loading.value = true;
   try {
-    const res = await listRefunds({ status: status.value });
-    data.value = listOf(res && res.success ? res.result : null);
+    const res = await listRefunds({ status: status.value, pageNumber: page.value, pageSize: 20 });
+    if (res && res.success) {
+      const { records, total: count } = pageOf(res.result);
+      data.value = records;
+      total.value = count;
+    }
   } catch {
     // 请求层已提示错误
   } finally {
     loading.value = false;
   }
+}
+
+function reload() {
+  page.value = 1;
+  load();
 }
 
 async function act(row, action) {
