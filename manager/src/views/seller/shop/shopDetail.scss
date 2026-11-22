@@ -1,0 +1,163 @@
+.shop-header-card {
+  border: none;
+  background: transparent;
+
+  :deep(.el-card__body) {
+    padding: 0;
+  }
+}
+
+.shop-banner {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 32px;
+  border-radius: 10px;
+  background: linear-gradient(120deg, #4a7bc8 0%, #355fa8 55%, #2b4c8c 100%);
+  box-shadow: 0 4px 16px rgba(53, 95, 168, 0.25);
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: -60px;
+    top: -80px;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: 120px;
+    bottom: -110px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.banner-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.shop-avatar {
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.55);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.shop-title {
+  margin-left: 18px;
+  min-width: 0;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.shop-name {
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  max-width: 420px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.status-tag {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #fff;
+}
+
+.shop-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+
+  span + span::before {
+    content: "·";
+    margin: 0 10px;
+    color: rgba(255, 255, 255, 0.45);
+  }
+}
+
+.banner-right {
+  flex-shrink: 0;
+  padding-left: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.switch-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+}
+
+// 详情描述列表
+.shop-desc {
+  max-width: 880px;
+
+  :deep(.el-descriptions__label) {
+    width: 180px;
+    color: rgba(0, 0, 0, 0.45);
+    background: #fafbfc;
+    font-weight: 400;
+  }
+
+  :deep(.el-descriptions__content) {
+    color: rgba(0, 0, 0, 0.85);
+  }
+
+  :deep(.el-descriptions__cell) {
+    padding: 14px 16px !important;
+  }
+}
+
+.cert-img {
+  width: 100px;
+  height: 100px;
+  margin: 0 10px 10px 0;
+  border-radius: 6px;
+  border: 1px solid #ebeef5;
+  cursor: pointer;
+  vertical-align: top;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  }
+}
+
+.category-tag {
+  margin: 0 8px 8px 0;
+}

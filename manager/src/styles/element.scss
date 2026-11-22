@@ -1,0 +1,153 @@
+/* 全局禁止多行输入框拖动缩放，覆盖组件生成的内联 resize 样式。 */
+.el-textarea__inner {
+  resize: none !important;
+}
+
+/* Element Plus 主题覆盖（对齐原 iView 主色） */
+:root {
+  // --el-color-primary: #ff5c58;
+  // --el-color-success: #68cabe;
+  // --el-color-warning: #fa6419;
+  // --el-color-danger: #ff3c2a;
+  --el-font-size-extra-small: 12px;
+  --el-font-size-small: 13px;
+  --el-font-size-base: 14px;
+  --el-font-size-large: 16px;
+}
+
+// .el-button--primary {
+//   --el-button-bg-color: #ff5c58;
+//   --el-button-border-color: #ff5c58;
+//   --el-button-hover-bg-color: #ff7875;
+//   --el-button-hover-border-color: #ff7875;
+// }
+
+/* 全局表格：去掉列竖线，保留行横线 */
+.el-table--border {
+  .el-table__cell {
+    border-right: none !important;
+  }
+
+  .el-table__border-left-patch {
+    display: none;
+  }
+
+  &::before,
+  &::after,
+  .el-table__inner-wrapper::before,
+  .el-table__inner-wrapper::after {
+    width: 0 !important;
+  }
+
+  &.el-table--group::before,
+  &.el-table--group::after,
+  &.el-table--group .el-table__inner-wrapper::before,
+  &.el-table--group .el-table__inner-wrapper::after {
+    width: 0 !important;
+  }
+}
+
+.el-table__fixed-right::before,
+.el-table__fixed::before {
+  background-color: transparent;
+}
+
+/* 全局表格表头 */
+.el-table {
+  .el-table__header th.el-table__cell {
+    background: var(--el-color-primary-light-9, #ecf5ff);
+    color: #303133;
+    font-weight: normal;
+  }
+
+  .el-table__header th.el-table__cell .cell {
+    color: #303133;
+    font-weight: normal;
+  }
+}
+
+/* 列表操作列统一样式 */
+.link-text {
+  color: #409eff;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover {
+    color: #66b1ff;
+  }
+
+  &.disabled {
+    color: #c0c4cc;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+.op-split {
+  margin: 0 8px;
+  color: #dcdfe6;
+}
+
+.el-table .ops {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+
+  a:not(.link-text) {
+    color: #409eff;
+    cursor: pointer;
+    text-decoration: none;
+
+    &:hover {
+      color: #66b1ff;
+    }
+  }
+
+  > span:not(.op-split) {
+    margin: 0 8px;
+    color: #dcdfe6;
+  }
+}
+
+.gcc-disabled-action {
+  color: #c0c4cc;
+  cursor: not-allowed;
+}
+
+/* 顶部路由加载条（与商家后台一致） */
+#nprogress .bar {
+  height: 2x;
+  background: var(--el-color-primary, #409eff);
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 4px var(--el-color-primary, #409eff), 0 0 2px var(--el-color-primary, #409eff);
+}
+
+/* 统一空状态：表格 / 树 / 列表无数据时的展示（未自定义 #empty 插槽的页面均生效） */
+.el-table__empty-block {
+  min-height: 160px;
+}
+
+.el-table__empty-text,
+.el-tree__empty-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.5;
+  color: #909399;
+  font-size: 14px;
+
+  &::before {
+    content: "";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+    background: no-repeat center / contain
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' fill='none' stroke='%23c0c4cc' stroke-width='2' stroke-linejoin='round'><path d='M8 36l8-20h32l8 20v12a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V36z'/><path d='M8 36h16a8 8 0 0 0 16 0h16'/></svg>");
+  }
+}

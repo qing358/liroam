@@ -1,0 +1,98 @@
+const path = require("path");
+const configs = require("./src/config");
+const CompressionPlugin = require("compression-webpack-plugin");
+
+const resolve = (dir) => path.join(__dirname, dir);
+const enableProduction = process.env.NODE_ENV === "production";
+
+module.exports = {
+  publicPath: process.env.VUE_APP_PUBLIC_PATH || "/",
+  outputDir: "dist",
+  assetsDir: "static",
+  css: {
+    sourceMap: false,
+    loaderOptions: {
+      sass: {
+        additionalData: `@import "@/assets/styles/global.scss";`,
+        sassOptions: {
+          silenceDeprecations: ["legacy-js-api", "import"],
+        },
+      },
+      scss: {
+        additionalData: `@import "@/assets/styles/global.scss";`,
+        sassOptions: {
+          silenceDeprecations: ["legacy-js-api", "import"],
+        },
+      },
+      less: {
+        lessOptions: {
+          javascriptEnabled: true,
+        },
+      },
+    },
+  },
+  devServer: {
+    port: configs.port,
+    client: {
+      overlay: {
+        // 保留编译错误和程序异常遮罩，仅跳过请求层已向用户提示的错误。
+        runtimeErrors: (error) => error?.[Symbol.for("lilishop.buyer.handledRequestError")] !== true,
+      },
+    },
+  },
+  productionSourceMap: false,
+  configureWebpack: {
+    plugins: enableProduction
+      ? [
+          new CompressionPlugin({
+            test: /\.js$|\.html$|\.css/,
+            threshold: 10240,
+          }),
+        ]
+      : [],
+    optimization: {
+      runtimeChunk: "single",
+      splitChunks: {
+        chunks: "all",
+        maxInitialRequests: Infinity,
+        minSize: 20000,
+        cacheGroups: {
+          vendor: {
+            test(module) {
+              if (!module.context) return false;
+              if (/[\\/]node_modules[\\/]vue-qr[\\/]/.test(module.context)) {
+                return false;
+              }
+              return /[\\/]node_modules[\\/]/.test(module.context);
+            },
+            name(module) {
+              const match =
+                module.context &&
+                module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+              const packageName = match ? match[1] : "vendor";
+              return `npm.${packageName.replace("@", "")}`;
+            },
+          },
+        },
+      },
+    },
+  },
+  chainWebpack(config) {
+    config.resolve.alias.set("@", resolve("src"));
+    config.plugin("html").tap((args) => {
+      args[0].cdn = { css: [], js: [] };
+      args[0].title = configs.title;
+      return args;
+    });
+    // 生产环境兜底：压缩时移除所有 console 输出
+    if (enableProduction) {
+      config.optimization.minimizer("terser").tap((args) => {
+        args[0].terserOptions.compress = {
+          ...args[0].terserOptions.compress,
+          drop_console: true,
+        };
+        return args;
+      });
+    }
+  },
+};

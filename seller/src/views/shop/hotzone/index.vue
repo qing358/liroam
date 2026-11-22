@@ -1,0 +1,76 @@
+<template>
+  <el-dialog
+    v-model="flag"
+    title="绘制热区"
+    width="800px"
+    top="8vh"
+    :close-on-click-modal="false"
+    append-to-body
+    destroy-on-close
+    @close="clickClose"
+  >
+    <template v-if="flag && hotzoneRes">
+      <hotzone
+        ref="hotzoneRef"
+        :zonesInit="hotzoneRes.zoneInfo"
+        :image="hotzoneRes.img"
+        @change="changeHotzone"
+      />
+    </template>
+    <template #footer>
+      <el-button @click="clickClose">取消</el-button>
+      <el-button type="primary" @click="clickOK">确定</el-button>
+    </template>
+  </el-dialog>
+</template>
+<script setup>
+import { ref } from "vue";
+import hotzone from "./components/Hotzone.vue";
+
+const emit = defineEmits(["changeZone", "closeFlag"]);
+
+const flag = ref(false);
+const hotzoneRes = ref(null);
+
+// hotzoneRef：模板 ref 与组件 import 同名，改名避免互相覆盖
+const hotzoneRef = ref(null);
+
+const changeHotzone = (info) => {
+  if (hotzoneRes.value) {
+    hotzoneRes.value.zoneInfo = info;
+  }
+  emit("changeZone", info);
+};
+
+const clickClose = () => {
+  flag.value = false;
+  hotzoneRes.value = null;
+  emit("closeFlag", false);
+};
+
+const clickOK = () => {
+  clickClose();
+};
+
+const open = (val) => {
+  hotzoneRes.value = val || null;
+  if (hotzoneRes.value && !hotzoneRes.value.zoneInfo) {
+    hotzoneRes.value.zoneInfo = [];
+  }
+  flag.value = true;
+};
+
+const close = () => {
+  flag.value = false;
+  hotzoneRes.value = null;
+};
+
+// decorate.vue 通过 hotzoneRef.value.open(val) 调用
+defineExpose({ open, close });
+</script>
+<style scoped lang="scss">
+:deep(.el-dialog__body) {
+  overflow: hidden;
+  height: 500px;
+}
+</style>

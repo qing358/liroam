@@ -1,0 +1,990 @@
+<template>
+  <div class="cart" @click="couponAvailable = false">
+    <BaseHeader></BaseHeader>
+    <!-- LOGO 搜索 -->
+    <div class="width_1200 logo">
+      <div>
+        <router-link to="/"><img :src="logoImg" /></router-link>
+        <div>
+          购物车(<span>{{ goodsTotal }}</span>)
+        </div>
+      </div>
+      <div class="cart-steps">
+        <span :class="stepIndex == 0 ? 'active' : ''">1.我的购物车</span>
+        <i class="icomoon icon-next" :class="stepIndex == 0 ? 'active-arrow' : ''"></i>
+        <span :class="stepIndex == 1 ? 'active' : ''">2.填写订单信息</span>
+        <i class="icomoon icon-next" :class="stepIndex == 1 ? 'active-arrow' : ''"></i>
+        <span :class="stepIndex == 2 ? 'active' : ''">3.成功提交订单</span>
+      </div>
+    </div>
+    <el-divider />
+    <!-- 购物车主体 -->
+    <div class="cart-content width_1200 center">
+      <!-- 购物车商品列表 -->
+      <div class="cart-goods">
+        <div class="cart-goods-table">
+        <div class="cart-goods-title">
+          <div class="width_60 cart-col-check">
+            <el-checkbox
+              v-model="allChecked"
+              @change="changeChecked(allChecked, 'all')"
+              >全选</el-checkbox
+            >
+          </div>
+          <div class="goods-title">商品</div>
+          <div class="width_150">单价（元）</div>
+          <div class="width_100">数量</div>
+          <div class="width_150">小计</div>
+          <div class="cart-ops-col">操作</div>
+        </div>
+        <div v-if="cartList.length === 0" class="cart-empty">
+          <p>购物车空空如也</p>
+          <router-link to="/">去选购&gt;</router-link>
+        </div>
+        <div v-else class="cart-goods-list-box">
+          <div
+            class="cart-shop-group"
+            v-for="(shop, index) in cartList"
+            :key="index"
+          >
+            <div class="shop-name">
+              <div class="width_60 cart-col-check">
+                <el-checkbox
+                  v-model="shop.checked"
+                  @change="changeChecked(shop.checked, 'shop', shop.storeId)"
+                ></el-checkbox>
+              </div>
+              <div class="shop-info">
+                <span class="go-shop-page" @click="goShopPage(shop.storeId)">{{
+                  shop.storeName
+                }}</span>
+              <span
+                class="shop-coupon"
+                v-if="shop.couponList.length"
+                :class="couponAvailable === index ? 'shop-coupon-show' : ''"
+                @click.stop="showCoupon(shop.id, index)"
+              >
+                <!-- 优惠券模态框 -->
+                <div v-if="couponAvailable === index">
+                  <div
+                    class="coupon-item"
+                    v-for="(item, couponIndex) in shop.couponList"
+                    :key="couponIndex"
+                  >
+                    <span v-if="item.couponType === 'PRICE'"
+                      >￥{{ item.price }}</span>
+                    <span v-if="item.couponType === 'DISCOUNT'"
+                      >{{ item.couponDiscount }}折</span>
+                    <span>{{ item.consumeThreshold > 0 ? '满' + item.consumeThreshold + '元可用' : '无门槛使用' }}</span>
+                    <el-button
+                      class="coupon-btn"
+                      size="small"
+                      type="primary"
+                      @click="receiveShopCoupon(item)"
+                      :disabled="item.disabled"
+                      >{{ item.disabled ? "已领取" : "领取" }}</el-button
+                    >
+                  </div>
+                </div>
+              </span>
+              <div class="promotion-notice">{{ shop.promotionNotice }}</div>
+              </div>
+            </div>
+            <template v-for="(goods, goodsIndex) in shop.skuList" :key="goods.goodsSku?.id || goodsIndex">
+              <div class="goods-item">
+              <div class="width_60 cart-col-check">
+                <el-checkbox
+                  v-model="goods.checked"
+                  @change="
+                    changeChecked(goods.checked, 'goods', goods.goodsSku.id)
+                  "
+                ></el-checkbox>
+              </div>
+              <div
+                class="goods-title"
+                @click="
+                  goGoodsDetail(goods.goodsSku.id, goods.goodsSku.goodsId)
+                "
+              >
+                <img
+                  :src="
+                    goods.goodsSku.thumbnail ||
+                    '../assets/images/goodsDetail/item-detail-1.jpg'
+                  "
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div>
+                  <p>
+                    {{ goods.goodsSku.goodsName }}
+                  </p>
+                  <div class="promotion" v-if="getSeckill(goods)">
+                    <span>秒杀</span>
+                    <promotion
+                      :time="getSeckill(goods).endTime"
+                      type="cart"
+                    ></promotion>
+                  </div>
+                  <div class="promotion" v-if="getFullDiscount(goods)">
+                    <span>{{ getFullDiscountTag(goods) }}</span>
+                  </div>
+                  <div class="promotion" v-if="getSingleReduction(goods)">
+                    <span>单品立减</span>
+                    <p v-if="getSingleReduction(goods).fullMinus">
+                      每件立减{{ getSingleReduction(goods).fullMinus }}元
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="width_150 cart-col-price">
+                {{ $filters.unitPrice(goods.purchasePrice, "￥") }}
+              </div>
+              <div class="width_100 cart-col-qty">
+                <el-input-number
+                  :min="1"
+                  size="small"
+                  v-model="goods.num"
+                  @change="changeNum(goods.num, goods.goodsSku.id)"
+                ></el-input-number>
+                <div class="cart-qty-stock">
+                  {{ goods.goodsSku.quantity > 0 ? "有货" : "无货" }}
+                </div>
+              </div>
+              <div class="width_150 cart-col-subtotal">
+                {{ $filters.unitPrice(goods.subTotal, "￥") }}
+              </div>
+              <div class="cart-ops-col">
+                <div v-if="!goods.errorMessage" class="cart-ops">
+                  <el-button
+                    size="small"
+                    class="cart-del-btn"
+                    @click="delGoods(goods.goodsSku.id)"
+                    >删除</el-button
+                  >
+                  <el-button
+                    size="small"
+                    class="cart-collect-btn"
+                    :class="{ 'is-collected': goods.isCollected }"
+                    @click="handleCollect(goods)"
+                    >{{ goods.isCollected ? "已收藏" : "收藏" }}</el-button
+                  >
+                </div>
+              </div>
+              <div class="error-goods" v-if="goods.errorMessage">
+                <div>{{ goods.errorMessage }}</div>
+                <el-button type="primary" @click="delGoods(goods.goodsSku.id)"
+                  >删除</el-button
+                >
+              </div>
+            </div>
+            </template>
+          </div>
+        </div>
+        </div>
+        <!-- 底部支付栏 -->
+        <div class="cart-goods-footer">
+          <div>
+            <div class="width_60 cart-col-check">
+              <el-checkbox
+                v-model="allChecked"
+                @change="changeChecked(allChecked, 'all')"
+                >全选</el-checkbox
+              >
+            </div>
+            <div class="width_100 handle-btn" @click="delGoods()">
+              删除选中商品
+            </div>
+            <!-- <div class="width_100 handle-btn" @click="collectGoods">移到我的收藏</div> -->
+            <div class="width_100 handle-btn" @click="clearCart">
+              清空购物车
+            </div>
+          </div>
+          <div>
+            <div class="selected-count">
+              已选择<span>{{ checkedNum }}</span>件商品
+            </div>
+            <div class="ml_20 save-price">
+              已节省<span>{{ $filters.unitPrice(priceDetailDTO.discountPrice, "￥") }}</span>
+            </div>
+            <div class="ml_20 total-price">
+              总价（不含运费）:
+              <div>{{ $filters.unitPrice(priceDetailDTO.flowPrice, "￥") }}</div>
+            </div>
+            <div class="pay ml_20" @click="pay">去结算</div>
+          </div>
+        </div>
+      </div>
+      <el-skeleton size="large" fix v-if="loading"></el-skeleton>
+    </div>
+    <BaseFooter class="footer"></BaseFooter>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "Cart",
+  beforeRouteEnter(to, from, next) {
+    window.scrollTo(0, 0);
+    next();
+  },
+};
+</script>
+
+<script setup>
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { Message, Modal } from "@/utils/message";
+import Promotion from "@/components/goodsDetail/Promotion";
+import * as APICart from "@/api/cart";
+import * as APIMember from "@/api/member";
+import { isECoupon } from "@/constants/goodsType";
+import storage from "@/plugins/storage.js";
+import { useAppStore } from "@/stores/app";
+
+const router = useRouter();
+const appStore = useAppStore();
+
+const logoImg = computed(() => appStore.logoImg);
+
+const couponAvailable = ref(false); // 展示优惠券
+const stepIndex = ref(0); // 当前处于哪一步，购物车==0，填写订单信息==1，成功提交订单==2
+const goodsTotal = ref(0); // 商品数量
+const checkedNum = ref(0); // 选中数量
+const allChecked = ref(false); // 全选
+const loading = ref(false); // 加载状态
+const cartList = ref([]); // 购物车列表
+const couponList = ref([]); // 优惠券列表
+const priceDetailDTO = ref({}); // 价格明细
+const skuList = ref([]); // sku列表
+
+// 跳转商品详情
+function goGoodsDetail(skuId, goodsId) {
+  let routeUrl = router.resolve({
+    path: "/goodsDetail",
+    query: { skuId, goodsId },
+  });
+  window.open(routeUrl.href, "_blank");
+}
+// 跳转店铺首页
+function goShopPage(id) {
+  router.push({
+    path: "/merchant",
+    query: { id },
+  });
+}
+// 同步购物车商品收藏状态
+async function syncCartCollectionStatus() {
+  if (!storage.getItem("userInfo") || !cartList.value.length) return;
+  const skuIds = [];
+  cartList.value.forEach((shop) => {
+    (shop.skuList || []).forEach((goods) => {
+      goods.isCollected = false;
+      if (goods.goodsSku && goods.goodsSku.id) {
+        skuIds.push(goods.goodsSku.id);
+      }
+    });
+  });
+  const uniqueSkuIds = [...new Set(skuIds)];
+  await Promise.all(
+    uniqueSkuIds.map(async (skuId) => {
+      try {
+        const res = await APIMember.isCollection("GOODS", skuId);
+        if (res.success && res.result) {
+          cartList.value.forEach((shop) => {
+            (shop.skuList || []).forEach((goods) => {
+              if (goods.goodsSku && goods.goodsSku.id === skuId) {
+                goods.isCollected = true;
+              }
+            });
+          });
+        }
+      } catch (e) {
+        // 单个查询失败不影响其他商品
+      }
+    })
+  );
+}
+// 收藏 / 取消收藏商品
+function handleCollect(goods) {
+  const skuId = goods.goodsSku && goods.goodsSku.id;
+  if (!skuId) return;
+  if (goods.isCollected) {
+    Modal.confirm({
+      title: "取消收藏",
+      content: "确定取消收藏该商品吗？",
+      onOk: () => {
+        return APIMember.cancelCollect("GOODS", skuId).then((res) => {
+          if (res.success) {
+            goods.isCollected = false;
+            Message.success("取消收藏成功");
+          }
+        });
+      },
+      onCancel: () => {},
+    });
+    return;
+  }
+  Modal.confirm({
+    title: "收藏",
+    content: "商品收藏后可在个人中心我的收藏查看",
+    onOk: () => {
+      return APIMember.collectGoods("GOODS", skuId).then((res) => {
+        if (res.success) {
+          goods.isCollected = true;
+          Message.success("收藏商品成功");
+        }
+      });
+    },
+    onCancel: () => {},
+  });
+}
+// 删除商品
+function delGoods(id) {
+  const idArr = [];
+  if (!id) {
+    const list = cartList.value;
+    list.forEach((shop) => {
+      shop.skuList.forEach((goods) => {
+        if (goods.checked) {
+          idArr.push(goods.goodsSku.id);
+        }
+      });
+    });
+  } else {
+    idArr.push(id);
+  }
+  Modal.confirm({
+    title: "删除",
+    content: "确定要删除该商品吗？",
+    onOk: () => {
+      APICart.delCartGoods({ skuIds: idArr.toString() }).then((res) => {
+        if (res.success) {
+          Message.success("删除成功");
+          getCartList();
+        } else {
+          Message.error(res.message);
+        }
+      });
+    },
+  });
+}
+// 清空购物车
+function clearCart() {
+  Modal.confirm({
+    title: "提示",
+    content: "确定要清空购物车吗？清空后不可恢复",
+    onOk: () => {
+      APICart.clearCart().then((res) => {
+        if (res.success) {
+          Message.success("清空购物车成功");
+          getCartList();
+        } else {
+          Message.error(res.message);
+        }
+      });
+    },
+  });
+}
+// 获取商品绑定的秒杀活动
+function getSeckill(goods) {
+  const map = goods?.promotionMap;
+  if (map) {
+    const key = Object.keys(map).find((k) => k.startsWith("SECKILL-"));
+    if (key && map[key]) return map[key];
+  }
+  return Array.isArray(goods?.promotions)
+    ? goods.promotions.find((p) => p && p.promotionType === "SECKILL") || null
+    : null;
+}
+// 获取商品绑定的满额/多件优惠活动
+function getFullDiscount(goods) {
+  const map = goods?.promotionMap;
+  if (map) {
+    const key = Object.keys(map).find((k) => k.startsWith("FULL_DISCOUNT-"));
+    if (key && map[key]) return map[key];
+  }
+  return Array.isArray(goods?.promotions)
+    ? goods.promotions.find((p) => p && p.promotionType === "FULL_DISCOUNT") || null
+    : null;
+}
+// 获取满额/多件优惠标签文本
+function getFullDiscountTag(goods) {
+  const fd = getFullDiscount(goods);
+  if (!fd) return "满减";
+  if (fd.activityType === "FULL_COUNT_MINUS") return "多件优惠";
+  if (fd.activityType === "FULL_RATE") return "满折";
+  if (fd.activityType === "FULL_GIFT") return "满赠";
+  return "满减";
+}
+// 获取商品绑定的单品立减活动
+function getSingleReduction(goods) {
+  const map = goods?.promotionMap;
+  if (map) {
+    const key = Object.keys(map).find((k) => k.startsWith("SINGLE_REDUCTION-"));
+    if (key && map[key]) return map[key];
+  }
+  return Array.isArray(goods?.promotions)
+    ? goods.promotions.find((p) => p && p.promotionType === "SINGLE_REDUCTION") || null
+    : null;
+}
+// 跳转支付页面
+function pay() {
+  if (!checkedNum.value) {
+    Message.warning("请至少选择一件商品");
+    return;
+  }
+  const hasECoupon = cartList.value.some((shop) =>
+    (shop.skuList || []).some(
+      (goods) => goods.checked && isECoupon(goods.goodsSku && goods.goodsSku.goodsType)
+    )
+  );
+  if (hasECoupon) {
+    Message.warning("电子卡券请使用立即购买，不可通过购物车结算");
+    return;
+  }
+  router.push({ path: "/pay", query: { way: "CART" } });
+}
+// 展示优惠券
+function showCoupon(storeId, index) {
+  couponAvailable.value = index;
+}
+// 设置购买数量
+function changeNum(val, id) {
+  if (val) {
+    APICart.setCartGoodsNum({ skuId: id, num: val }).then((res) => {
+      if (res.success) {
+        getCartList();
+      }
+    });
+  }
+}
+// 设置商品选中状态
+async function changeChecked(status, type, id) {
+  const check = status ? 1 : 0;
+  if (type === "all") {
+    // 全选
+    await APICart.setCheckedAll({ checked: check });
+  } else if (type === "shop") {
+    // 选中店铺所有商品
+    await APICart.setCheckedSeller({ checked: check, storeId: id });
+  } else {
+    // 单个商品
+    await APICart.setCheckedGoods({ checked: check, skuId: id });
+  }
+
+  getCartList();
+}
+// 领取优惠券
+async function receiveShopCoupon(item) {
+  let res = await APIMember.receiveCoupon(item.id);
+  if (res.success) {
+    item["disabled"] = true;
+    Message.success("领取成功");
+  } else {
+    Message.error(res.message);
+  }
+}
+// 购物车列表
+async function getCartList() {
+  loading.value = true;
+  try {
+    let res = await APICart.cartGoodsAll();
+    loading.value = false;
+    if (res.success) {
+      cartList.value = res.result.cartList;
+      priceDetailDTO.value = res.result.priceDetailDTO;
+      skuList.value = res.result.skuList;
+      checkedNum.value = 0;
+      let allCheckedVal = true;
+      for (let k = 0; k < cartList.value.length; k++) {
+        let shop = cartList.value[k];
+        let list = await APIMember.couponList({ storeId: shop.storeId });
+        shop.couponList.push(...list.result.records);
+      }
+      for (let i = 0; i < skuList.value.length; i++) {
+        if (skuList.value[i].checked) {
+          checkedNum.value += skuList.value[i].num;
+        } else {
+          allCheckedVal = false;
+        }
+      }
+      allChecked.value = allCheckedVal;
+      syncCartCollectionStatus();
+    }
+  } catch (error) {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  getCartList();
+  APICart.cartCount().then((res) => {
+    // 购物车商品数量
+    if (res.success) goodsTotal.value = res.result;
+  });
+});
+</script>
+
+<style scoped lang="scss">
+.footer{
+  margin-top: 10px;
+}
+/** logo 搜索 start **/
+.logo {
+  height: 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px auto 0;
+  div:nth-child(1) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    img {
+      width: 150px;
+      height: auto;
+      cursor: pointer;
+    }
+    div:nth-child(2) {
+      width: 200px;
+      color: #999;
+      font-size: 16px;
+      margin: 0 20px;
+      span {
+        color: $theme_color;
+      }
+    }
+  }
+}
+.cart-content {
+  margin: 20px auto;
+  width: 1200px;
+  position: relative;
+}
+/** logo end */
+/** step步骤条 */
+.cart-steps {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  span {
+    @include content_color($light_content_color);
+    height: 30px;
+    text-align: center;
+    line-height: 30px;
+    display: inline-block;
+    padding: 0 15px;
+    flex-shrink: 0;
+  }
+
+  .icon-next {
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+
+  .active {
+    border-radius: 50px;
+    background-color: $theme_color;
+    color: #fff;
+  }
+
+  .active-arrow {
+    color: $theme_color;
+  }
+}
+/** 商品列表 */
+.cart-goods {
+  .cart-goods-table {
+    border: 1px solid #eee;
+    background: #fff;
+    padding: 0 8px;
+  }
+  &-title {
+    height: 44px;
+    background: #fff;
+    color: #999;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border-bottom: 1px solid #f0f0f0;
+    div:not(.cart-col-check) {
+      text-align: center;
+    }
+    .goods-title {
+      flex: 1;
+    }
+  }
+  .cart-empty {
+    width: 100%;
+    text-align: center;
+    height: 300px;
+    padding-top: 100px;
+  }
+  .cart-goods-list-box {
+    @include background_color($light_white_background_color);
+  }
+  .cart-col-check {
+    width: 60px;
+    min-width: 60px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    text-align: left;
+
+    :deep(.el-checkbox) {
+      margin-right: 0;
+    }
+  }
+  .cart-shop-group {
+    &:not(:last-child) {
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .shop-name {
+      min-height: 48px;
+      height: auto;
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      color: #171A26;
+      font-size: 15px;
+      font-weight: 600;
+      position: relative;
+      @include title_color($light_title_color);
+      .shop-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        .promotion-notice {
+          margin-left: auto;
+        }
+      }
+      .go-shop-page:hover {
+        color: $theme_color;
+        cursor: pointer;
+      }
+      .customer-service {
+        margin-left: 5px;
+        color: #fcc217;
+        cursor: pointer;
+        &:hover {
+          color: $theme_color;
+        }
+      }
+      /** 优惠券 */
+      .shop-coupon {
+        width: 80px;
+        height: 24px;
+        flex-shrink: 0;
+        position: relative;
+        background: url(../assets/images/cart-coupon-icons02.png) 0 0 no-repeat;
+        > div {
+          position: absolute;
+          top: 35px;
+          left: 0;
+          width: 300px;
+          height: 300px;
+          background-color: #fff;
+          border: 1px solid $theme_color;
+          z-index: 1;
+          padding: 10px 20px;
+          &::before {
+            content: "";
+            display: block;
+            background: url(../assets/images/cart-coupon-icons02.png) 0 -58px no-repeat;
+            width: 80px;
+            height: 12px;
+            position: absolute;
+            top: -12px;
+            left: 0;
+          }
+          .coupon-item {
+            margin-bottom: 10px;
+            span:nth-child(1) {
+              border: 1px solid #e33937;
+              display: inline-block;
+              padding: 3px 10px;
+              color: $theme_color;
+              border-radius: 3px;
+            }
+            span:nth-child(2) {
+              font-size: 14px;
+              margin-left: 5px;
+              color: #999;
+            }
+            .coupon-btn {
+              height: 28px;
+              float: right;
+              font-size: 14px;
+            }
+            &::after {
+              display: block;
+              content: "";
+              clear: right;
+            }
+          }
+        }
+      }
+      .promotion-notice {
+        text-align: right;
+        font-size: 13px;
+        color: #999;
+        font-weight: 400;
+        flex-shrink: 0;
+        margin-left: 10px;
+      }
+      .shop-coupon-show {
+        background-position-y: -34px;
+      }
+    }
+    .goods-item {
+      position: relative;
+      @extend .cart-goods-title;
+      background: transparent;
+      border-top: 1px solid #f0f0f0;
+      padding: 16px 12px 28px;
+      height: auto;
+      .cart-col-check {
+        padding-left: 20px;
+        box-sizing: border-box;
+      }
+      > div:nth-child(1) {
+        width: 60px;
+      }
+      > div:nth-child(2) {
+        cursor: pointer;
+        display: flex;
+        box-sizing: border-box;
+        padding-left: 20px;
+        position: relative;
+        img {
+          width: 72px;
+          height: 72px;
+          border-radius: 4px;
+          object-fit: cover;
+          background: #f5f5f5;
+          flex-shrink: 0;
+        }
+        > div > p {
+          color: #171A26;
+          font-size: 15px;
+          line-height: 22px;
+          text-align: left;
+          margin-left: 12px;
+          &:hover {
+            color: $theme_color;
+          }
+        }
+      }
+      .cart-col-price,
+      .cart-col-subtotal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        text-align: center;
+        color: #171A26;
+        font-size: 15px;
+      }
+      .cart-col-subtotal {
+        color: $theme_color;
+        font-weight: 600;
+      }
+      .cart-col-qty {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        :deep(.el-input-number) {
+          width: 100%;
+        }
+
+        .cart-qty-stock {
+          font-size: 14px;
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 50%;
+          transform: translateX(-50%);
+          white-space: nowrap;
+          line-height: 1.2;
+          color: #999;
+          font-size: 13px;
+        }
+      }
+      .num-input {
+        width: 60px;
+        border: 1px solid #999;
+        border-radius: 5px;
+        padding: 0 5px;
+        &:focus {
+          outline-color: $theme_color;
+        }
+      }
+      .error-goods {
+        position: absolute;
+        inset: 0;
+        background-color: rgba($color: #999, $alpha: 0.5);
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 30px 0 150px;
+        box-sizing: border-box;
+        color: #000;
+      }
+    }
+  }
+  &-footer {
+    @extend .cart-goods-title;
+    position: sticky;
+    bottom: 0;
+    height: 64px;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 0;
+    padding: 0 0 0 12px;
+    line-height: 64px;
+    justify-content: space-between;
+    color: #171A26;
+    font-size: 14px;
+    > div {
+      display: flex;
+    }
+    .selected-count {
+      span {
+        color: $theme_color;
+      }
+    }
+
+    .save-price span {
+      color: #000;
+    }
+    .total-price div {
+      color: $theme_color;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    .pay {
+      background-color: $theme_color;
+      width: 160px;
+      font-size: 16px;
+      color: #fff;
+      height: 100%;
+      line-height: 64px;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.92;
+      }
+    }
+  }
+  .handle-btn {
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    &:hover {
+      color: $theme_color;
+    }
+  }
+}
+.like {
+  width: 1200px;
+  margin: 10px auto;
+  // padding: 20px 0;
+  @include white_background_color();
+}
+.likeGoods,
+.shop-nav-container {
+  width: 1200px;
+  margin: 0 auto;
+}
+.el-divider {
+  background: $theme_color;
+  height: 2px;
+}
+.width_150 {
+  width: 150px;
+}
+.width_60 {
+  width: 60px;
+}
+.promotion {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  line-height: 1.4;
+  > span {
+    display: inline-block;
+    border: 1px solid $theme_color;
+    color: $theme_color;
+    font-size: 12px;
+    line-height: 18px;
+    border-radius: 2px;
+    padding: 0 6px;
+  }
+  > p {
+    font-size: 12px;
+    line-height: 20px;
+    margin: 0 0 0 8px;
+    color: #999;
+  }
+}
+.cart-goods-footer > div {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.total-price {
+  display: flex;
+  align-items: center;
+}
+
+.cart-ops-col {
+  width: 130px;
+  min-width: 130px;
+  flex-shrink: 0;
+}
+
+.cart-ops {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.cart-del-btn,
+.cart-collect-btn {
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 4px !important;
+  border: none !important;
+  background: transparent !important;
+  color: #171A26 !important;
+  font-size: 14px !important;
+
+  &:hover,
+  &:focus {
+    color: $theme_color !important;
+    background: transparent !important;
+  }
+}
+
+.cart-collect-btn.is-collected {
+  color: $theme_color !important;
+}
+</style>
+<style>
+.el-input-number .el-input__inner {
+  text-align: center;
+}
+
+</style>
+
+
+
