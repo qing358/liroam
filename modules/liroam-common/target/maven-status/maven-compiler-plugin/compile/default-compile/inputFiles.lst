@@ -1,0 +1,9 @@
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/config/LiroamCommonAutoConfiguration.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/crypto/SensitiveCipher.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/crypto/SensitiveField.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/safety/ProductionProfiles.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/safety/ProductionSafetyGate.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/safety/Simulated.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/state/IllegalStateTransitionException.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/state/StateMachine.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-common/src/main/java/com/liroam/common/time/UtcColumns.java

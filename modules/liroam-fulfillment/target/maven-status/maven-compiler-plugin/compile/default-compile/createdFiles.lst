@@ -1,0 +1,16 @@
+com/liroam/fulfillment/FulfillmentRequest$SourceType.class
+com/liroam/fulfillment/FulfillmentRejected.class
+com/liroam/fulfillment/config/LiroamFulfillmentAutoConfiguration.class
+com/liroam/fulfillment/store/FulfillmentLines$Inserted.class
+com/liroam/fulfillment/state/CardPlanStatus.class
+com/liroam/fulfillment/FulfillmentRules.class
+com/liroam/fulfillment/state/FulfillmentLineStatus.class
+com/liroam/fulfillment/state/CommandStatus.class
+com/liroam/fulfillment/FulfillmentRequest.class
+com/liroam/fulfillment/FulfillmentRejected$Reason.class
+com/liroam/fulfillment/store/CardAssets.class
+com/liroam/fulfillment/state/CardAssetStatus.class
+com/liroam/fulfillment/FulfillmentEntry.class
+com/liroam/fulfillment/FulfillmentAck.class
+com/liroam/fulfillment/store/CardAssets$TopUpView.class
+com/liroam/fulfillment/store/FulfillmentLines.class

@@ -1,0 +1,12 @@
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/FulfillmentAck.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/FulfillmentEntry.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/FulfillmentRejected.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/FulfillmentRequest.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/FulfillmentRules.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/config/LiroamFulfillmentAutoConfiguration.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/state/CardAssetStatus.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/state/CardPlanStatus.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/state/CommandStatus.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/state/FulfillmentLineStatus.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/store/CardAssets.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-fulfillment/src/main/java/com/liroam/fulfillment/store/FulfillmentLines.java

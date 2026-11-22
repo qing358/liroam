@@ -1,0 +1,7 @@
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/SupplierAdapterContractTest.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/UpstreamFixture.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/stub/ContractStubAdapter.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/stub/CreateApiStubContractTest.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/stub/PoolImportStubContractTest.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/stub/StubShape.java
+/root/project/liroam.worktrees/p1-domain/modules/liroam-supplier-spi/src/test/java/com/liroam/supplier/spi/contract/stub/StubUpstream.java
