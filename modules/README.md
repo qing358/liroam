@@ -5,7 +5,7 @@
 | 模块 | 内容 | 依赖 |
 |------|------|------|
 | `liroam-common` | 敏感字段 AES-256-GCM + HMAC（`SensitiveCipher`，密钥 `LIROAM_DATA_KEY_V1..`/`LIROAM_DATA_HASH_KEY`）、`@Simulated` 生产闸、状态机、UTC 列绑定；test-jar：`ItDatabase`（只连本项目 MySQL） | — |
-| `liroam-schema` | Flyway 自有表 `db/migration/liroam`（`lr_` 前缀，历史表 `lr_flyway_schema_history`）与口径体检 | common |
+| `liroam-schema` | Flyway 自有表 `db/migration/liroam`（`lr_` 前缀，历史表 `lr_flyway_schema_history`）与口径体检；`R__liroam_menu.sql` 往壳 `li_menu` 写管理端「旅行卡」菜单（登记见 `docs/upstream.md`） | common |
 | `liroam-supplier-spi` | 供应商适配契约、四态结果、能力声明；test-jar：`SupplierAdapterContractTest`（CT-SUP-01~08） | 纯 Java |
 | `liroam-catalog` | SKU 绑定、供应商目录、适配器注册；启用供应商缺适配器即启动失败 | common、spi、schema |
 | `liroam-supplier-mock` | 两家模拟供应商 `mock-shape-a`（池模式、MB）/ `mock-shape-b`（下单即建、字节、回调），仅 dev/test profile；`MockFaults` 故障注入（`failNext` + `liroam.mock.supplier.rules`）、`MockUpstreamConsole` 推卡状态 | spi、common |

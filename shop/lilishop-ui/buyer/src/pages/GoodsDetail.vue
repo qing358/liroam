@@ -15,6 +15,7 @@
 
     <!-- 商品信息展示 -->
     <ShowGoods @handleClickSku="targetClickSku" v-if="goodsMsg.data" :detail="goodsMsg"></ShowGoods>
+    <LiroamUsageRegion v-if="goodsMsg.data" :sku-id="goodsMsg.data.id"></LiroamUsageRegion>
     <!-- 商品详细展示 -->
     <ShowGoodsDetail v-if="goodsMsg.data" :detail="goodsMsg"></ShowGoodsDetail>
 
@@ -49,6 +50,7 @@ import SearchHeader from '@/components/indexDecorate/components/SearchHeader.vue
 import ShowGoods from "@/components/goodsDetail/ShowGoods";
 import empty from "@/components/empty/Main";
 import ShowGoodsDetail from "@/components/goodsDetail/ShowGoodsDetail";
+import LiroamUsageRegion from "@/pages/liroam/components/UsageRegion.vue";
 import { goodsSkuDetail } from "@/api/goods";
 import { getGoodsDistribution } from "@/api/member";
 

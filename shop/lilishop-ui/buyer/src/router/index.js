@@ -346,6 +346,18 @@ export const router = createRouter({
           component: AfterSaleDetail,
           meta: { title: "售后详情" },
         },
+        {
+          path: "MyTravelCards",
+          name: "LiroamMyCards",
+          component: () => import("@/pages/liroam/MyCards.vue"),
+          meta: { title: "我的卡" },
+        },
+        {
+          path: "TravelCardDetail",
+          name: "LiroamCardDetail",
+          component: () => import("@/pages/liroam/CardDetail.vue"),
+          meta: { title: "卡详情" },
+        },
       ],
     },
     {

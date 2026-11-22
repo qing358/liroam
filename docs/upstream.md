@@ -30,6 +30,10 @@ docker 摘取文件：在上游 docker 仓选不晚于后端 tag 的提交，覆
 | 挂接点 | 文件 | 原因 | 合并注意 |
 |--------|------|------|----------|
 | H1 / H1′（装配） | `shop/lilishop/{manager-api,buyer-api}/pom.xml` | 各加一个依赖 `com.liroam:liroam-shell-bridge`（版本写死 `0.1.0-SNAPSHOT`）。挂接代码全在 `modules/liroam-shell-bridge`，经 Spring Boot 自动配置加载（上游 `scanBasePackages = "cn.lili"` 扫不到 `com.liroam`），不改任何上游 Java；自有表由 Flyway 用独立历史表 `lr_flyway_schema_history` 迁移。仓根 `pom.xml` 聚合上游与 `modules/`，必须从仓根构建 | 上游若改这两个 pom 的 `<dependencies>`，重新补这一项；合并后跑 `modules/liroam-shell-bridge` 的 CT-SHELL-01（`OrderPaidEvent` 构造/`getOrder()`、`payOrder` 仍 `@Transactional` 且同步发布）与 `WalletPlugin` 退款用例 |
+| 买家「我的卡」路由 | `shop/lilishop-ui/buyer/src/router/index.js` | `/home` 子路由追加 `MyTravelCards`（`LiroamMyCards`）、`TravelCardDetail`（`LiroamCardDetail`），组件在自有目录 `src/pages/liroam/` | 上游改 `/home` children 时保留这两项；路由名不可与上游重名 |
+| 买家会员中心菜单 | `shop/lilishop-ui/buyer/src/pages/user/menu.js` | 「订单中心」组「我的订单」后加「我的卡」一项（`path` = 路由名 `LiroamMyCards`，图标复用已注册的 `Goods`） | 上游若重排菜单数组，重新插入这一项 |
+| 商品详情「使用区域说明」 | `shop/lilishop-ui/buyer/src/pages/GoodsDetail.vue` | `ShowGoods` 之后挂自有组件 `LiroamUsageRegion`（`:sku-id="goodsMsg.data.id"`）并加一行 import；SKU 切换时上游重取 `goodsMsg`，组件按 skuId 重新拉 `/buyer/goods/liroam/usage-region`，无说明不渲染 | 上游若改详情页结构，保持挂在商品主信息与「商品介绍」之间、仍能拿到当前 skuId |
+| 管理端「旅行卡」菜单（数据，非代码） | 壳表 `li_menu`，由 `modules/liroam-schema/.../R__liroam_menu.sql` 写入 | 管理端菜单来自库表；固定 id 号段 `9100000000000000100–199`，`front_route` 指向 `manager/src/views/liroam/**`（上游 `lazyLoading` 用 `require.context` 自动发现，管理端无上游文件改动）。只写 `li_menu`，不写 `li_role_menu`（超管自动可见，其它角色由运营授权）；库里没有 `li_menu` 时跳过 | 上游 `update-sql` 若新增菜单 id 落入本号段（极不可能）需改号；上游改 `li_menu` 列时同步本脚本 |
 | 前端运行时配置 | `shop/lilishop-ui/{buyer,seller,manager}/public/index.html` | 开发模式在 `config.js` 之后加载 `config.local.js`，由 `scripts/dev.mjs` 按 `deploy/ports.env` 生成，API 地址不写死在上游文件。上游自家 `dev-env.mjs` 也生成 `config.local.js`，但 v5.0.6 的 `index.html` 没有加载它 | 上游若改 `config.js` 那一行，重新补这一行 |
 
 ## 已知上游问题（本仓绕开方式）

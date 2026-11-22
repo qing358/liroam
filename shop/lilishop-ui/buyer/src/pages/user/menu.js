@@ -14,6 +14,11 @@ const order = [{
     path: 'MyOrder'
   },
   {
+    icon: 'Goods',
+    title: '我的卡',
+    path: 'LiroamMyCards'
+  },
+  {
     icon: 'Location',
     title: '收货地址',
     path: 'MyAddress'

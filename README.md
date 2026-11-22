@@ -67,6 +67,7 @@ node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 
 ```bash
 node --test 'scripts/**/*.test.mjs'    # 编排脚本单测
+(cd shop/lilishop-ui/buyer && node --test tests/*.test.cjs && npm run build)    # 买家端单测与构建（manager 同理）
 # 仓根 reactor（JDK 21）：上游只编译；自研模块单测、契约套件、集成测试、架构检查全跑
 mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests -am verify
 ```
