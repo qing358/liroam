@@ -850,7 +850,7 @@ export const COMPONENT_DEFINITIONS = [
     defaultOptions: {
       columns: 4,
       couponIds: ['1', '2', '3', '4'],
-      skin: 'red', // 'red' | 'dark' | 'gradient'
+      skin: 'accent', // 'accent' 日出橙 | 'ink' 夜航墨 | 'primary' 漫游青
       showLimitText: true,
       coupons: MOCK_COUPONS
     },

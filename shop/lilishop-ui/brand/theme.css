@@ -17,6 +17,7 @@ html:root {
   --lr-accent: #e4572e;
   --lr-accent-text: #c8461f;
   --lr-accent-light-9: #fceeea;
+  --lr-sun: #ffc04d;
 
   --el-color-primary: var(--lr-primary);
   --el-color-primary-light-3: var(--lr-primary-light-3);

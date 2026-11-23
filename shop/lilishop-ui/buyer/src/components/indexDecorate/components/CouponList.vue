@@ -1,5 +1,5 @@
 <template>
-  <div class="decor-coupon-list" :class="`skin-${options.skin || 'red'}`" :style="customStyle">
+  <div class="decor-coupon-list" :class="`skin-${options.skin || 'accent'}`" :style="customStyle">
     <div
       class="coupon-grid"
       :style="{ gridTemplateColumns: `repeat(${actualColumns}, 1fr)` }"
@@ -162,19 +162,20 @@ function handleClaim(cp) {
     }
   }
 
-  &.skin-red {
-    .coupon-card .card-left { background: linear-gradient(135deg, #f43f5e, #e4572e); }
-    .claim-btn { background: #ffe4e6; color: #c8461f; }
+  &.skin-accent {
+    .coupon-card .card-left { background: var(--lr-accent-text); }
+    .claim-btn { background: var(--lr-accent-text); color: white; }
   }
 
-  &.skin-dark {
-    .coupon-card .card-left { background: linear-gradient(135deg, #334155, #0f172a); }
-    .claim-btn { background: #f1f5f9; color: #0f172a; }
+  &.skin-ink {
+    .coupon-card .card-left { background: linear-gradient(135deg, var(--lr-ink), var(--lr-primary-active)); }
+    .amount-wrap { color: var(--lr-sun); }
+    .claim-btn { background: var(--lr-mist); color: var(--lr-ink); }
   }
 
-  &.skin-gradient {
-    .coupon-card .card-left { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
-    .claim-btn { background: #fdf2f8; color: #db2777; }
+  &.skin-primary {
+    .coupon-card .card-left { background: linear-gradient(135deg, var(--lr-primary), var(--lr-primary-active)); }
+    .claim-btn { background: var(--lr-mist); color: var(--lr-primary-hover); }
   }
 }
 </style>

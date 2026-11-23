@@ -1,5 +1,5 @@
 <template>
-  <div class="tpl-coupon" :class="`skin-${options.skin || 'red'}`" :style="customStyle">
+  <div class="tpl-coupon" :class="`skin-${options.skin || 'accent'}`" :style="customStyle">
     <div
       class="coupon-grid"
       :style="{ gridTemplateColumns: `repeat(${actualColumns}, 1fr)` }"
@@ -131,7 +131,7 @@ const couponList = computed(() => {
 
         .btn {
           font-size: 11px;
-          color: #c8461f;
+          color: var(--lr-accent-text);
           cursor: pointer;
           font-weight: 600;
           margin-top: 3px;
@@ -140,19 +140,19 @@ const couponList = computed(() => {
     }
   }
 
-  &.skin-red {
-    .left-val { background: linear-gradient(135deg, #f43f5e 0%, #e4572e 100%); }
-    .btn { color: #c8461f !important; }
+  &.skin-accent {
+    .left-val { background: var(--lr-accent-text); }
+    .btn { color: var(--lr-accent-text) !important; }
   }
 
-  &.skin-dark {
-    .left-val { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #f59e0b; }
-    .btn { color: #d97706 !important; }
+  &.skin-ink {
+    .left-val { background: linear-gradient(135deg, var(--lr-ink) 0%, var(--lr-primary-active) 100%); color: var(--lr-sun); }
+    .btn { color: var(--lr-ink) !important; }
   }
 
-  &.skin-gradient {
-    .left-val { background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); }
-    .btn { color: #8b5cf6 !important; }
+  &.skin-primary {
+    .left-val { background: linear-gradient(135deg, var(--lr-primary) 0%, var(--lr-primary-active) 100%); }
+    .btn { color: var(--lr-primary-hover) !important; }
   }
 }
 </style>

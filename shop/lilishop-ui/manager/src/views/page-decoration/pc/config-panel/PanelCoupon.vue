@@ -14,9 +14,9 @@
       <div class="form-item">
         <span class="item-label">卡券视觉皮肤</span>
         <el-radio-group v-model="options.skin" size="small">
-          <el-radio-button label="red">经典喜庆红</el-radio-button>
-          <el-radio-button label="dark">黑金尊享风</el-radio-button>
-          <el-radio-button label="gradient">幻彩渐变</el-radio-button>
+          <el-radio-button label="accent">日出橙</el-radio-button>
+          <el-radio-button label="ink">夜航墨</el-radio-button>
+          <el-radio-button label="primary">漫游青</el-radio-button>
         </el-radio-group>
       </div>
 
