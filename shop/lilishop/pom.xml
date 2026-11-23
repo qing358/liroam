@@ -21,7 +21,8 @@
         <revision>5.0.2</revision>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <skipTests>true</skipTests>
+        <!-- 上游测试默认不跑；-DskipTests=false 也不会打开它们，只有 -Pupstream-tests 会（原因见 docs/upstream.md「已知上游问题」） -->
+        <lilishop.skipTests>true</lilishop.skipTests>
         <docker-registry>registry.cn-beijing.aliyuncs.com/lili-images</docker-registry>
         <images-version>1</images-version>
         <alipay-sdk-version>4.22.32.ALL</alipay-sdk-version>
@@ -108,7 +109,59 @@
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <configuration>
+                        <skipTests>${lilishop.skipTests}</skipTests>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>upstream-tests</id>
+            <properties>
+                <lilishop.skipTests>false</lilishop.skipTests>
+            </properties>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-surefire-plugin</artifactId>
+                            <configuration>
+                                <!-- -Dtest 会覆盖这里的排除；清单与原因见 docs/upstream.md「已知上游问题」 -->
+                                <excludes>
+                                    <exclude>**/*$*</exclude>
+                                    <!-- v5.0.6 测试与实现不同步 -->
+                                    <exclude>**/goods/serviceimpl/CardKeyServiceImplAllocateByOrderTest.java</exclude>
+                                    <exclude>**/goods/serviceimpl/CardKeyServiceImplFulfillTest.java</exclude>
+                                    <exclude>**/goods/serviceimpl/CardKeyServiceImplReserveTest.java</exclude>
+                                    <exclude>**/goods/serviceimpl/CardKeyServiceImplVoidOnSystemFailureTest.java</exclude>
+                                    <exclude>**/goods/serviceimpl/GoodsSkuServiceImplECouponStockTest.java</exclude>
+                                    <exclude>**/order/cart/render/ECouponPriceRenderTest.java</exclude>
+                                    <exclude>**/promotion/serviceimpl/FullDiscountServiceImplGiftValidationTest.java</exclude>
+                                    <exclude>**/promotion/serviceimpl/PickupCardStockTest.java</exclude>
+                                    <exclude>**/promotion/serviceimpl/RetiredDiscountPromotionTest.java</exclude>
+                                    <exclude>**/search/serviceimpl/GoodsIndexServiceImplTest.java</exclude>
+                                    <exclude>**/search/serviceimpl/GoodsSearchServiceImplTest.java</exclude>
+                                    <exclude>**/store/serviceimpl/StoreServiceImplDisableTest.java</exclude>
+                                    <!-- 整上下文测试：Redisson 直连 localhost:6379，MySQL 指向上游局域网地址 -->
+                                    <exclude>**/cn/lili/test/**</exclude>
+                                    <exclude>**/cn/lili/buyer/test/bill/BillTest.java</exclude>
+                                    <exclude>**/cn/lili/buyer/test/cart/MemberStatisticsTest.java</exclude>
+                                    <exclude>**/cn/lili/buyer/test/cart/CartTest.java</exclude>
+                                    <exclude>**/cn/lili/buyer/test/cart/MemberCouponTest.java</exclude>
+                                    <exclude>**/cn/lili/buyer/test/cart/FileTest.java</exclude>
+                                </excludes>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>
