@@ -48,6 +48,7 @@
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue';
+import { MOCK_CAROUSEL } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -81,12 +82,7 @@ const slidesList = computed(() => {
       url: b.url || b.link
     }));
   }
-  return [
-    { title: '潮流数码', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_1.png', url: '/goodsList?category=1' },
-    { title: '奢宠美妆', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_2.png', url: '/goodsList?category=2' },
-    { title: '运动潮流', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_3.png', url: '/goodsList?category=3' },
-    { title: '居家生活', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_4.png', url: '/goodsList?category=4' }
-  ];
+  return MOCK_CAROUSEL;
 });
 
 const currentSlide = computed(() => {

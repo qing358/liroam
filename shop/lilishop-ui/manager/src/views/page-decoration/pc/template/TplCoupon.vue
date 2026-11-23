@@ -21,6 +21,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { MOCK_COUPONS } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -33,12 +34,7 @@ const props = defineProps({
   }
 });
 
-const defaultCoupons = [
-  { id: '1', price: 20, consumeThreshold: 199, title: '全品类通用券', limitText: '全场通用 无门槛限制' },
-  { id: '2', price: 50, consumeThreshold: 399, title: '数码家电专享券', limitText: '数码/手机/家电可用' },
-  { id: '3', price: 100, consumeThreshold: 699, title: '大牌美妆特惠券', limitText: '美妆奢护专区可用' },
-  { id: '4', price: 10, consumeThreshold: 99, title: '新客首单立减券', limitText: '首次下单专享福利' }
-];
+const defaultCoupons = MOCK_COUPONS;
 
 const actualColumns = computed(() => {
   const baseCols = Number(props.options?.columns) || 4;

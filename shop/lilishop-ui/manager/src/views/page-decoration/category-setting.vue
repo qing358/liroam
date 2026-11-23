@@ -93,10 +93,10 @@ defineOptions({ name: "category-setting" });
 const SETTING_KEY = "CATEGORY_PAGE_SETTING";
 
 const templates = [
-  { value: 1, name: "模板一: 左树右宫格", img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-1.png" },
-  { value: 2, name: "模板二: 图标导航+三级标签", img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-2.png" },
-  { value: 3, name: "模板三: 图标导航", img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-3.png" },
-  { value: 4, name: "模板四: 侧栏一级+二级横滑", img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-4.png" },
+  { value: 1, name: "模板一: 左树右宫格", img: "/liroam/decorate/category-tpl-1.svg" },
+  { value: 2, name: "模板二: 图标导航+三级标签", img: "/liroam/decorate/category-tpl-2.svg" },
+  { value: 3, name: "模板三: 图标导航", img: "/liroam/decorate/category-tpl-3.svg" },
+  { value: 4, name: "模板四: 侧栏一级+二级横滑", img: "/liroam/decorate/category-tpl-4.svg" },
 ];
 
 // 左列展示字段配置（商品名称 规格值固定必选置灰）

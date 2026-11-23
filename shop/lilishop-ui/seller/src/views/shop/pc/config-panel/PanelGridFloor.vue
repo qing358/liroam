@@ -14,12 +14,12 @@
         </div>
         <div class="form-item flex-1">
           <span class="item-label">楼层名称</span>
-          <el-input v-model="options.title" size="small" placeholder="如：潮流数码" clearable />
+          <el-input v-model="options.title" size="small" placeholder="如：日韩专区" clearable />
         </div>
       </div>
       <div class="form-item">
         <span class="item-label">英文/副标题</span>
-        <el-input v-model="options.subtitle" size="small" placeholder="如：DIGITAL & TECH" clearable />
+        <el-input v-model="options.subtitle" size="small" placeholder="如：JAPAN & KOREA" clearable />
       </div>
 
       <!-- 更多链接选择器 -->
@@ -120,11 +120,11 @@
 
         <div class="form-item mt-10">
           <span class="item-label">海报主标题</span>
-          <el-input v-model="options.posterTitle" size="small" placeholder="如：数码潮电 酷玩季" clearable />
+          <el-input v-model="options.posterTitle" size="small" placeholder="如：日韩出行 先备网" clearable />
         </div>
         <div class="form-item">
           <span class="item-label">海报副标题</span>
-          <el-input v-model="options.posterSub" size="small" placeholder="如：领券最高立减 600 元" clearable />
+          <el-input v-model="options.posterSub" size="small" placeholder="如：领券下单更划算" clearable />
         </div>
 
         <div class="form-item">
@@ -231,6 +231,7 @@ import { ref, computed, inject } from 'vue';
 import GoodsDialog from '@/views/lili-dialog/goods-dialog.vue';
 import { Plus, Delete, Link, Picture, Close } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
+import { copyOf, MOCK_FLOOR, MOCK_FLOOR_BANNER, MOCK_GOODS } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   component: {
@@ -255,16 +256,16 @@ const openGoodsPicker = inject('openGoodsPicker', null);
 // 初始化缺省 options
 if (props.options.showFloorTitle === undefined) props.options.showFloorTitle = true;
 if (!props.options.floorNum) props.options.floorNum = '1F';
-if (!props.options.title) props.options.title = '潮流数码';
-if (!props.options.subtitle) props.options.subtitle = 'DIGITAL & TECH';
+if (!props.options.title) props.options.title = MOCK_FLOOR.title;
+if (!props.options.subtitle) props.options.subtitle = MOCK_FLOOR.subtitle;
 if (!props.options.subCategories) {
-  props.options.subCategories = ['旗舰手机', '轻薄笔电', '降噪耳机', '智能穿戴', '数码配件'];
+  props.options.subCategories = [...MOCK_FLOOR.subCategories];
 }
 
 // 兼容 bannerFloor 与 gridFloor 的字段名双向打通
 const currentPosterImg = computed({
   get() {
-    return props.options.bannerImg || props.options.posterImg || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png';
+    return props.options.bannerImg || props.options.posterImg || MOCK_FLOOR_BANNER;
   },
   set(val) {
     props.options.posterImg = val;
@@ -287,20 +288,11 @@ function handleClearPosterImg() {
   props.options.bannerImg = '';
 }
 
-if (!props.options.posterTitle) props.options.posterTitle = '数码潮电 酷玩季';
-if (!props.options.posterSub) props.options.posterSub = '领券最高立减 600 元';
+if (!props.options.posterTitle) props.options.posterTitle = MOCK_FLOOR.posterTitle;
+if (!props.options.posterSub) props.options.posterSub = MOCK_FLOOR.posterSub;
 if (!props.options.columns) props.options.columns = 4;
 if (!props.options.goods) {
-  props.options.goods = [
-    { id: '101', goodsName: '旗舰 5G 智能手机 12GB+256GB 超光影影像系统', price: '3999.00', originalPrice: '4599.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png' },
-    { id: '102', goodsName: '无线头戴式深度主动降噪蓝牙耳机 空间音频Hi-Res', price: '1099.00', originalPrice: '1499.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_2.png' },
-    { id: '103', goodsName: '14英寸 全面屏轻薄商务笔记本电脑 酷睿i7 高刷防眩光', price: '5699.00', originalPrice: '6299.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_3.png' },
-    { id: '104', goodsName: '运动健康专业监测智能手表 心率血氧长续航50米防水', price: '899.00', originalPrice: '1199.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_4.png' },
-    { id: '105', goodsName: '奢宠酵母焕活修护精华露 50ml 紧致淡纹抗皱滋养', price: '680.00', originalPrice: '890.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_5.png' },
-    { id: '106', goodsName: '意式半自动家用复古咖啡机 20Bar高压恒温萃取蒸汽奶泡', price: '899.00', originalPrice: '1280.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_6.png' },
-    { id: '107', goodsName: '碳板专业竞速轻量缓震跑步鞋 透气防滑男女同款潮鞋', price: '459.00', originalPrice: '699.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_7.png' },
-    { id: '108', goodsName: '极简静音无雾负离子香薰加湿器 大容量客厅卧室通用', price: '299.00', originalPrice: '399.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_8.png' }
-  ];
+  props.options.goods = copyOf(MOCK_GOODS.slice(0, 8));
 }
 
 function handleAddTag() {

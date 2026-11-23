@@ -370,6 +370,7 @@ import { ElMessageBox } from 'element-plus';
 import GoodsDialog from '@/views/lili-dialog/goods-dialog.vue';
 import CategorySelector from '@/views/lili-dialog/template/category.vue';
 import { getCategoryTree } from '@/api/goods.js';
+import { MOCK_REGION_CATEGORIES } from '@brand/decorate-mock.js';
 
 // 注入来自 pc/index.vue 的全局选择器
 const openImagePicker = inject('openImagePicker', null);
@@ -427,94 +428,7 @@ const cascaderProps = {
 
 const rawCategoryTree = ref([]);
 
-const fallbackCategories = [
-  {
-    id: '1',
-    name: '手机数码',
-    children: [
-      {
-        id: '1-1',
-        name: '智能手机',
-        children: [
-          { id: '1-1-1', name: '5G旗舰手机' },
-          { id: '1-1-2', name: '折叠屏手机' }
-        ]
-      },
-      {
-        id: '1-2',
-        name: '电脑办公',
-        children: [
-          { id: '1-2-1', name: '轻薄笔记本' },
-          { id: '1-2-2', name: '游戏笔记本' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '2',
-    name: '家用电器',
-    children: [
-      {
-        id: '2-1',
-        name: '厨房小电',
-        children: [
-          { id: '2-1-1', name: '咖啡机' },
-          { id: '2-1-2', name: '破壁机' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '3',
-    name: '美妆个护',
-    children: [
-      {
-        id: '3-1',
-        name: '面部护肤',
-        children: [
-          { id: '3-1-1', name: '精华液' },
-          { id: '3-1-2', name: '面霜乳液' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '4',
-    name: '运动户外',
-    children: [
-      {
-        id: '4-1',
-        name: '运动鞋包',
-        children: [
-          { id: '4-1-1', name: '跑步鞋' },
-          { id: '4-1-2', name: '休闲板鞋' }
-        ]
-      },
-      {
-        id: '4-2',
-        name: '户外装备',
-        children: [
-          { id: '4-2-1', name: '露营帐篷' },
-          { id: '4-2-2', name: '户外背包' }
-        ]
-      }
-    ]
-  },
-  {
-    id: '5',
-    name: '家居生活',
-    children: [
-      {
-        id: '5-1',
-        name: '居家日用',
-        children: [
-          { id: '5-1-1', name: '香薰蜡烛' },
-          { id: '5-1-2', name: '收纳整理' }
-        ]
-      }
-    ]
-  }
-];
+const fallbackCategories = MOCK_REGION_CATEGORIES;
 
 function cleanCategoryTree(list) {
   if (!Array.isArray(list)) return [];

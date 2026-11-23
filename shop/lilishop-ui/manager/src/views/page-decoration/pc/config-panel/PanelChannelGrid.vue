@@ -151,6 +151,7 @@
 import { inject } from 'vue';
 import { Plus, Delete, Close, Link, Top, Bottom, QuestionFilled } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
+import { MOCK_CHANNELS } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   component: {
@@ -255,7 +256,7 @@ function handleAddChannel() {
   props.options.items.push({
     title: `频道 ${nextNum}`,
     subtitle: '品质好物',
-    img: `https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/channel-grid/channel_${iconIdx}.png`,
+    img: MOCK_CHANNELS[iconIdx - 1].img,
     url: `/goodsList?channel=${nextNum}`
   });
 }

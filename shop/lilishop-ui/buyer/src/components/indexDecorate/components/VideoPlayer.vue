@@ -21,7 +21,7 @@
       class="video-placeholder"
       :style="{
         height: `${options.height || 450}px`,
-        backgroundImage: `url(${options.coverUrl || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/video/video_cover.png'})`
+        backgroundImage: `url(${options.coverUrl || MOCK_VIDEO_COVER})`
       }"
     >
       <div class="video-play-hint">
@@ -47,6 +47,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { MOCK_VIDEO_COVER } from '@brand/decorate-mock.js';
 
 const router = useRouter();
 

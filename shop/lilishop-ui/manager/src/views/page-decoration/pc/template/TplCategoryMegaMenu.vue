@@ -78,6 +78,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { ArrowRight } from '@element-plus/icons-vue';
 import { getAllCategoryList } from '@/api/goods.js';
+import { MOCK_REGION_CATEGORIES, isMenuPlaceholder } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -94,44 +95,7 @@ const props = defineProps({
   }
 });
 
-const defaultCategories = [
-  {
-    id: '1',
-    name: '电脑办公',
-    children: [
-      { id: '1-1', name: '手机通讯', children: [{ name: '手机' }, { name: '游戏手机' }, { name: '老人机' }] },
-      { id: '1-2', name: '电脑整机', children: [{ name: '笔记本' }, { name: '台式机' }, { name: '平板电脑' }] }
-    ]
-  },
-  {
-    id: '2',
-    name: '家用电器',
-    children: [
-      { id: '2-1', name: '大家电', children: [{ name: '电视' }, { name: '冰箱' }, { name: '洗衣机' }, { name: '空调' }] },
-      { id: '2-2', name: '厨房小电', children: [{ name: '电饭煲' }, { name: '微波炉' }, { name: '咖啡机' }] }
-    ]
-  },
-  {
-    id: '3',
-    name: '服装鞋包',
-    children: [
-      { id: '3-1', name: '女装', children: [{ name: '连衣裙' }, { name: '衬衫' }, { name: '羽绒服' }] },
-      { id: '3-2', name: '男装', children: [{ name: 'T恤' }, { name: '夹克' }, { name: '牛仔裤' }] }
-    ]
-  },
-  {
-    id: '4',
-    name: '食品生鲜',
-    children: [
-      { id: '4-1', name: '生鲜水果', children: [{ name: '苹果' }, { name: '车厘子' }, { name: '奇异果' }] },
-      { id: '4-2', name: '休闲零食', children: [{ name: '坚果炒货' }, { name: '饼干蛋糕' }, { name: '糖果果冻' }] }
-    ]
-  },
-  { id: '5', name: '精品箱包' },
-  { id: '6', name: '美妆个护' },
-  { id: '7', name: '运动户外' },
-  { id: '8', name: '家居家装' }
-];
+const defaultCategories = MOCK_REGION_CATEGORIES;
 
 const systemCategories = ref([]);
 const activeIndex = ref(-1);
@@ -141,14 +105,7 @@ const panelVisible = ref(false);
 const isCustomSource = computed(() => {
   if (props.options?.source === 'system') return false;
   if (props.options?.source === 'custom') {
-    if (Array.isArray(props.options?.categories) && props.options.categories.length === 4) {
-      const names = props.options.categories.map(c => c.name || c.title || '');
-      const isPlaceholder = names.some(n => n.includes('精选')) &&
-                            names.some(n => n.includes('新品')) &&
-                            names.some(n => n.includes('企业')) &&
-                            names.some(n => n.includes('领券'));
-      if (isPlaceholder) return false;
-    }
+    if (isMenuPlaceholder(props.options?.categories)) return false;
     return true;
   }
   return false;

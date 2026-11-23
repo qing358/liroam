@@ -139,6 +139,7 @@
 import { inject } from 'vue';
 import { Plus, Delete, Close, Link, Top, Bottom, QuestionFilled } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
+import { copyOf, MOCK_BRAND_WALL } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   component: {
@@ -155,12 +156,7 @@ const props = defineProps({
 if (!props.options.columns) props.options.columns = 4;
 if (props.options.gap === undefined) props.options.gap = 12;
 if (!Array.isArray(props.options.items)) {
-  props.options.items = [
-    { title: '双层收纳 9.9RMB', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_1.png', url: '/goodsList?brand=1' },
-    { title: '双层收纳 29.9', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_2.png', url: '/goodsList?brand=2' },
-    { title: '双层收纳 29.9', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_3.png', url: '/goodsList?brand=3' },
-    { title: '双层收纳 29.9', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_4.png', url: '/goodsList?brand=4' }
-  ];
+  props.options.items = copyOf(MOCK_BRAND_WALL);
 }
 
 const openImagePicker = inject('openImagePicker', null);
@@ -221,7 +217,7 @@ function handleAddImage() {
   const iconIdx = ((nextNum - 1) % 4) + 1;
   props.options.items.push({
     title: `品牌图 ${nextNum}`,
-    img: `https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_${iconIdx}.png`,
+    img: MOCK_BRAND_WALL[iconIdx - 1].img,
     url: '/goodsList'
   });
 }

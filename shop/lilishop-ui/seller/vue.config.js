@@ -104,6 +104,7 @@ module.exports = {
   chainWebpack(config) {
     config.resolve.alias
       .set("@", resolve("src"))
+      .set("@brand", resolve("../brand"))
       .set("@/components/lili", resolve("src/views/my-components/lili"))
       .set("@/components/map", resolve("src/views/my-components/map"))
       .set("@/components/lili-dialog", resolve("src/views/lili-dialog"))

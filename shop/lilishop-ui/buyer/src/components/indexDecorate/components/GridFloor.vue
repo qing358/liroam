@@ -4,7 +4,7 @@
     <div class="floor-title-header" v-if="options.showFloorTitle !== false">
       <div class="floor-main-heading">
         <span class="floor-badge">{{ options.floorNum || '1F' }}</span>
-        <h3 class="floor-title-text">{{ options.title || '潮流数码' }}</h3>
+        <h3 class="floor-title-text">{{ options.title || MOCK_FLOOR.title }}</h3>
         <span class="floor-subtitle-text" v-if="options.subtitle">{{ options.subtitle }}</span>
       </div>
 
@@ -36,8 +36,8 @@
           <img :src="posterImg" alt="floor poster" class="poster-img" />
           <div class="poster-overlay">
             <div class="poster-top-badge">{{ options.floorNum || '1F' }} 甄选</div>
-            <h4 class="poster-headline">{{ options.posterTitle || '数码潮电 酷玩季' }}</h4>
-            <p class="poster-subline">{{ options.posterSub || '领券最高立减 600 元' }}</p>
+            <h4 class="poster-headline">{{ options.posterTitle || MOCK_FLOOR.posterTitle }}</h4>
+            <p class="poster-subline">{{ options.posterSub || MOCK_FLOOR.posterSub }}</p>
             <div class="poster-pill-tags" v-if="posterTags.length">
               <span v-for="(pt, pIdx) in posterTags" :key="pIdx" class="pill-tag">{{ pt }}</span>
             </div>
@@ -100,6 +100,7 @@
 import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { MOCK_FLOOR, MOCK_FLOOR_BANNER, MOCK_GOODS } from '@brand/decorate-mock.js';
 
 const router = useRouter();
 
@@ -143,18 +144,18 @@ const subCategories = computed(() => {
   if (Array.isArray(props.options?.subCategories) && props.options.subCategories.length > 0) {
     return props.options.subCategories;
   }
-  return ['旗舰手机', '轻薄笔电', '降噪耳机', '智能穿戴', '数码配件'];
+  return MOCK_FLOOR.subCategories;
 });
 
 const posterTags = computed(() => {
   if (Array.isArray(props.options?.posterTags) && props.options.posterTags.length > 0) {
     return props.options.posterTags;
   }
-  return ['爆款低至5折', '新品首发', '分期免息'];
+  return MOCK_FLOOR.posterTags;
 });
 
 const posterImg = computed(() => {
-  return props.options?.posterImg || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png';
+  return props.options?.posterImg || MOCK_FLOOR_BANNER;
 });
 
 const showPoster = computed(() => {
@@ -175,16 +176,7 @@ const rightColumns = computed(() => {
   return baseCols;
 });
 
-const defaultFloorGoods = [
-  { id: '101', goodsName: '旗舰 5G 智能手机 12GB+256GB 超光影影像系统', price: '3999.00', originalPrice: '4599.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png' },
-  { id: '102', goodsName: '无线头戴式深度主动降噪蓝牙耳机 空间音频Hi-Res', price: '1099.00', originalPrice: '1499.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_2.png' },
-  { id: '103', goodsName: '14英寸 全面屏轻薄商务笔记本电脑 酷睿i7 高刷防眩光', price: '5699.00', originalPrice: '6299.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_3.png' },
-  { id: '104', goodsName: '运动健康专业监测智能手表 心率血氧长续航50米防水', price: '899.00', originalPrice: '1199.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_4.png' },
-  { id: '105', goodsName: '奢宠酵母焕活修护精华露 50ml 紧致淡纹抗皱滋养', price: '680.00', originalPrice: '890.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_5.png' },
-  { id: '106', goodsName: '意式半自动家用复古咖啡机 20Bar高压恒温萃取蒸汽奶泡', price: '899.00', originalPrice: '1280.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_6.png' },
-  { id: '107', goodsName: '碳板专业竞速轻量缓震跑步鞋 透气防滑男女同款潮鞋', price: '459.00', originalPrice: '699.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_7.png' },
-  { id: '108', goodsName: '极简静音无雾负离子香薰加湿器 大容量客厅卧室通用', price: '299.00', originalPrice: '399.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_8.png' }
-];
+const defaultFloorGoods = MOCK_GOODS.slice(0, 8);
 
 const displayGoods = computed(() => {
   if (Array.isArray(props.options?.goods) && props.options.goods.length > 0) {

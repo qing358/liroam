@@ -135,7 +135,7 @@ logo/
 ├── svg/                 源文件（纯路径）：mark / horizontal / vertical × color / reverse / mono / white / ink，horizontal-night-plate、horizontal-ink-plate，app-icon、app-icon-fullbleed、app-icon-light、app-icon-light-fullbleed，favicon
 ├── png/                 导出：各组合透明底 PNG、两张带底板横排成品；app-icon 与 app-icon-light 各 1024/512/192 与满版 1024、apple-touch-icon(-light)-180、favicon 16/32/48 与 favicon.ico
 ├── preview/             overview.png 总览、concepts.png 方向提案、misuse.png 禁用示例
-└── tools/               构建脚本：geometry.py（中心线 → 等宽描边轮廓）、marks.py（图形标网格、三个变体与底板）、build.py（字标、组合、导出）、assets.py（商城站内素材：装修轮播 / 活动卡、会员等级图标与等级卡背景、权益图标、商品与店铺占位图、admin 头像、本机登录滑块素材）
+└── tools/               构建脚本：geometry.py（中心线 → 等宽描边轮廓）、marks.py（图形标网格、三个变体与底板）、build.py（字标、组合、导出）、assets.py（商城站内素材：装修轮播 / 活动卡、装修样例（套餐商品图、品牌墙、频道、分类导航、热区、楼层横幅、视频封面、分类页模板缩略图）、会员等级图标与等级卡背景、权益图标、商品与店铺占位图、admin 头像、本机登录滑块素材）
 ```
 
 几何、配色、字距都只在 `tools/` 里改，改完重建，不要手改导出物：

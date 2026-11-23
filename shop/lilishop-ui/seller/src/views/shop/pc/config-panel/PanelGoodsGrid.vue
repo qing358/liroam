@@ -5,11 +5,11 @@
       <div class="section-title">宫格标题设置</div>
       <div class="form-item">
         <span class="item-label">主标题</span>
-        <el-input v-model="options.title" size="small" placeholder="如：爆款热卖榜" clearable />
+        <el-input v-model="options.title" size="small" placeholder="如：热门套餐榜" clearable />
       </div>
       <div class="form-item">
         <span class="item-label">副标题</span>
-        <el-input v-model="options.subtitle" size="small" placeholder="如：近30天爆卖好物精选" clearable />
+        <el-input v-model="options.subtitle" size="small" placeholder="如：按目的地挑选" clearable />
       </div>
       <div class="form-item flex-row">
         <span class="item-label">展示查看更多</span>

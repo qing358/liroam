@@ -54,7 +54,7 @@ import HoverSearch from '@/components/header/hoverSearch';
 import fixedBar from '@/components/fixed/index';
 import storage from "@/plugins/storage";
 import { indexData, getAutoCoup } from '@/api/index.js';
-import { DOUBLE11_PAGE_DOCUMENT } from '@/components/indexDecorate/presets/double11Preset.js';
+import { LIROAM_PAGE_DOCUMENT } from '@/components/indexDecorate/presets/liroamPreset.js';
 import { seckillByDay } from '@/api/promotion';
 
 defineOptions({ name: "Index" });
@@ -166,7 +166,7 @@ function handleReachBottom() {
 function getIndexData() {
   if (props.pageData) {
     parsePageData(JSON.stringify(props.pageData)).catch(() => {
-      modelFormData.value = DOUBLE11_PAGE_DOCUMENT;
+      modelFormData.value = LIROAM_PAGE_DOCUMENT;
     });
   } else {
     // 获取首页装修数据
@@ -175,15 +175,15 @@ function getIndexData() {
         try {
           await parsePageData(res.result.pageData);
         } catch {
-          modelFormData.value = DOUBLE11_PAGE_DOCUMENT;
+          modelFormData.value = LIROAM_PAGE_DOCUMENT;
         }
       } else {
-        // 无服务端数据时默认展示双11平台首页
-        modelFormData.value = DOUBLE11_PAGE_DOCUMENT;
+        // 无服务端数据时展示轻游平台首页兜底
+        modelFormData.value = LIROAM_PAGE_DOCUMENT;
       }
     }).catch((err) => {
-      console.warn('获取首页装修数据失败，启用双11平台首页预设', err);
-      modelFormData.value = DOUBLE11_PAGE_DOCUMENT;
+      console.warn('获取首页装修数据失败，启用平台首页兜底', err);
+      modelFormData.value = LIROAM_PAGE_DOCUMENT;
     });
   }
 }

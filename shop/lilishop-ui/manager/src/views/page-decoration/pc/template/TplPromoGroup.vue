@@ -20,6 +20,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { MOCK_PROMO_CARDS } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -32,11 +33,7 @@ const props = defineProps({
   }
 });
 
-const defaultCards = [
-  { title: '限时秒杀', subtitle: '抢券立减50元 · 爆款直降', bgImg: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/promo-group/promo_1.png', url: '/goodsList?seckill=1' },
-  { title: '品牌特惠', subtitle: '大牌买一送一 · 领百元神券', bgImg: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/promo-group/promo_2.png', url: '/goodsList?brand=1' },
-  { title: '新品首发', subtitle: '首单专享特惠 · 1元起尝鲜', bgImg: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/promo-group/promo_3.png', url: '/goodsList?new=1' }
-];
+const defaultCards = MOCK_PROMO_CARDS;
 
 const cardsList = computed(() => {
   if (Array.isArray(props.options?.cards) && props.options.cards.length > 0) {

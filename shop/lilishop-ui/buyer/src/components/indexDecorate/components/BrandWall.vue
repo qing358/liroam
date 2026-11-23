@@ -29,6 +29,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { MOCK_BRAND_WALL } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -45,12 +46,7 @@ const brandList = computed(() => {
   if (Array.isArray(props.options.items) && props.options.items.length > 0) {
     return props.options.items;
   }
-  return [
-    { title: '数码潮玩 · 爆款立减500', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_1.png', url: '/goodsList?category=1' },
-    { title: '美妆奢宠 · 每满300减50', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_2.png', url: '/goodsList?category=2' },
-    { title: '运动潮品 · 爆款低至5折', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_3.png', url: '/goodsList?category=3' },
-    { title: '品质生活 · 精选好物', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/brand-wall/brand_4.png', url: '/goodsList?category=4' }
-  ];
+  return MOCK_BRAND_WALL;
 });
 
 const actualColumns = computed(() => {

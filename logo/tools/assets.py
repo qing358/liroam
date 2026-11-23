@@ -78,6 +78,7 @@ BANNERS = [
     ("ink", "出境上网，出发前备好", "按目的地和天数选购旅行通信卡，eSIM 与实体卡可选"),
     ("teal", "eSIM 付款后在线发码", "实体卡发货后可查物流，开卡进度在「我的卡」查看"),
     ("ink", "一人多卡，按卡管理", "每张卡单独查看用量与到期时间，流量不够可续费加包"),
+    ("teal", "流量不够，原卡加包", "在「我的卡」直接续费或加流量包，无需换卡"),
 ]
 
 
@@ -103,6 +104,100 @@ def promo(index):
     body += route(w * 0.58 + index * 18, -u, h * 0.50, w + u, u, C["teal"] if bg == "ink" else C["hover"])
     body += route(w * 0.74 + index * 10, -u, h * 0.72, w - 3 * u, u * 0.7, C["light3"] if bg == "ink" else C["light5"], C["sunlight"])
     return svg(w, h, body, "轻游活动卡")
+
+
+# PC 装修示例（shop/lilishop-ui/brand/decorate-mock.js 引用）：套餐图按目的地、品牌墙按专区、导航按地区。
+REGION_GOODS = [("jp", "日本"), ("kr", "韩国"), ("th", "泰国"), ("eu", "欧洲多国"), ("us", "美国"),
+                ("sea", "东南亚"), ("hk", "中国香港"), ("anz", "澳新"), ("global", "全球通用")]
+
+
+def goods(index, name):
+    s, u = 400, 24
+    bg = "ink" if index % 2 == 0 else "teal"
+    body = f'<rect width="{s}" height="{s}" fill="{C[bg]}"/>'
+    body += route(s * 0.56, -u, s * 0.36, s + u, u, C["teal"] if bg == "ink" else C["hover"])
+    body += route(s * 0.74, -u, s * 0.52, s - 3 * u, u * 0.7, C["light3"] if bg == "ink" else C["light5"], C["sunlight"])
+    body += mark(s * 0.1, s * 0.1, 56, WHITE, C["sunlight"])
+    body += text(s * 0.1, s * 0.74, 56, WHITE, name)
+    body += text(s * 0.1, s * 0.86, 24, C["light8"], "旅行通信卡 · eSIM / 实体卡", 400)
+    return svg(s, s, body, f"{name}旅行通信卡")
+
+
+BRAND_WALL = [("ink", "日韩专区", "热门套餐，落地即用"), ("teal", "东南亚", "多国通用，一卡走完"),
+              ("ink", "欧洲多国", "一卡畅游 33 国"), ("teal", "港澳台", "短途出行必备")]
+
+
+def floor_banner():
+    w, h, u = 480, 1040, 40
+    body = f'<rect width="{w}" height="{h}" fill="{C["ink"]}"/>'
+    body += route(w * 0.30, -u, h * 0.46, w + u, u, C["teal"])
+    body += route(w * 0.56, -u, h * 0.62, w - 3 * u, u * 0.7, C["light3"], C["sunlight"])
+    body += route(w * 0.80, -u, h * 0.30, w + u, u * 0.5, C["light7"])
+    return svg(w, h, body, "轻游楼层海报")
+
+
+def hotzone():
+    w, h = 1400, 500
+    zones = [(3.5, 28.5, "teal", "领券中心", "下单前先领券"), (35.5, 28.5, "ink", "热门目的地", "按天数选购"),
+             (67.5, 29, "teal", "续费加包", "原卡续用，无需换卡")]
+    body = f'<rect width="{w}" height="{h}" fill="{C["mist"]}"/>'
+    for left, width, bg, title, sub in zones:
+        x, y, zw, zh = w * left / 100, h * 0.12, w * width / 100, h * 0.76
+        body += f'<svg x="{x:.1f}" y="{y:.1f}" width="{zw:.1f}" height="{zh:.1f}"><rect width="100%" height="100%" rx="16" fill="{C[bg]}"/>'
+        body += route(zw * 0.62, -24, zh * 0.40, zw + 24, 24, C["teal"] if bg == "ink" else C["hover"], C["sunlight"])
+        body += text(32, zh * 0.62, 44, WHITE, title) + text(32, zh * 0.80, 22, C["light8"], sub, 400) + "</svg>"
+    return svg(w, h, body, "轻游热区图")
+
+
+NAV = ["日", "韩", "泰", "新", "港", "欧", "美", "澳", "中东", "全球"]
+
+
+def nav(label):
+    s = 96
+    size = 40 if len(label) == 1 else 28
+    body = f'<circle cx="48" cy="48" r="48" fill="{C["mist"]}"/>'
+    body += (f'<text x="48" y="{48 + size * 0.36:.1f}" text-anchor="middle" font-family="{FONT}" font-size="{size}" '
+             f'font-weight="700" fill="{C["teal"]}">{label}</text>')
+    return svg(s, s, body, f"{label}地区")
+
+
+def channel(index):
+    shapes = {
+        1: mark(48 - 22 * 368.82 / 400, 26, 44, C["teal"], C["sunrise"]),
+        2: _stroke("M24 34H72V44C66 44 66 52 72 52V62H24V52C30 52 30 44 24 44Z") + _stroke("M44 34V62", 5),
+        3: _stroke("M32 22H58L66 30V74H32Z") + _stroke("M40 44H58V64H40Z", 5),
+        4: BENEFITS["note"],
+    }
+    return svg(96, 96, f'<circle cx="48" cy="48" r="48" fill="{C["mist"]}"/>' + shapes[index], "频道入口")
+
+
+def category_tpl(index):
+    """H5 分类页四种模板的示意线框（管理端「分类页设置」选模板用）。"""
+    w, h = 250, 444
+    box = lambda x, y, bw, bh, fill, rx=6: f'<rect x="{x}" y="{y}" width="{bw}" height="{bh}" rx="{rx}" fill="{fill}"/>'
+    body = f'<rect width="{w}" height="{h}" rx="20" fill="{C["mist"]}"/>' + box(14, 14, w - 28, 28, WHITE, 14)
+    if index in (1, 4):
+        for k in range(7):
+            body += box(14, 56 + k * 40, 56, 30, C["teal"] if k == 0 else WHITE)
+    if index == 1:
+        for r in range(4):
+            for c in range(3):
+                body += box(82 + c * 52, 56 + r * 70, 44, 44, WHITE) + box(86 + c * 52, 106 + r * 70, 36, 6, C["light5"], 3)
+    elif index == 4:
+        for c in range(3):
+            body += box(82 + c * 52, 56, 46, 24, C["teal"] if c == 0 else WHITE, 12)
+        for r in range(5):
+            body += box(82, 94 + r * 64, 154, 54, WHITE)
+    else:
+        for r in range(2 if index == 2 else 4):
+            for c in range(4):
+                body += f'<circle cx="{40 + c * 57}" cy="{80 + r * 72}" r="20" fill="{C["teal"] if r == c == 0 else WHITE}"/>'
+                body += box(26 + c * 57, 106 + r * 72, 28, 6, C["light5"], 3)
+        if index == 2:
+            for r in range(4):
+                for c in range(3):
+                    body += box(20 + c * 72, 220 + r * 44, 64, 30, WHITE, 15)
+    return svg(w, h, body, f"分类页模板 {index}")
 
 
 GRADES = [("mist", C["teal"], C["sunrise"]), ("light3", WHITE, WHITE), ("teal", WHITE, C["sunlight"]), ("ink", WHITE, C["sunlight"])]
@@ -203,12 +298,26 @@ def rasterize(content, out, jpg):
 
 
 def main():
-    decorate = ["shop/lilishop-ui/buyer/public/liroam/decorate", "shop/lilishop-ui/manager/public/liroam/decorate"]
+    decorate = [f"shop/lilishop-ui/{app}/public/liroam/decorate" for app in ("buyer", "manager", "seller")]
+    manager_decorate = decorate[1:2]
     for i, (bg, title, sub) in enumerate(BANNERS, 1):
         write(decorate, f"banner-{i}.svg", banner(1050, 420, bg, title, sub))
-        write(decorate[1:], f"h5-banner-{i}.svg", banner(750, 332, bg, title, sub))
+        if i <= 3:
+            write(manager_decorate, f"h5-banner-{i}.svg", banner(750, 332, bg, title, sub))
     for i in range(4):
         write(decorate, f"promo-{i + 1}.svg", promo(i))
+    for i, (slug, name) in enumerate(REGION_GOODS):
+        write(decorate, f"goods-{slug}.svg", goods(i, name))
+    for i, (bg, title, sub) in enumerate(BRAND_WALL, 1):
+        write(decorate, f"brand-{i}.svg", banner(600, 300, bg, title, sub))
+    for i, label in enumerate(NAV, 1):
+        write(decorate, f"nav-{i}.svg", nav(label))
+    for i in range(1, 5):
+        write(decorate, f"channel-{i}.svg", channel(i))
+        write(manager_decorate, f"category-tpl-{i}.svg", category_tpl(i))
+    write(decorate, "floor-banner.svg", floor_banner())
+    write(decorate, "hotzone.svg", hotzone())
+    write(decorate, "video-cover.svg", banner(1280, 720, "ink", "三步开通 eSIM", "下单付款 → 扫码安装 → 落地开网"))
 
     member = ["shop/lilishop-ui/buyer/public/liroam/member", "shop/lilishop-ui/manager/public/liroam/member"]
     for i in range(4):

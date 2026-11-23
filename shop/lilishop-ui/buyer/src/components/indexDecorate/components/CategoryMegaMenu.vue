@@ -90,6 +90,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { ArrowRight } from '@element-plus/icons-vue';
 import { getCategory } from '@/api/goods';
+import { MOCK_REGION_CATEGORIES, isMenuPlaceholder } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -108,75 +109,8 @@ const props = defineProps({
 
 const router = useRouter();
 
-// 默认真实类目备选数据（防止弱网下未加载出接口时空白）
-const fallbackCategories = [
-  {
-    id: '1348576427264204941',
-    name: '电脑办公',
-    children: [
-      { id: '1-1', name: '电脑整机', parentId: '1348576427264204941', children: [{ id: '1-1-1', name: '笔记本' }, { id: '1-1-2', name: '游戏本' }, { id: '1-1-3', name: '台式机' }, { id: '1-1-4', name: '平板电脑' }] },
-      { id: '1-2', name: '电脑配件', parentId: '1348576427264204941', children: [{ id: '1-2-1', name: '显示器' }, { id: '1-2-2', name: '显卡' }, { id: '1-2-3', name: '机械键盘' }, { id: '1-2-4', name: '鼠标' }] },
-      { id: '1-3', name: '手机通讯', parentId: '1348576427264204941', children: [{ id: '1-3-1', name: '5G智能手机' }, { id: '1-3-2', name: '拍照手机' }, { id: '1-3-3', name: '蓝牙耳机' }] }
-    ]
-  },
-  {
-    id: '1348576427268399553',
-    name: '家用电器',
-    children: [
-      { id: '2-1', name: '大家电', parentId: '1348576427268399553', children: [{ id: '2-1-1', name: '平板电视' }, { id: '2-1-2', name: '风冷冰箱' }, { id: '2-1-3', name: '滚筒洗衣机' }, { id: '2-1-4', name: '变频空调' }] },
-      { id: '2-2', name: '生活电器', parentId: '1348576427268399553', children: [{ id: '2-2-1', name: '空气净化器' }, { id: '2-2-2', name: '扫地机器人' }, { id: '2-2-3', name: '吸尘器' }] },
-      { id: '2-3', name: '厨房小电', parentId: '1348576427268399553', children: [{ id: '2-3-1', name: '电饭煲' }, { id: '2-3-2', name: '复古咖啡机' }, { id: '2-3-3', name: '破壁料理机' }] }
-    ]
-  },
-  {
-    id: '1348576427260010496',
-    name: '服装鞋包',
-    children: [
-      { id: '3-1', name: '女装流行', parentId: '1348576427260010496', children: [{ id: '3-1-1', name: '连衣裙' }, { id: '3-1-2', name: '羊绒大衣' }, { id: '3-1-3', name: '早秋衬衫' }, { id: '3-1-4', name: '休闲裤' }] },
-      { id: '3-2', name: '男装精选', parentId: '1348576427260010496', children: [{ id: '3-2-1', name: '商务夹克' }, { id: '3-2-2', name: '休闲T恤' }, { id: '3-2-3', name: '免烫衬衫' }, { id: '3-2-4', name: '牛仔裤' }] }
-    ]
-  },
-  {
-    id: '1348576427268399363',
-    name: '食品生鲜',
-    children: [
-      { id: '4-1', name: '生鲜水果', parentId: '1348576427268399363', children: [{ id: '4-1-1', name: '进口车厘子' }, { id: '4-1-2', name: '红富士苹果' }, { id: '4-1-3', name: '佳沛奇异果' }] },
-      { id: '4-2', name: '休闲零食', parentId: '1348576427268399363', children: [{ id: '4-2-1', name: '每日坚果' }, { id: '4-2-2', name: '烘焙饼干' }, { id: '4-2-3', name: '巧克力糖果' }] }
-    ]
-  },
-  {
-    id: '1348576427268399172',
-    name: '精品箱包',
-    children: [
-      { id: '5-1', name: '潮流女包', parentId: '1348576427268399172', children: [{ id: '5-1-1', name: '真皮单肩包' }, { id: '5-1-2', name: '托特大包' }, { id: '5-1-3', name: '斜挎小方包' }] },
-      { id: '5-2', name: '商务男包', parentId: '1348576427268399172', children: [{ id: '5-2-1', name: '双肩电脑包' }, { id: '5-2-2', name: '公文手提包' }] }
-    ]
-  },
-  {
-    id: '1348576427268399318',
-    name: '美妆个护',
-    children: [
-      { id: '6-1', name: '面部护肤', parentId: '1348576427268399318', children: [{ id: '6-1-1', name: '修护精华' }, { id: '6-1-2', name: '补水面膜' }, { id: '6-1-3', name: '爽肤水' }, { id: '6-1-4', name: '眼霜' }] },
-      { id: '6-2', name: '彩妆香水', parentId: '1348576427268399318', children: [{ id: '6-2-1', name: '大牌口红' }, { id: '6-2-2', name: '持久气垫' }, { id: '6-2-3', name: '沙龙香氛' }] }
-    ]
-  },
-  {
-    id: '1348576427268399274',
-    name: '运动户外',
-    children: [
-      { id: '7-1', name: '运动鞋服', parentId: '1348576427268399274', children: [{ id: '7-1-1', name: '缓震跑鞋' }, { id: '7-1-2', name: '专业篮球鞋' }, { id: '7-1-3', name: '运动速干衣' }] },
-      { id: '7-2', name: '户外装备', parentId: '1348576427268399274', children: [{ id: '7-2-1', name: '露营帐篷' }, { id: '7-2-2', name: '登山包' }, { id: '7-2-3', name: '运动手表' }] }
-    ]
-  },
-  {
-    id: '1348576427268399217',
-    name: '家居家装',
-    children: [
-      { id: '8-1', name: '家纺布艺', parentId: '1348576427268399217', children: [{ id: '8-1-1', name: '四件套' }, { id: '8-1-2', name: '乳胶枕' }, { id: '8-1-3', name: '羽绒被' }] },
-      { id: '8-2', name: '现代家具', parentId: '1348576427268399217', children: [{ id: '8-2-1', name: '人体工学椅' }, { id: '8-2-2', name: '升降电脑桌' }, { id: '8-2-3', name: '真皮沙发' }] }
-    ]
-  }
-];
+// 弱网下分类接口未返回时的占位（按目的地分区的示例类目），防止空白
+const fallbackCategories = MOCK_REGION_CATEGORIES;
 
 const systemCategories = ref([]);
 const activeIndex = ref(-1);
@@ -188,14 +122,7 @@ const isCustomSource = computed(() => {
   if (props.options?.source === 'system') return false;
   // 2. 如果配置为 custom，但分类条目依然是初始未编辑的 4 个占位条目，依然展示真实系统分类
   if (props.options?.source === 'custom') {
-    if (Array.isArray(props.options?.categories) && props.options.categories.length === 4) {
-      const names = props.options.categories.map(c => c.name || c.title || '');
-      const isPlaceholder = names.some(n => n.includes('精选')) &&
-                            names.some(n => n.includes('新品')) &&
-                            names.some(n => n.includes('企业')) &&
-                            names.some(n => n.includes('领券'));
-      if (isPlaceholder) return false;
-    }
+    if (isMenuPlaceholder(props.options?.categories)) return false;
     return true;
   }
   // 3. 其它默认情况均默认展示系统商品分类

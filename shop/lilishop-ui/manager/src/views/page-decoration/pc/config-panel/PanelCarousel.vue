@@ -194,6 +194,7 @@
 import { inject } from 'vue';
 import { Plus, Delete, Close, Link, Top, Bottom, QuestionFilled } from '@element-plus/icons-vue';
 import { ElMessageBox } from 'element-plus';
+import { copyOf, MOCK_CAROUSEL } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   component: {
@@ -216,12 +217,7 @@ if (!props.options.fitMode) props.options.fitMode = 'contain';
 if (!props.options.aspectRatio) props.options.aspectRatio = '2.5:1';
 if (props.options.height === undefined) props.options.height = 420;
 if (!Array.isArray(props.options.list)) {
-  props.options.list = [
-    { title: '出游囤好货', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_1.png', url: '/goodsList?seckill=1' },
-    { title: '科技新品', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_2.png', url: '/goodsList?category=1' },
-    { title: '原产地直采', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_3.png', url: '/goodsList?category=2' },
-    { title: '大牌美妆', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_4.png', url: '/goodsList?category=3' }
-  ];
+  props.options.list = copyOf(MOCK_CAROUSEL);
 }
 
 // 注入全局选择器
@@ -283,7 +279,7 @@ function handleAddSlide() {
   const iconIdx = ((nextNum - 1) % 4) + 1;
   props.options.list.push({
     title: `轮播图 ${nextNum}`,
-    img: `https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/carousel/banner_${iconIdx}.png`,
+    img: MOCK_CAROUSEL[iconIdx - 1].img,
     url: '/goodsList'
   });
 }

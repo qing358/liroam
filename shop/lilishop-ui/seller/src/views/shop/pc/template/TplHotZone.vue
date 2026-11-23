@@ -24,6 +24,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { MOCK_HOT_ZONE } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
@@ -36,14 +37,10 @@ const props = defineProps({
   }
 });
 
-const defaultZones = [
-  { title: '大促主会场 · 领券中心', url: '/couponCenter', left: 3.5, top: 12, width: 28.5, height: 76 },
-  { title: '数码潮电馆 · 爆款直降', url: '/goodsList?category=1', left: 35.5, top: 12, width: 28.5, height: 76 },
-  { title: '美妆奢品馆 · 5折特惠', url: '/goodsList?category=2', left: 67.5, top: 12, width: 29, height: 76 }
-];
+const defaultZones = MOCK_HOT_ZONE.zones;
 
 const displayImageUrl = computed(() => {
-  return props.options?.imageUrl || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/hot-zone/hotzone_default.png';
+  return props.options?.imageUrl || MOCK_HOT_ZONE.imageUrl;
 });
 
 const displayZones = computed(() => {

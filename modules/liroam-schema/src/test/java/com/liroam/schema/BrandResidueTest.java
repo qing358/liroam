@@ -51,8 +51,12 @@ class BrandResidueTest {
         assertThat(json(jdbc, PC, "$.list[*].components[0].type"))
                 .isEqualTo("[\"topBar\", \"searchHeader\", \"categoryMegaMenu\", \"promoGroup\", \"titleBar\", \"goodsList\"]");
         assertThat(text(jdbc, PC, "$.list[0].components[0].options.welcomeText")).isEqualTo("欢迎来到轻游");
+        assertThat(json(jdbc, PC, "$.list[2].components[0].options.categories[*].name"))
+                .as("分类菜单自定义占位换成按目的地分区").isEqualTo("[\"热门目的地\", \"欧美澳新\", \"港澳台\", \"按卡型选\"]");
+        assertThat(text(jdbc, PC, "$.list[2].components[0].options.source")).isEqualTo("system");
         assertThat(page).doesNotContain("aliyuncs").doesNotContain("test 11").doesNotContain("test 123").doesNotContain("华为")
-                .doesNotContain("HuaweiMate").doesNotContain("409EFF").doesNotContain("手机").doesNotContain("1348576427268399");
+                .doesNotContain("HuaweiMate").doesNotContain("409EFF").doesNotContain("手机").doesNotContain("1348576427268399")
+                .doesNotContain("精选频道").doesNotContain("企业采购").doesNotContain("生鲜补贴").doesNotContain("母婴满减");
         assertSiteAssetsExist(page, "buyer", "manager");
     }
 
@@ -62,7 +66,7 @@ class BrandResidueTest {
         String upstream = resource("brand/pc-home-upstream.json");
         String custom = upstream.replace("\"手机\",\"数码家电\"", "\"冰岛\",\"数码家电\"").replace("#409EFF", "#123456")
                 .replace("static/carousel/banner_1.png", "static/carousel/mine.png").replace("1945777974252118018", "1")
-                .replace("/goodsList?categoryId=1348576427268399274", "/goodsList?categoryId=9");
+                .replace("/goodsList?categoryId=1348576427268399274", "/goodsList?categoryId=9").replace("\"母婴满减\"", "\"冰岛专享\"");
         jdbc.update("INSERT INTO li_page_data (id, name, page_client_type, page_data) VALUES (?, '平台首页', 'PC', ?)", PC, custom);
 
         LiroamMigrations.migrate(jdbc.getDataSource());
@@ -73,6 +77,7 @@ class BrandResidueTest {
         assertThat(text(jdbc, PC, "$.list[4].components[0].options.moreUrl")).isEqualTo("/goodsList?categoryId=9");
         assertThat(text(jdbc, PC, "$.list[6].components[0].type")).as("运营换过商品的推荐流保留").isEqualTo("recommendFeed");
         assertThat(json(jdbc, PC, "$.list[3].components[0].options.cards[0].title")).as("未改的组件照常换").isEqualTo("\"限时特价\"");
+        assertThat(json(jdbc, PC, "$.list[2].components[0].options.categories[0].name")).as("改过的分类菜单占位保留").isEqualTo("\"精选频道\"");
     }
 
     @Test

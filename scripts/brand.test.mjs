@@ -1,19 +1,18 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import test from 'node:test';
 
 // 品牌闸：四个前端的源码与静态资源里不再出现上游 Lilishop 的名称、公司与官网。
-// 允许的只有：上游公开 OSS 上的装修演示素材（非 logo）、上游移动端仓名（开发注释）、内部错误标记、
-// 以及上线前按 launch-checklist 替换的部署地址。
+// 允许的只有：上游移动端仓名（开发注释）、内部错误标记，以及上线前按 launch-checklist 替换的部署地址。
+// 上游公开 OSS（lilishop-pc / lilishop-wechat）上的图一律不放行，装修示例图用仓内 /liroam/** 资源。
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const uiRoot = path.join(repoRoot, 'shop/lilishop-ui');
 const APPS = ['buyer', 'seller', 'manager', 'im'];
 const TEXT = /\.(vue|js|mjs|cjs|ts|html|scss|less|css|json)$/;
 const BRAND = /lilishop|pickmall|宏业汇成|lili ?im|lili-shop|lili商城/i;
 const ALLOWED = [
-  /lilishop-(pc|wechat)\.oss-cn-beijing\.aliyuncs\.com\/(?!static\/logo\/)/gi,
   /lilishop-uniapp/g,
   /lilishop\/docs\/requirements/g,
   /lilishop\.buyer\.handledRequestError/g,
@@ -38,7 +37,10 @@ function brandHits(file) {
   });
 }
 
-const appFiles = APPS.flatMap((app) => ['src', 'public'].flatMap((d) => walk(path.join(uiRoot, app, d))));
+const appFiles = [
+  ...APPS.flatMap((app) => ['src', 'public'].flatMap((d) => walk(path.join(uiRoot, app, d)))),
+  ...walk(path.join(uiRoot, 'brand')),
+];
 
 test('前端源码与静态资源不出现上游品牌名、公司名与官网', () => {
   const hits = appFiles.filter((f) => TEXT.test(f) && !f.endsWith('config.local.js')).flatMap(brandHits);
@@ -59,8 +61,8 @@ test('favicon 统一为轻游 favicon（不随主题或站点设置变化）', (
   }
 });
 
-// 上游自带的定位语、页脚承诺与装修样例宣传语（含与旅行卡售后不符的「7天无理由」「顺丰」等）。
-// 装修「预设」整页模板（presets/）是运营可选的活动样例，不在此列。
+// 上游自带的定位语、页脚承诺与装修样例宣传语（含与旅行卡售后不符的「7天无理由」「顺丰」等），
+// 以及 PC 装修模板内置的上游示例商品与类目；装修示例统一取 brand/decorate-mock.js。
 const UPSTREAM_COPY = [
   '企业级电商运营管理平台', '为平台运营团队提供稳定', '商品、营销、会员一体化运营', '多店铺管理与经营数据分析',
   '在线购物平台', 'content="keywords"', 'content="description"', 'lili-system.oss-cn-beijing.aliyuncs.com/background.jpg',
@@ -68,6 +70,7 @@ const UPSTREAM_COPY = [
   '品牌故事 · 匠心传承', '甄选美好生活', '官方商城运营部', '100% 官方正品', '7天无理由', '极速顺丰', '>顺丰速运<',
   '商城秋季大促', '商城系统', '品质生活馆', '官方正品', '镇店爆品', '正品严选', '电商之旅',
   '开源不易', 'vue-antd-pro', "'手机', '数码家电'", "'iPhone 16 Pro', '小棕瓶'", '一家很有品的店', '/demo/', "defaultThumb = 'https://lilishop",
+  '智能手机', '咖啡机', '电脑办公', '家用电器', '食品生鲜', '双层收纳', '双11', 'DOUBLE11',
 ];
 
 function copyHits(file) {
@@ -76,7 +79,7 @@ function copyHits(file) {
 }
 
 test('前端不再出现上游定位语、页脚承诺与装修样例宣传语', () => {
-  const hits = appFiles.filter((f) => TEXT.test(f) && !f.includes(`${path.sep}presets${path.sep}`)).flatMap(copyHits);
+  const hits = appFiles.filter((f) => TEXT.test(f)).flatMap(copyHits);
   assert.deepEqual(hits, []);
 });
 
@@ -171,12 +174,37 @@ test('闸本身：拦上游主色，放过状态色', () => {
   }
 });
 
-test('闸本身：能抓到品牌名，放过演示素材与部署地址', () => {
+const SITE_ASSET = /\/liroam\/[a-z0-9/-]+\.svg/g;
+
+test('装修示例与页面引用的站内素材，在用到它的前端 public 里都有', async () => {
+  const mock = await import(pathToFileURL(path.join(uiRoot, 'brand/decorate-mock.js')));
+  const shared = JSON.stringify(Object.values(mock).filter((v) => typeof v !== 'function'));
+  const missing = [];
+  for (const app of ['buyer', 'seller', 'manager']) {
+    const src = appFiles.filter((f) => f.startsWith(path.join(uiRoot, app, 'src') + path.sep) && TEXT.test(f));
+    const refs = new Set([shared, ...src.map((f) => fs.readFileSync(f, 'utf8'))].flatMap((s) => s.match(SITE_ASSET) || []));
+    for (const ref of refs) {
+      if (!fs.existsSync(path.join(uiRoot, app, 'public', ref))) missing.push(`${app}/public${ref}`);
+    }
+  }
+  assert.deepEqual(missing, []);
+});
+
+test('库里首页分类菜单占位与前端判定占位的是同一份', async () => {
+  const { MOCK_MENU_PLACEHOLDER } = await import(pathToFileURL(path.join(uiRoot, 'brand/decorate-mock.js')));
+  const sql = fs.readFileSync(
+    path.join(repoRoot, 'modules/liroam-schema/src/main/resources/db/migration/liroam/V202611261330__brand_liroam_menu_placeholder.sql'), 'utf8');
+  const written = sql.match(/SET @new := '([\s\S]*?)';/)[1];
+  assert.deepEqual(JSON.parse(written), MOCK_MENU_PLACEHOLDER);
+});
+
+test('闸本身：能抓到品牌名与上游图床，放过部署地址', () => {
   const probe = (line) => BRAND.test(ALLOWED.reduce((s, re) => s.replace(re, ''), line));
   assert.ok(probe("title: 'lilishop'"));
   assert.ok(probe('Copyright © 2026 Lilishop.'));
   assert.ok(probe('https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/logo/logo.png'));
   assert.ok(probe('<a href="https://pickmall.cn">'));
-  assert.ok(!probe('https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png'));
+  assert.ok(probe('https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png'));
+  assert.ok(probe('img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-1.png"'));
   assert.ok(!probe('API_PROD: { buyer: "https://buyer-api.pickmall.cn" }'));
 });

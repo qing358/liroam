@@ -11,7 +11,7 @@
       />
       <template v-else>
         <img
-          :src="options.coverUrl || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/video/video_cover.png'"
+          :src="options.coverUrl || MOCK_VIDEO_COVER"
           alt="cover"
           class="cover-img"
         />
@@ -29,6 +29,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { MOCK_VIDEO_COVER } from '@brand/decorate-mock.js';
 
 const props = defineProps({
   options: {
