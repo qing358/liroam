@@ -31,7 +31,7 @@
 | 25 | 数据密钥轮换可行 | 生产密钥管理能新增 `LIROAM_DATA_KEY_Vn` 并滚动重启；在预发按手册走一遍 新增 → 重加密 → 下线旧版本，「运维概览」无无法解密行 |
 | 26 | 渠道真适配器 | 每个启用渠道的 `lr_channel.adapter_key` 不含 `mock-`（生产 profile 装到模拟渠道即启动失败）；小红书 / 京东真适配器按真实报文过 拉单 → 回传 → 日对账 |
 | 27 | 部署地址与回调 | 壳「系统设置」`BASE_SETTING` 的 PC / H5 静态页地址、`CONNECT_SETTING` 联合登录回调与 PC / H5 地址、支付宝 `ALIPAY_PAYMENT.callbackUrl`（及微信支付回调）填生产域名；迁移只把上游演示站 `*.pickmall.cn` 清空，空值上线会让分享链接、第三方登录与支付回调失效 |
-| 28 | 登录滑块素材 | `li_verification_source` 至少 1 张背景（`RESOURCE`）、2 张拼块（`SLIDER`）；用 `deploy/dev-assets/verification/` 的轻游素材上传自有 OSS 后在后台「验证码资源」录入（本机用的是 `file://` 本地路径，不能进生产）；三端登录页滑块能出图 |
+| 28 | 登录滑块素材 | `li_verification_source` 至少 1 张背景（`RESOURCE`）、2 张拼块（`SLIDER`）；用 `deploy/dev-assets/verification/` 的轻游素材上传自有 OSS 后在后台「验证码资源」录入生产地址 `https://<自有 OSS 或 CDN 域名>/verification/{bg-1..6.jpg, slider-1..4.png}`（须公网 https，浏览器与后端进程都能下载；本机用的 `http://localhost:39887/static/...` 与 `dev-seed.sql` 都不能进生产）；后台「验证码资源」页图片能显示，三端登录页滑块能出图并通过 |
 | 29 | 上游图床残留 | 库里不再引用 `lilishop-oss` / `lilishop-pc` 上游图床：分销海报 / 邀请卡 / 招募背景（`DISTRIBUTION_*_SETTING`）换自有素材；H5 装修若启用，商品与图片换真实内容；代码未读的旧表 `li_paid_member_setting`（付费会员实际读 `li_setting.PAID_MEMBER_SETTING`）仍存上游图标，生产库不导入或清空 |
 | 30 | 文件存储 | 壳「系统设置」`OSS_SETTING` 换自有 OSS 的桶、地域与账号（基线里是上游 `lilishop-oss` 桶及其凭证，凭证只进生产配置）；后台上传一张图能在三端打开 |
 | 31 | 站内素材可访问 | 库里装修、会员图标、等级卡等按根路径 `/liroam/...` 引用：PC 三端打包自带（`public/liroam/`）；H5（uni-app，不在本仓）所在域名也要能访问同一路径（同域反代到买家 PC 静态资源或拷一份），否则 H5 首页横幅与商品占位图是破图 |

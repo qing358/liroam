@@ -6,7 +6,9 @@ SET setting_value = JSON_SET(setting_value, '$.loginBypassEnabled', true)
 WHERE id = 'VERIFICATION_SETTING';
 
 -- 上游基线 li_verification_source 为空，前端登录滑块无法生成（至少需 1 张 RESOURCE、2 张 SLIDER）。
--- 素材为本仓 deploy/dev-assets/verification/（logo/tools/assets.py 生成），后端按 file:// 读本机文件；正式环境上传到自有 OSS（docs/launch-checklist.md）。
+-- 素材为本仓 deploy/dev-assets/verification/（logo/tools/assets.py 生成），由 dev.mjs 起的 manager-api 以 /static/** 对外，
+-- 后台「验证码资源」与后端生成滑块都按 http 下载；只在地址为空或为早期写入的本地文件地址时改写，后台改过的不动。
+-- 正式环境上传到自有 OSS（docs/launch-checklist.md）。
 -- 早期 dev-seed 写入的上游图床素材（docker 仓 561997f 的 28 行）按 id 与图床前缀删掉。
 DELETE FROM `li_verification_source`
 WHERE resource LIKE 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/%'
@@ -22,7 +24,9 @@ INSERT INTO `li_verification_source` (id, create_by, create_time, delete_flag, n
   (1999000000000000008, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块2', CONCAT(@liroam_dev_assets, '/verification/slider-2.png'), 'SLIDER'),
   (1999000000000000009, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块3', CONCAT(@liroam_dev_assets, '/verification/slider-3.png'), 'SLIDER'),
   (1999000000000000010, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块4', CONCAT(@liroam_dev_assets, '/verification/slider-4.png'), 'SLIDER')
-ON DUPLICATE KEY UPDATE resource = VALUES(resource), delete_flag = VALUES(delete_flag);
+ON DUPLICATE KEY UPDATE
+  resource = IF(resource IS NULL OR resource = '' OR resource LIKE 'file:%', VALUES(resource), resource),
+  delete_flag = VALUES(delete_flag);
 
 -- 上游演示站 *.pickmall.cn 已由 Flyway 清空（V202611261310）；本机填买家 PC 与 buyer-api 的登记地址，运营在本机改过的不动。
 -- 本机没有 H5 端，wap 地址留空。

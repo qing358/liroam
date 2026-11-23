@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import {
-  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
 } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -154,15 +154,42 @@ test('selectFrontends 遇到未知前端名或空列表直接报错', () => {
 
 test('devSeedVars 给 dev-seed 本机地址与滑块素材目录，地址取自端口登记', () => {
   const env = parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'));
-  const vars = devSeedVars(buildConfig(env), '/work/liroam');
+  const vars = devSeedVars(buildConfig(env));
   assert.equal(vars.liroam_buyer_pc, `http://localhost:${env.LIROAM_BUYER_UI_PORT}`);
   assert.equal(vars.liroam_buyer_api, `http://localhost:${env.LIROAM_BUYER_API_PORT}`);
-  assert.equal(vars.liroam_dev_assets, 'file:///work/liroam/deploy/dev-assets');
+  assert.equal(vars.liroam_dev_assets, `http://localhost:${env.LIROAM_MANAGER_API_PORT}/static`);
+});
+
+test('devAssetsEnv 让 manager-api 把仓内 deploy/dev-assets 挂在免鉴权的 /static 下', () => {
+  assert.deepEqual(devAssetsEnv('/work/liroam'), {
+    SPRING_WEB_RESOURCES_STATIC_LOCATIONS: 'file:/work/liroam/deploy/dev-assets/',
+    SPRING_MVC_STATIC_PATH_PATTERN: '/static/**',
+  });
+  const yml = fs.readFileSync(path.join(repoRoot, 'shop/lilishop/manager-api/src/main/resources/application.yml'), 'utf8');
+  assert.match(yml, /^\s+- \/static\/\*\*/m, 'manager-api 的 ignored.urls 须放行 /static/**');
+});
+
+test('种子与迁移（含 dev-seed 会话变量）不得出现 file:// 与本机绝对路径', () => {
+  const local = /file:\/\/|(?:^|['"\s(,=])(?:\/root\/|\/home\/[a-z][\w-]*\/|\/Users\/|\/mnt\/[a-z]\/|\/tmp\/|[A-Za-z]:[\\/]|\\\\wsl)/m;
+  const sqlFiles = [
+    ...fs.readdirSync(path.join(repoRoot, 'deploy')).filter((f) => f.endsWith('.sql')).map((f) => path.join(repoRoot, 'deploy', f)),
+    ...fs.globSync('modules/**/src/main/resources/**/*.sql', { cwd: repoRoot }).map((f) => path.join(repoRoot, f)),
+  ];
+  assert.ok(sqlFiles.length > 5, '应扫到 deploy 种子与 Flyway 迁移');
+  for (const file of sqlFiles) {
+    const hit = fs.readFileSync(file, 'utf8').split('\n').findIndex((line) => local.test(line));
+    assert.equal(hit, -1, `${path.relative(repoRoot, file)}:${hit + 1}`);
+  }
+  const vars = devSeedVars(buildConfig(parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'))));
+  for (const [k, v] of Object.entries(vars)) {
+    assert.doesNotMatch(` ${v}`, local, k);
+    assert.match(v, /^https?:\/\//, k);
+  }
 });
 
 test('dev-seed 引用的变量都由 devSeedVars 提供，滑块素材文件都在仓里', () => {
   const sql = fs.readFileSync(path.join(repoRoot, 'deploy/dev-seed.sql'), 'utf8');
-  const vars = devSeedVars(buildConfig(parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'))), repoRoot);
+  const vars = devSeedVars(buildConfig(parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'))));
   const used = new Set([...sql.matchAll(/@(liroam_[a-z_]+)/g)].map((m) => m[1]));
   assert.deepEqual([...used].sort(), Object.keys(vars).sort());
   const files = [...sql.matchAll(/@liroam_dev_assets, '([^']+)'/g)].map((m) => m[1]);

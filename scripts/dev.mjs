@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 import {
-  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
 } from './lib/config.mjs';
 import { backupFileName, compareCounts, latestBackup, parseCounts, restoreArgs } from './lib/backup.mjs';
 import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
@@ -28,8 +28,8 @@ const pidPath = path.join(runDir, 'pids.json');
 const backupDir = path.join(rootDir, 'temp/backups');
 
 const BACKENDS = [
-  { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl', worker: true },
-  { name: 'buyer-api', module: 'buyer-api', urlKey: 'buyerApiUrl', worker: false },
+  { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl', worker: true, devAssets: true },
+  { name: 'buyer-api', module: 'buyer-api', urlKey: 'buyerApiUrl', worker: false, devAssets: false },
 ];
 const FRONTENDS = [
   { name: 'manager-ui', app: 'manager', urlKey: 'managerUrl', prefix: '/manager' },
@@ -76,7 +76,7 @@ function runSql(file, vars = {}) {
 }
 
 function applyDevSeed(config) {
-  runSql('deploy/dev-seed.sql', devSeedVars(config, rootDir));
+  runSql('deploy/dev-seed.sql', devSeedVars(config));
   compose(['exec', '-T', 'redis', 'redis-cli', 'DEL', '{setting}::VERIFICATION_SETTING', '{VERIFICATION}_'], { capture: true });
   console.log('已应用本机演示配置 deploy/dev-seed.sql');
 }
@@ -217,7 +217,7 @@ async function up() {
 
   const pids = readPids();
   for (const be of BACKENDS) {
-    const javaEnv = backendEnv(env, config, { worker: be.worker });
+    const javaEnv = { ...backendEnv(env, config, { worker: be.worker }), ...(be.devAssets ? devAssetsEnv(rootDir) : {}) };
     const workDir = path.join(runDir, be.name);
     fs.mkdirSync(workDir, { recursive: true });
     startProcess(be.name, path.join(javaHome, 'bin/java'),
