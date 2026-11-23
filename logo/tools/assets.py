@@ -115,6 +115,17 @@ def grade(index):
     return svg(s, s, body, f"会员等级 {index + 1}")
 
 
+GRADE_CARDS = ["mist", "light8", "light7", "light5"]
+
+
+def grade_card(index):
+    w, h, u = 690, 260, 30
+    body = f'<rect width="{w}" height="{h}" fill="{C[GRADE_CARDS[index]]}"/>'
+    body += route(w * 0.62, -u, h * 0.48, w + u, u, C["light5"] if index < 3 else C["light3"])
+    body += route(w * 0.80, -u, h * 0.70, w - 3 * u, u * 0.7, WHITE, C["sunrise"])
+    return svg(w, h, body, f"会员等级卡 {index + 1}")
+
+
 def paid():
     s = 160
     body = f'<circle cx="80" cy="80" r="80" fill="{C["ink"]}"/>' + mark(80 - 40 * 368.82 / 400, 40, 80, WHITE, C["sunlight"])
@@ -202,12 +213,13 @@ def main():
     member = ["shop/lilishop-ui/buyer/public/liroam/member", "shop/lilishop-ui/manager/public/liroam/member"]
     for i in range(4):
         write(member, f"grade-{i + 1}.svg", grade(i))
+        write(member, f"grade-card-{i + 1}.svg", grade_card(i))
     write(member, "paid.svg", paid())
     for key in BENEFITS:
         write(member, f"benefit-{key}.svg", benefit(key))
 
     shared = ["shop/lilishop-ui/manager/public/liroam", "shop/lilishop-ui/seller/public/liroam"]
-    write(shared, "goods-placeholder.svg", goods_placeholder())
+    write(shared + ["shop/lilishop-ui/buyer/public/liroam"], "goods-placeholder.svg", goods_placeholder())
     app_icon = (LOGO / "svg/liroam-app-icon.svg").read_text(encoding="utf-8")
     write(shared, "store-logo.svg", app_icon)
     write(shared[:1], "avatar-admin.svg", app_icon)

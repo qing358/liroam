@@ -199,7 +199,7 @@ const props = defineProps({
   }
 });
 
-const defaultThumb = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png';
+const defaultThumb = '/liroam/goods-placeholder.svg';
 
 // 注入来自 pc/index.vue 的全局选择器
 const openImagePicker = inject('openImagePicker', null);

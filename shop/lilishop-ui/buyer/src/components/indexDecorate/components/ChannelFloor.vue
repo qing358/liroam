@@ -128,7 +128,7 @@ const props = defineProps({
   }
 });
 
-const defaultThumb = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png';
+const defaultThumb = '/liroam/goods-placeholder.svg';
 
 const heroImg = computed(() => {
   return props.options?.heroImage || 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png';

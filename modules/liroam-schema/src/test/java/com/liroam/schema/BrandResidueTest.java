@@ -112,8 +112,9 @@ class BrandResidueTest {
         setting(jdbc, "ALIPAY_PAYMENT", "{\"appId\":\"appId\",\"callbackUrl\":\"https://buyer-api.pickmall.cn\"}");
         setting(jdbc, "PAID_MEMBER_SETTING", "{\"name\":\"付费会员\",\"icon\":\"" + OSS + "28bf6388af504bf6990bbdc6ba296806.png\"}");
         String[] grades = {"4c9dee6a9f3a49e29149e2a73f915122", "7bbe054695754b9fbf18fa17fefcd542", "6be4279660174865a6e066986bb6e35e", "14e1d00ea53245f78ed213cf334f41f4"};
+        String[] cards = {"d6d4dcda15de41a7a3d32d0285395c04", "9ac25f921c6e44a58473f3b85bede739", "fc96739b017e4f2fbef26b1358778362", "a6b486be1852414c95bca905e251b1ad"};
         for (int i = 0; i < grades.length; i++) {
-            jdbc.update("INSERT INTO li_member_grade (id, grade_image) VALUES (?, ?)", i + 1, OSS + grades[i] + ".png");
+            jdbc.update("INSERT INTO li_member_grade (id, grade_image, grade_background) VALUES (?, ?, ?)", i + 1, OSS + grades[i] + ".png", OSS + cards[i] + ".jpg");
         }
         String[] benefits = {"e629982542f64f3db75020e5e842788c", "88d48600589c41d7b97a5a35097cf4e0", "cf34dbbda09946489bf5b0231860d012",
             "58e629e0915e481181ca574371688759", "35b640facdc543db9b57a2b47643816a", "54cf95fa0ed6400eba268181d4d43401",
@@ -136,6 +137,10 @@ class BrandResidueTest {
         assertThat(field(jdbc, "PAID_MEMBER_SETTING", "icon")).isEqualTo("/liroam/member/paid.svg");
         assertThat(jdbc.queryForList("SELECT grade_image FROM li_member_grade ORDER BY id", String.class))
                 .containsExactly("/liroam/member/grade-1.svg", "/liroam/member/grade-2.svg", "/liroam/member/grade-3.svg", "/liroam/member/grade-4.svg");
+        List<String> cardImages = jdbc.queryForList("SELECT grade_background FROM li_member_grade ORDER BY id", String.class);
+        assertThat(cardImages).containsExactly("/liroam/member/grade-card-1.svg", "/liroam/member/grade-card-2.svg",
+                "/liroam/member/grade-card-3.svg", "/liroam/member/grade-card-4.svg");
+        assertSiteAssetsExist(String.join(" ", cardImages), "buyer", "manager");
         List<String> logos = jdbc.queryForList("SELECT benefit_logo FROM li_member_benefit ORDER BY id", String.class);
         assertThat(logos).allMatch(s -> s.startsWith("/liroam/member/benefit-"));
         assertThat(logos.get(1)).isEqualTo("/liroam/member/benefit-service.svg");
@@ -151,7 +156,7 @@ class BrandResidueTest {
         String base = "{\"staticPageAddress\":\"https://www.liroam.example\"}";
         setting(jdbc, "BASE_SETTING", base);
         setting(jdbc, "ALIPAY_PAYMENT", "{\"callbackUrl\":\"https://api.liroam.example\"}");
-        jdbc.update("INSERT INTO li_member_grade (id, grade_image) VALUES (1, 'https://cdn.liroam.example/g1.png')");
+        jdbc.update("INSERT INTO li_member_grade (id, grade_image, grade_background) VALUES (1, 'https://cdn.liroam.example/g1.png', 'https://cdn.liroam.example/c1.jpg')");
         jdbc.update("INSERT INTO li_admin_user (id, username, avatar) VALUES (1337306110277476352, 'admin', 'https://cdn.liroam.example/a.png')");
 
         LiroamMigrations.migrate(jdbc.getDataSource());
@@ -159,6 +164,7 @@ class BrandResidueTest {
         assertThat(field(jdbc, "BASE_SETTING", "staticPageAddress")).isEqualTo("https://www.liroam.example");
         assertThat(field(jdbc, "ALIPAY_PAYMENT", "callbackUrl")).isEqualTo("https://api.liroam.example");
         assertThat(jdbc.queryForObject("SELECT grade_image FROM li_member_grade", String.class)).isEqualTo("https://cdn.liroam.example/g1.png");
+        assertThat(jdbc.queryForObject("SELECT grade_background FROM li_member_grade", String.class)).isEqualTo("https://cdn.liroam.example/c1.jpg");
         assertThat(jdbc.queryForObject("SELECT avatar FROM li_admin_user", String.class)).isEqualTo("https://cdn.liroam.example/a.png");
     }
 
@@ -200,7 +206,7 @@ class BrandResidueTest {
                 CREATE TABLE li_page_data (id bigint NOT NULL PRIMARY KEY, create_by varchar(255), create_time datetime(6), delete_flag bit(1),
                   update_by varchar(255), update_time datetime(6), name varchar(255), num varchar(255), page_client_type varchar(255),
                   page_data longtext, page_show varchar(255), page_type varchar(255)) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci""");
-        jdbc.execute("CREATE TABLE li_member_grade (id bigint NOT NULL PRIMARY KEY, grade_name varchar(255), grade_image varchar(255))");
+        jdbc.execute("CREATE TABLE li_member_grade (id bigint NOT NULL PRIMARY KEY, grade_name varchar(255), grade_image varchar(255), grade_background varchar(500))");
         jdbc.execute("CREATE TABLE li_member_benefit (id bigint NOT NULL PRIMARY KEY, benefit_name varchar(255), benefit_logo varchar(500))");
         jdbc.execute("CREATE TABLE li_admin_user (id bigint NOT NULL PRIMARY KEY, username varchar(255), avatar varchar(1000))");
         return jdbc;

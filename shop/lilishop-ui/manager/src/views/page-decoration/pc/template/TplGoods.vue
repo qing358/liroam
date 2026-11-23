@@ -74,7 +74,7 @@ const props = defineProps({
   }
 });
 
-const defaultThumb = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png';
+const defaultThumb = '/liroam/goods-placeholder.svg';
 
 const defaultMockGoods = [
   { id: '1', goodsName: '旗舰 5G 智能手机 12GB+256GB 超光影影像系统', price: '3999.00', originalPrice: '4599.00', thumbnail: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png' },

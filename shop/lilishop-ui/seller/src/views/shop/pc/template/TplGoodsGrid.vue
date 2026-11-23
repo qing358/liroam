@@ -68,7 +68,7 @@ const props = defineProps({
   }
 });
 
-const defaultThumb = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png';
+const defaultThumb = '/liroam/goods-placeholder.svg';
 
 const actualColumns = computed(() => {
   const ratio = props.componentStyle?.widthRatio || '100%';

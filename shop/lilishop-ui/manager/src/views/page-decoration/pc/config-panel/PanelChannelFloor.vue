@@ -313,7 +313,7 @@ const props = defineProps({
   }
 });
 
-const defaultThumb = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png';
+const defaultThumb = '/liroam/goods-placeholder.svg';
 const showGoodsModal = ref(false);
 const tempSelectedGoods = ref([]);
 

@@ -598,48 +598,48 @@ export const modelData = [
           data: [
             {
               goodsName: "日本 5 天 每日 2GB eSIM",
-              price: 8999,
-              originalPrice: 9999,
+              price: 39,
+              originalPrice: 59,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 3
             },
             {
               goodsName: "韩国 7 天 不限量 eSIM",
-              price: 3999,
-              originalPrice: 4299,
+              price: 59,
+              originalPrice: 79,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 8
             },
             {
               goodsName: "泰国 8 天 15GB 流量卡",
-              price: 4199,
-              originalPrice: 4599,
+              price: 49,
+              originalPrice: 69,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 5
             },
             {
               goodsName: "欧洲 33 国 10 天 20GB eSIM",
-              price: 5999,
-              originalPrice: 6499,
+              price: 99,
+              originalPrice: 119,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 12
             },
             {
               goodsName: "美国 7 天 每日 3GB 实体卡",
-              price: 2499,
-              originalPrice: 2799,
+              price: 69,
+              originalPrice: 89,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 21
             },
             {
               goodsName: "新马 6 天 10GB eSIM",
-              price: 2299,
-              originalPrice: 2599,
+              price: 45,
+              originalPrice: 65,
               thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 16
@@ -723,22 +723,22 @@ export const modelData = [
           data: [
             {
               goodsName: "港澳 5 天 不限量 eSIM",
-              price: 234,
+              price: 35,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "澳新 10 天 15GB 流量卡",
-              price: 177,
+              price: 79,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "日本 5 天 每日 2GB eSIM",
-              price: 177,
+              price: 39,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "韩国 7 天 不限量 eSIM",
-              price: 234,
+              price: 59,
               thumbnail: "/liroam/goods-placeholder.svg"
             }
           ]
@@ -772,25 +772,25 @@ export const modelData = [
           data: [
             {
               goodsName: "泰国 8 天 15GB 流量卡",
-              price: 234,
+              price: 49,
               purchasePrice: 99,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "欧洲 33 国 10 天 20GB eSIM",
-              price: 177,
+              price: 99,
               purchasePrice: 77,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "美国 7 天 每日 3GB 实体卡",
-              price: 177,
+              price: 69,
               purchasePrice: 77,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "新马 6 天 10GB eSIM",
-              price: 234,
+              price: 45,
               purchasePrice: 99,
               thumbnail: "/liroam/goods-placeholder.svg"
             }
@@ -899,25 +899,25 @@ export const modelData = [
             {
               goodsName: "港澳 5 天 不限量 eSIM",
               points: 200,
-              originalPrice: 234,
+              originalPrice: 65,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "澳新 10 天 15GB 流量卡",
               points: 150,
-              originalPrice: 177,
+              originalPrice: 65,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "日本 5 天 每日 2GB eSIM",
               points: 150,
-              originalPrice: 177,
+              originalPrice: 65,
               thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
               goodsName: "韩国 7 天 不限量 eSIM",
               points: 200,
-              originalPrice: 234,
+              originalPrice: 65,
               thumbnail: "/liroam/goods-placeholder.svg"
             }
           ]
