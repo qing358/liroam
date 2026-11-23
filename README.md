@@ -26,6 +26,9 @@ node scripts/dev.mjs status      # 地址与进程
 node scripts/dev.mjs down        # 停进程与容器，保留数据卷
 node scripts/dev.mjs backup      # 本机库逻辑全量备份到 temp/backups/lilishop-<UTC时间>.sql.gz（含触发器）
 node scripts/dev.mjs restore-drill [文件]  # 恢复演练：默认取最新备份，恢复到临时库 lilishop_restore_drill，逐表行数 + 触发器数比对后删除临时库
+node scripts/dev.mjs restore <文件> --yes  # 数据回滚：后端须先停；先自动备份当前库，再用该备份整库重建 lilishop 并逐表核对
+node scripts/dev.mjs stop-backends         # 只停两个后端（等进程退出），前端与容器不动
+node scripts/dev.mjs up --ui=none --backend-from=<checkout>  # 应用回滚：用另一份已构建 checkout（上一版）的 jar 起后端
 node scripts/dev.mjs rotate-data-key       # 数据密钥轮换演练：本机 .env 追加下一版本 LIROAM_DATA_KEY_Vn 并停后端，再 up 起来后到「运维概览」重加密
 node scripts/dev.mjs retire-data-key <n>   # 下线旧版本：经后台接口确认该版本已无数据且非当前版本，才从本机 .env 删除并停后端
 ```

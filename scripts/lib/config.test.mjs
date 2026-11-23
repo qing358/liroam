@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
 } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -137,6 +137,14 @@ test('仓内各前端按锁文件选到预期的包管理器', () => {
   const uiDir = path.join(repoRoot, 'shop/lilishop-ui');
   assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'manager')))[0], 'pnpm');
   assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'seller')))[1], 'yarn@1.22.22');
+});
+
+test('backendCheckout 默认用本仓；--backend-from 指向另一份 checkout（回滚演练起上一版 jar）', () => {
+  assert.equal(backendCheckout(['up'], '/repo'), '/repo');
+  assert.equal(backendCheckout(['up', '--ui=none', '--backend-from=/wt/old'], '/repo'), '/wt/old');
+  assert.equal(backendCheckout(['up', '--backend-from=../old'], '/repo/x'), path.resolve('../old'));
+  assert.throws(() => backendCheckout(['up', '--backend-from='], '/repo'), /--backend-from/);
+  assert.throws(() => backendCheckout(['up', '--build', '--backend-from=/wt/old'], '/repo'), /--build/);
 });
 
 test('selectFrontends 遇到未知前端名或空列表直接报错', () => {

@@ -57,6 +57,16 @@ export function frontendInstallCommand(files) {
   return ['npm', 'install', '--no-audit', '--no-fund'];
 }
 
+// 回滚演练：后端 jar 取另一份已构建的 checkout（上一版），中间件、.env、进程登记仍用本仓；那份 checkout 自己构建，这里不建
+export function backendCheckout(argv, rootDir) {
+  const flag = argv.find((a) => a.startsWith('--backend-from='));
+  if (!flag) return rootDir;
+  const value = flag.slice('--backend-from='.length);
+  if (!value) throw new Error('--backend-from 需要指向一份已构建后端的 checkout 目录');
+  if (argv.includes('--build')) throw new Error('--backend-from 与 --build 不能同用：上一版 jar 在那份 checkout 里自行构建');
+  return path.resolve(value);
+}
+
 export function selectFrontends(argv, frontends) {
   const flag = argv.find((a) => a.startsWith('--ui='));
   if (!flag) return frontends;

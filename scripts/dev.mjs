@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件] | rotate-data-key | retire-data-key <版本号>
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,14 +11,13 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
 } from './lib/config.mjs';
-import { backupFileName, compareCounts, latestBackup, parseCounts } from './lib/backup.mjs';
+import { backupFileName, compareCounts, latestBackup, parseCounts, restoreArgs } from './lib/backup.mjs';
 import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
 import { renderPcConfig } from '../shop/docker/scripts/dev-env-lib.mjs';
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const backendDir = path.join(rootDir, 'shop/lilishop');
 const uiDir = path.join(rootDir, 'shop/lilishop-ui');
 const portsPath = path.join(rootDir, 'deploy/ports.env');
 const secretsPath = path.join(rootDir, '.env');
@@ -82,8 +81,8 @@ function applyDevSeed(config) {
   console.log('已应用本机演示配置 deploy/dev-seed.sql');
 }
 
-function backendJar(module) {
-  const targetDir = path.join(backendDir, module, 'target');
+function backendJar(module, checkout = rootDir) {
+  const targetDir = path.join(checkout, 'shop/lilishop', module, 'target');
   if (!fs.existsSync(targetDir)) return null;
   const jar = fs.readdirSync(targetDir).find((f) => f.startsWith(`${module}-`) && f.endsWith('.jar'));
   return jar ? path.join(targetDir, jar) : null;
@@ -200,12 +199,17 @@ async function up() {
   const config = buildConfig(env);
   const javaHome = resolveJavaHome();
   const frontends = selectFrontends(process.argv, FRONTENDS);
+  const checkout = backendCheckout(process.argv, rootDir);
 
   console.log('\n$ docker compose up -d --wait（liroam 专用 MySQL / Redis）');
   compose(['up', '-d', '--wait']);
   applyDevSeed(config);
 
-  if (process.argv.includes('--build') || BACKENDS.some((b) => !backendJar(b.module))) buildBackend(javaHome);
+  if (checkout !== rootDir) {
+    const missing = BACKENDS.filter((b) => !backendJar(b.module, checkout)).map((b) => b.module);
+    if (missing.length) throw new Error(`${checkout} 里没有构建好的 ${missing.join('、')}：先在那份 checkout 执行 mvn ${backendBuildArgs(BACKENDS.map((b) => b.module)).join(' ')}`);
+    console.log(`后端用 ${checkout} 的 jar（回滚演练 / 上一版）`);
+  } else if (process.argv.includes('--build') || BACKENDS.some((b) => !backendJar(b.module))) buildBackend(javaHome);
   for (const fe of frontends) {
     installFrontend(fe.app);
     writeFrontendConfig(fe.app, fe.prefix, config);
@@ -217,7 +221,7 @@ async function up() {
     const workDir = path.join(runDir, be.name);
     fs.mkdirSync(workDir, { recursive: true });
     startProcess(be.name, path.join(javaHome, 'bin/java'),
-      ['-Xms256m', '-Xmx1g', '-jar', backendJar(be.module), '--spring.profiles.active=dev', `--server.port=${portOf(config[be.urlKey])}`],
+      ['-Xms256m', '-Xmx1g', '-jar', backendJar(be.module, checkout), '--spring.profiles.active=dev', `--server.port=${portOf(config[be.urlKey])}`],
       { cwd: workDir, env: javaEnv, port: portOf(config[be.urlKey]) }, pids);
   }
   for (const fe of frontends) {
@@ -438,6 +442,8 @@ function managerClient(baseUrl) {
 // 备份与恢复演练（§3.6）：本机演练用逻辑全量备份；生产按上线清单由 DBA 做全量 + binlog 增量，同一套演练口径。
 const DB = 'lilishop';
 const DRILL_DB = 'lilishop_restore_drill';
+// 与 compose 初始化的 lilishop 一致（my.cnf 的 utf8mb4_unicode_ci）；不写则 MySQL 8 默认 utf8mb4_0900_ai_ci
+const DB_CHARSET = 'DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci';
 // 不带 --databases：备份里没有 CREATE DATABASE / USE，恢复目标库由执行人指定，演练不会误写源库
 const DUMP_ARGS = '--single-transaction --routines --triggers --events --hex-blob --no-tablespaces --set-gtid-purged=OFF';
 
@@ -481,13 +487,12 @@ async function backup() {
   return file;
 }
 
-async function restoreDrill() {
-  const arg = process.argv[3];
+async function restoreDrill(arg = process.argv[3]) {
   const name = arg ? path.resolve(arg) : latestBackup(fs.existsSync(backupDir) ? fs.readdirSync(backupDir) : []);
   if (!name) throw new Error('temp/backups 下没有备份，先执行 node scripts/dev.mjs backup');
   const file = arg ? name : path.join(backupDir, name);
   console.log(`演练：把 ${path.relative(rootDir, file)} 恢复到临时库 ${DRILL_DB}，逐表比对行数`);
-  query('', `DROP DATABASE IF EXISTS ${DRILL_DB}; CREATE DATABASE ${DRILL_DB} DEFAULT CHARACTER SET utf8mb4;`);
+  query('', `DROP DATABASE IF EXISTS ${DRILL_DB}; CREATE DATABASE ${DRILL_DB} ${DB_CHARSET};`);
   try {
     const started = Date.now();
     const restore = mysqlSh(`mysql -uroot ${DRILL_DB}`, { stdin: 'pipe' });
@@ -511,20 +516,46 @@ async function restoreDrill() {
   }
 }
 
+// 数据回滚（本机）：后端必须已停；先自动备份当前库，再整库重建为备份内容，最后用 restore-drill 口径逐表核对
+async function restore() {
+  const { file } = restoreArgs(process.argv.slice(3));
+  if (!fs.existsSync(file)) throw new Error(`找不到备份文件 ${file}`);
+  const config = buildConfig(loadEnv());
+  const pids = readPids();
+  const running = BACKENDS.filter((be) => (pids[be.name] && isAlive(pids[be.name].pid)) || portInUse(portOf(config[be.urlKey])));
+  if (running.length) throw new Error(`${running.map((b) => b.name).join('、')} 仍在运行：先 node scripts/dev.mjs stop-backends，避免恢复途中还有写入`);
+  console.log('恢复前先备份当前库（回滚的回滚）：');
+  await backup();
+  const started = Date.now();
+  query('', `DROP DATABASE IF EXISTS ${DB}; CREATE DATABASE ${DB} ${DB_CHARSET};`);
+  const load = mysqlSh(`mysql -uroot ${DB}`, { stdin: 'pipe' });
+  const done = finished(load, '恢复');
+  await Promise.all([pipeline(fs.createReadStream(file), zlib.createGunzip(), load.stdin), done]);
+  console.log(`已用 ${path.relative(rootDir, file)} 重建库 ${DB}，用时 ${((Date.now() - started) / 1000).toFixed(1)} 秒；核对：`);
+  await restoreDrill(file);
+  console.log('下一步：node scripts/dev.mjs up --ui=none 起后端，看「运营告警」「运维概览」；备份时点之后的渠道单 / 供应商开卡按运维手册「数据回滚」补对账');
+}
+
 // 数据密钥轮换演练（只动本机 .env 的假密钥）：新增版本 → 重启后端 → 后台「运维概览」重加密 → 旧版本数据清零后下线
 async function stopBackends() {
   const pids = readPids();
   const config = buildConfig(loadEnv());
+  const stopping = {};
   for (const be of BACKENDS) {
     const meta = pids[be.name];
     if (meta && isAlive(meta.pid)) {
       killTree(meta.pid);
+      stopping[be.name] = meta.pid;
       console.log(`已停止 ${be.name}（pid ${meta.pid}）`);
     }
     delete pids[be.name];
   }
   fs.writeFileSync(pidPath, JSON.stringify(pids, null, 2));
-  for (const be of BACKENDS) await waitFor(`${be.name} 端口释放`, async () => !portInUse(portOf(config[be.urlKey])), 60000);
+  // 端口先于进程释放：manager-api 优雅停机期间 worker 仍可能写库，进程退出才算停完
+  for (const be of BACKENDS) {
+    await waitFor(`${be.name} 端口释放`, async () => !portInUse(portOf(config[be.urlKey])), 60000);
+    if (stopping[be.name]) await waitFor(`${be.name} 进程退出`, async () => !isAlive(stopping[be.name]), 120000);
+  }
 }
 
 async function rotateDataKey() {
@@ -550,9 +581,9 @@ async function retireDataKey() {
 }
 
 const command = process.argv[2] || 'status';
-const handlers = { up, down, status, health, demo, backup, 'restore-drill': restoreDrill, 'rotate-data-key': rotateDataKey, 'retire-data-key': retireDataKey };
+const handlers = { up, 'stop-backends': stopBackends, down, status, health, demo, backup, 'restore-drill': () => restoreDrill(), restore, 'rotate-data-key': rotateDataKey, 'retire-data-key': retireDataKey };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] | down | status | health | demo | backup | restore-drill [文件] | rotate-data-key | retire-data-key <版本号>`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>`);
   process.exit(2);
 }
 try {

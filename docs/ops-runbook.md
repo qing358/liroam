@@ -91,7 +91,24 @@ worker 没跟上或供应商查询接口慢。看 manager-api 是否存活、wor
 ### 数据库备份与恢复
 - 生产：全量备份 + binlog 增量，保留期与存放位置【待用户提供】；上线前在隔离库做一次恢复演练（上线清单 #13）。
 - 本机：`node scripts/dev.mjs backup` 写 `temp/backups/lilishop-<UTC时间>.sql.gz`；`node scripts/dev.mjs restore-drill` 恢复到临时库 `lilishop_restore_drill`，逐表行数与触发器数比对后删除临时库，输出用时。
-- 真恢复：停后端 → 恢复到新库并核对 → 改连接指向新库 → 起后端 → 看「运营告警」「运维概览」与一张卡的买家「我的卡」。迁移只增不改，应用版本可回退到旧库（上线清单 #14）。
+- 真恢复（数据被写坏时）见下节「数据回滚」；只是新版本有问题时用「应用版本回滚」，不动库。
+
+### 应用版本回滚（不回滚库，上线清单 #14）
+迁移只增不改（`AdditiveMigrationsTest`），上一版应用直接跑在新库上。
+1. 备份一次：`node scripts/dev.mjs backup`（生产按备份规程补一次全量）。
+2. 准备上一版制品。生产：上一版镜像。本机：`git worktree add --detach <目录> <上一版 commit>`，在该目录 `mvn -B -q -pl shop/lilishop/manager-api,shop/lilishop/buyer-api -am package -DskipTests`（JDK 21，约 30 秒）。
+3. 停后端：`node scripts/dev.mjs stop-backends`（只停两个 API，前端与容器不动）。manager-api 优雅停机约 35 秒，端口 1 秒就放掉，其间 worker 仍会写库；命令等到进程退出才返回，生产同样要等旧进程退出。
+4. 起上一版：本机 `node scripts/dev.mjs up --ui=none --backend-from=<目录>`；生产换回上一版镜像滚动重启。旧版启动日志里 Flyway 的 WARN `Schema ... has a version (...) that is newer than the latest available migration` 是预期（新版迁移已在库里），不是故障；出现 `Validate failed` 才是迁移不兼容，立即停下评审。
+5. 复核：`node scripts/dev.mjs health` 全 PASS；「运营告警」没有新增严重项；「运维概览」无「无法解密」行；走一单确认出卡（本机用模拟渠道造单 → 立即拉单）。
+6. 修好后回到新版：`stop-backends` → `up --ui=none`（本机仓根的 jar 须是 main 构建的，不确定就加 `--build`）。
+
+### 数据回滚（恢复到备份时点）
+只在数据被写坏（误操作、错误迁移）时用。备份时点之后本库的写入全部丢失，第 4 步必须做。
+1. 停后端：`node scripts/dev.mjs stop-backends`。
+2. 恢复。生产：恢复到新库并核对 → 改连接指向新库。本机连接库名固定为 `lilishop`，改为原库重建：`node scripts/dev.mjs restore <备份文件> --yes`——先自动备份当前库（回滚的回滚，也是第 4 步的依据），再整库重建（`utf8mb4_unicode_ci`），最后按 `restore-drill` 口径逐表核对行数与触发器。
+3. 起后端：`node scripts/dev.mjs up --ui=none`，按上节第 5 步复核。
+4. 补齐丢失的外部事实：用「恢复前自动备份」跑一次 `restore-drill <该文件>`，差异列表就是丢掉的表与行数。重点是外部已经发生、本库已不记得的事：渠道已付款订单（真实渠道按时间窗重新拉单；本机模拟渠道的订单在 JVM 内存里，重启即丢）、供应商侧已开的卡（对供应商卡列表，防止重复开卡或卡丢失）、支付回调（「日对账」导入账单）、买家注册与下单。
+5. Redis 不随库回滚（登录态保留）。回滚窗口内改过系统设置或商品时，清对应缓存（本机 `demo` 清商品缓存用的是 `*GOODS*` 模式）。
 
 ### 数据密钥轮换（敏感字段 AES-GCM，`LIROAM_DATA_KEY_V1..V32`）
 新写入用最大版本，旧版本只解密；查重 HMAC 密钥 `LIROAM_DATA_HASH_KEY` 不轮换。加密列登记在 `liroam-schema` 的 `SealedTables`（新加 `*_cipher` 列不登记测试失败）。
