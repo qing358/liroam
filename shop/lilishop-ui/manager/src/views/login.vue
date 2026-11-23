@@ -193,7 +193,7 @@ function verifyChange(con) {
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(circle at 18% 22%, rgba($theme_color, 0.22), transparent 36%),
+      radial-gradient(circle at 18% 22%, rgba(#0b7a75, 0.35), transparent 36%),
       radial-gradient(circle at 82% 78%, rgba(255, 255, 255, 0.08), transparent 30%);
     pointer-events: none;
   }
@@ -205,7 +205,7 @@ function verifyChange(con) {
     top: 0;
     width: 4px;
     height: 100%;
-    background: linear-gradient(180deg, $theme_color 0%, $warning_color 100%);
+    background: linear-gradient(180deg, #0b7a75 0%, #ffc04d 100%);
   }
 
   .brand-inner {
@@ -258,7 +258,7 @@ function verifyChange(con) {
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: $theme_color;
+        background: #ffc04d;
       }
     }
   }

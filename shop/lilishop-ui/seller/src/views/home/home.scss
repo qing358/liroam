@@ -123,6 +123,12 @@ h4 {
   box-sizing: border-box;
 }
 
+.shop-logo--default {
+  padding: 22px;
+  object-fit: contain;
+  background: #fff;
+}
+
 .card {
   box-shadow: 1px 3px 12px rgba($color: #e7e7e7, $alpha: 0.3);
   border-radius: 0.4em;

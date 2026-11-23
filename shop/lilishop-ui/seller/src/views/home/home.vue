@@ -10,6 +10,7 @@
             <h4>Hi,<span style="margin-left: 5px">{{ userData.nickName }}</span></h4>
             <img
               class="shop-logo"
+              :class="{ 'shop-logo--default': !userData.storeLogo }"
               :src="userData.storeLogo || defaultLogo"
               alt=""
             />
