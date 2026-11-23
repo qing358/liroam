@@ -399,16 +399,16 @@ onMounted(() => {
 
   li {
     padding: 10px 16px;
-    color: #2d8cf0;
+    color: #0b7a75;
     font-size: 13px;
     cursor: pointer;
     border-left: 2px solid transparent;
 
     &.active {
-      color: #2d8cf0;
+      color: #0b7a75;
       font-weight: 600;
       background-color: #f0f8ff;
-      border-left-color: #2d8cf0;
+      border-left-color: #0b7a75;
     }
 
     &:hover {

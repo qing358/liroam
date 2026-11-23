@@ -1110,7 +1110,7 @@ onMounted(() => {
       &.active {
         .as-tl-dot {
           background: var(--el-color-primary);
-          box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.18);
+          box-shadow: 0 0 0 3px rgba(11, 122, 117, 0.18);
         }
 
         .as-tl-name {

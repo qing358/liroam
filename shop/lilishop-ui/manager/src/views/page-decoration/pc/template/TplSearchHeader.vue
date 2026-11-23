@@ -192,12 +192,12 @@ const cartBtnStyle = computed(() => {
           user-select: none;
 
           &:hover {
-            color: #409EFF;
+            color: #0b7a75;
           }
 
           &.active {
             color: #ffffff;
-            background: #409EFF;
+            background: #0b7a75;
             font-weight: 600;
           }
         }
@@ -205,7 +205,7 @@ const cartBtnStyle = computed(() => {
 
       .search-box {
         display: flex;
-        border: 2px solid #409EFF;
+        border: 2px solid #0b7a75;
         border-radius: 0 4px 4px 4px;
         overflow: hidden;
         height: 40px;
@@ -230,7 +230,7 @@ const cartBtnStyle = computed(() => {
         }
 
         .search-btn {
-          background: #409EFF;
+          background: #0b7a75;
           color: #ffffff;
           border: none;
           padding: 0 24px;
@@ -243,7 +243,7 @@ const cartBtnStyle = computed(() => {
           transition: background 0.15s;
 
           &:hover {
-            background: #66b1ff;
+            background: #54a29e;
           }
         }
       }
@@ -264,7 +264,7 @@ const cartBtnStyle = computed(() => {
           transition: color 0.15s;
 
           &:hover {
-            color: #409EFF;
+            color: #0b7a75;
           }
         }
       }
@@ -289,7 +289,7 @@ const cartBtnStyle = computed(() => {
 
       .cart-icon {
         font-size: 16px;
-        color: #409EFF;
+        color: #0b7a75;
       }
 
       .cart-text {
@@ -297,7 +297,7 @@ const cartBtnStyle = computed(() => {
       }
 
       .cart-count {
-        background: #409EFF;
+        background: #0b7a75;
         color: #ffffff;
         font-size: 11px;
         font-weight: 700;
@@ -308,8 +308,8 @@ const cartBtnStyle = computed(() => {
       }
 
       &:hover {
-        border-color: #409EFF;
-        color: #409EFF;
+        border-color: #0b7a75;
+        color: #0b7a75;
       }
     }
   }

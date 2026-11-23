@@ -336,7 +336,7 @@ function submit(payload) {
     color: #909399;
     font-size: 14px;
     &:hover {
-      color: #409eff;
+      color: #0b7a75;
     }
   }
   > .model-title-view-btn {

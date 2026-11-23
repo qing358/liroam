@@ -377,7 +377,7 @@ function handleClearImage() {
             cursor: pointer;
 
             &:hover {
-              color: #409eff;
+              color: #0b7a75;
             }
           }
         }

@@ -94,7 +94,7 @@ function init() {
     hotWordsChart.value.tooltip({
       showMarkers: false,
     });
-    hotWordsChart.value.interval().position("keywords*score").color("#409EFF");
+    hotWordsChart.value.interval().position("keywords*score").color("#0b7a75");
     hotWordsChart.value.interaction("element-active");
 
     hotWordsChart.value.render();

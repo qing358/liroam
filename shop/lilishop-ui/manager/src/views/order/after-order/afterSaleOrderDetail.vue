@@ -1013,7 +1013,7 @@ onMounted(() => {
       }
 
       &.text-danger .el-icon {
-        color: #ef4444;
+        color: #c8461f;
       }
     }
   }
@@ -1103,7 +1103,7 @@ onMounted(() => {
         }
 
         .refund-price {
-          color: #ef4444;
+          color: #c8461f;
           font-weight: 700;
           font-size: 16px;
         }
@@ -1214,7 +1214,7 @@ onMounted(() => {
   }
 
   .text-danger {
-    color: #ef4444;
+    color: #c8461f;
   }
 
   .text-success {

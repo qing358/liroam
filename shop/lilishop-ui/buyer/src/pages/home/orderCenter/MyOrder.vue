@@ -562,7 +562,7 @@ onMounted(() => {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    color: #438cde;
+    color: #0b7a75;
     cursor: pointer;
 
     &:hover {

@@ -174,9 +174,9 @@ function initMap() {
       }
       bindFinishGesture(box);
       const polygonStyle = new TMap.PolygonStyle({
-        color: "rgba(64,158,255,0.25)",
+        color: "rgba(11, 122, 117,0.25)",
         showBorder: true,
-        borderColor: "#409EFF",
+        borderColor: "#0b7a75",
         borderWidth: 2,
       });
       polygon = markRaw(

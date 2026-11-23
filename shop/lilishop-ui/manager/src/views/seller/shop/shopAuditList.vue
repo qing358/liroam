@@ -52,7 +52,7 @@
         <el-table-column label="操作" width="100" align="center" fixed="right">
           <template #default="{ row }">
             <a
-              style="color: #409eff; cursor: pointer;"
+              style="color: #0b7a75; cursor: pointer;"
               @click="edit(row)"
             >查看</a>
           </template>

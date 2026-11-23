@@ -1207,7 +1207,7 @@ onMounted(() => {
   color: #999;
 }
 .gift-subtotal {
-  color: #e4393c;
+  color: #c8461f;
   font-weight: bold;
 }
 .gift-action-tip {

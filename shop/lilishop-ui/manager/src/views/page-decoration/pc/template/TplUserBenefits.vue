@@ -172,8 +172,8 @@ const customStyle = computed(() => {
       .badge-tag {
         align-self: flex-start;
         padding: 1px 6px;
-        background: #ecf5ff;
-        color: #409EFF;
+        background: #eef6f5;
+        color: #0b7a75;
         font-size: 10px;
         font-weight: 700;
         border-radius: 8px;
@@ -218,15 +218,15 @@ const customStyle = computed(() => {
       box-sizing: border-box;
 
       &.login-btn {
-        background: #409EFF;
+        background: #0b7a75;
         color: #ffffff;
-        box-shadow: 0 2px 6px rgba(64, 158, 255, 0.25);
+        box-shadow: 0 2px 6px rgba(11, 122, 117, 0.25);
       }
 
       &.register-btn {
         background: #ffffff;
-        color: #409EFF;
-        border: 1px solid #409EFF;
+        color: #0b7a75;
+        border: 1px solid #0b7a75;
       }
     }
   }
@@ -248,7 +248,7 @@ const customStyle = computed(() => {
       .metric-val {
         font-size: 15px;
         font-weight: 700;
-        color: #409EFF;
+        color: #0b7a75;
         line-height: 1.2;
       }
 

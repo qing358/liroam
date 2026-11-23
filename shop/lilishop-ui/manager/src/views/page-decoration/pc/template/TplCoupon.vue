@@ -135,7 +135,7 @@ const couponList = computed(() => {
 
         .btn {
           font-size: 11px;
-          color: #e11d48;
+          color: #c8461f;
           cursor: pointer;
           font-weight: 600;
           margin-top: 3px;
@@ -145,8 +145,8 @@ const couponList = computed(() => {
   }
 
   &.skin-red {
-    .left-val { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
-    .btn { color: #e11d48 !important; }
+    .left-val { background: linear-gradient(135deg, #f43f5e 0%, #e4572e 100%); }
+    .btn { color: #c8461f !important; }
   }
 
   &.skin-dark {

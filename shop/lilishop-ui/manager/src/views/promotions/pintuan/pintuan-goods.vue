@@ -465,7 +465,7 @@ onMounted(() => {
       .section-indicator {
         width: 4px;
         height: 16px;
-        background-color: #409eff;
+        background-color: #0b7a75;
         border-radius: 2px;
       }
 
@@ -508,7 +508,7 @@ onMounted(() => {
         .section-indicator {
           width: 4px;
           height: 16px;
-          background-color: #409eff;
+          background-color: #0b7a75;
           border-radius: 2px;
         }
 
@@ -568,7 +568,7 @@ onMounted(() => {
         text-decoration: none;
 
         &:hover {
-          color: #409eff;
+          color: #0b7a75;
         }
       }
 

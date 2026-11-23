@@ -273,7 +273,7 @@ export const COMPONENT_DEFINITIONS = [
       allCategoryText: '全部分类',
       allCategoryIcon: '',
       textColor: '#334155',
-      activeColor: '#e11d48',
+      activeColor: '#e4572e',
       navItems: [
         { title: '应急救援', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/category-nav/cat_1.png', url: '/goodsList?categoryId=1', badge: '' },
         { title: '新鲜蔬菜', img: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/category-nav/cat_2.png', url: '/goodsList?categoryId=2', badge: '' },
@@ -336,7 +336,7 @@ export const COMPONENT_DEFINITIONS = [
       source: 'system',
       textColor: '#111927',
       fontSize: 14,
-      activeColor: '#409EFF',
+      activeColor: '#0b7a75',
       categories: [
         {
           name: '精选频道',

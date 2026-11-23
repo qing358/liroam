@@ -2905,7 +2905,7 @@ onBeforeUnmount(() => {
 .sku-inline-error {
   font-size: 12px;
   line-height: 16px;
-  color: #ed4014; /* 与 iview 错误色系一致 */
+  color: #c8461f; /* 与 iview 错误色系一致 */
   margin-left: 4px;
   margin-top: 4px;
   white-space: nowrap;
@@ -3211,11 +3211,11 @@ onBeforeUnmount(() => {
   transition: all 0.25s ease;
 
   &:hover {
-    border-color: var(--el-color-primary, #409eff);
+    border-color: var(--el-color-primary, #0b7a75);
     background-color: #f5f9ff;
 
     .uploader-plus-icon {
-      color: var(--el-color-primary, #409eff);
+      color: var(--el-color-primary, #0b7a75);
     }
   }
 
@@ -3278,7 +3278,7 @@ onBeforeUnmount(() => {
     padding: 0 6px;
     height: 18px;
     line-height: 18px;
-    background: rgba(64, 158, 255, 0.9);
+    background: rgba(11, 122, 117, 0.9);
     color: #fff;
     font-size: 11px;
     border-bottom-right-radius: 4px;
@@ -3308,7 +3308,7 @@ onBeforeUnmount(() => {
 
       &:hover {
         transform: scale(1.2);
-        color: var(--el-color-primary, #409eff);
+        color: var(--el-color-primary, #0b7a75);
       }
 
       &[title="删除"]:hover {
@@ -3434,8 +3434,8 @@ onBeforeUnmount(() => {
   transition: all 0.2s;
 
   &:hover {
-    border-color: var(--el-color-primary, #409eff);
-    color: var(--el-color-primary, #409eff);
+    border-color: var(--el-color-primary, #0b7a75);
+    color: var(--el-color-primary, #0b7a75);
     background: #f5f9ff;
   }
 }
@@ -3583,8 +3583,8 @@ onBeforeUnmount(() => {
         transition: all 0.2s;
 
         &:hover {
-          border-color: var(--el-color-primary, #409eff);
-          color: var(--el-color-primary, #409eff);
+          border-color: var(--el-color-primary, #0b7a75);
+          color: var(--el-color-primary, #0b7a75);
         }
       }
     }
@@ -3614,12 +3614,12 @@ onBeforeUnmount(() => {
 
     .add-spec-item-btn {
       border-style: dashed;
-      color: var(--el-color-primary, #409eff);
-      border-color: var(--el-color-primary, #409eff);
+      color: var(--el-color-primary, #0b7a75);
+      border-color: var(--el-color-primary, #0b7a75);
       background: #fdfdfd;
 
       &:hover {
-        background: #ecf5ff;
+        background: #eef6f5;
       }
     }
   }

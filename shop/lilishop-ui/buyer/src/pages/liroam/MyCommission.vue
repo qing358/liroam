@@ -182,12 +182,12 @@ onMounted(load);
     label { font-size: 12px; color: #909399; }
     b { font-size: 20px; color: #252833; }
     &.is-main { background: linear-gradient(120deg, #f2f7ff, #f9fbff); align-items: flex-start; }
-    &.is-main b { font-size: 26px; color: #3a6fd8; }
+    &.is-main b { font-size: 26px; color: #0b7a75; }
   }
   .commission-tip { margin: 12px 0 8px; font-size: 12px; line-height: 1.6; color: #909399; }
   .commission-sub { font-size: 12px; color: #909399; }
   .commission-pager { margin-top: 12px; justify-content: flex-end; }
-  .is-plus { color: #3a6fd8; }
+  .is-plus { color: #0b7a75; }
   .is-minus { color: #f56c6c; }
 }
 </style>

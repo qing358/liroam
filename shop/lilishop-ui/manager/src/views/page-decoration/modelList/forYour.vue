@@ -306,7 +306,7 @@ function handleConfirmModal() {
   }
 }
 .active {
-  color: #f31947;
+  color: #0b7a75;
 }
 
 .goods-name {
@@ -454,6 +454,6 @@ function handleConfirmModal() {
   line-height: 29px;
   letter-spacing: 0px;
 
-  color: #f31947;
+  color: #0b7a75;
 }
 </style>

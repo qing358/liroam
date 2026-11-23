@@ -154,7 +154,7 @@ defineExpose({
     color: #606266;
 
     .text-primary {
-      color: #409eff;
+      color: #0b7a75;
       font-weight: 600;
       font-size: 15px;
       margin: 0 2px;

@@ -3,24 +3,13 @@
   resize: none !important;
 }
 
-/* Element Plus 主题覆盖（对齐原 iView 主色） */
+/* Element Plus 字号覆盖；主题色见前端公共目录 brand/theme.css */
 :root {
-  // --el-color-primary: #ff5c58;
-  // --el-color-success: #68cabe;
-  // --el-color-warning: #fa6419;
-  // --el-color-danger: #ff3c2a;
   --el-font-size-extra-small: 12px;
   --el-font-size-small: 13px;
   --el-font-size-base: 14px;
   --el-font-size-large: 16px;
 }
-
-// .el-button--primary {
-//   --el-button-bg-color: #ff5c58;
-//   --el-button-border-color: #ff5c58;
-//   --el-button-hover-bg-color: #ff7875;
-//   --el-button-hover-border-color: #ff7875;
-// }
 
 /* 全局表格：去掉列竖线，保留行横线 */
 .el-table--border {
@@ -55,7 +44,7 @@
 /* 全局表格表头 */
 .el-table {
   .el-table__header th.el-table__cell {
-    background: var(--el-color-primary-light-9, #ecf5ff);
+    background: var(--el-color-primary-light-9, #eef6f5);
     color: #303133;
     font-weight: normal;
   }
@@ -68,12 +57,12 @@
 
 /* 列表操作列统一样式 */
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 
   &:hover {
-    color: #66b1ff;
+    color: #54a29e;
   }
 
   &.disabled {
@@ -95,12 +84,12 @@
   justify-content: center;
 
   a:not(.link-text) {
-    color: #409eff;
+    color: #0b7a75;
     cursor: pointer;
     text-decoration: none;
 
     &:hover {
-      color: #66b1ff;
+      color: #54a29e;
     }
   }
 
@@ -118,11 +107,11 @@
 /* 顶部路由加载条（与商家后台一致） */
 #nprogress .bar {
   height: 2x;
-  background: var(--el-color-primary, #409eff);
+  background: var(--el-color-primary, #0b7a75);
 }
 
 #nprogress .peg {
-  box-shadow: 0 0 4px var(--el-color-primary, #409eff), 0 0 2px var(--el-color-primary, #409eff);
+  box-shadow: 0 0 4px var(--el-color-primary, #0b7a75), 0 0 2px var(--el-color-primary, #0b7a75);
 }
 
 /* 统一空状态：表格 / 树 / 列表无数据时的展示（未自定义 #empty 插槽的页面均生效） */

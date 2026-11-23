@@ -434,7 +434,7 @@ onMounted(() => {
 
 .cron-tag {
   background-color: #f4f4f5;
-  color: #409eff;
+  color: #0b7a75;
   padding: 2px 6px;
   border-radius: 4px;
   font-family: Consolas, Monaco, monospace;

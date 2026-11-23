@@ -230,8 +230,8 @@ watch(
     content: "松开鼠标添加模块";
     position: absolute;
     background: #fff;
-    border: 1px dashed #409eff;
-    color: #409eff;
+    border: 1px dashed #0b7a75;
+    color: #0b7a75;
     top: 0;
     left: 0;
     width: 100%;

@@ -629,7 +629,7 @@ onMounted(() => {
   }
 
   :deep(.el-tabs__item.is-active) {
-    color: #409eff;
+    color: #0b7a75;
     font-weight: 600;
   }
 }

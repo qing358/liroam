@@ -145,7 +145,7 @@ watch(() => route.query.id, (id) => { if (id) { card.value = null; load(); } }, 
   .detail-summary { padding: 18px 20px; border: 1px solid #ebeef5; border-radius: 8px; background: #fff; }
   .detail-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
   .detail-name { font-size: 18px; font-weight: 600; color: #252833; }
-  .detail-status { padding: 1px 7px; border-radius: 4px; background: #e8f1ff; color: #3a6fd8; font-size: 12px; }
+  .detail-status { padding: 1px 7px; border-radius: 4px; background: #e8f1ff; color: #0b7a75; font-size: 12px; }
   .detail-hold { padding: 1px 7px; border-radius: 4px; background: #fdf6ec; color: #e6a23c; font-size: 12px; }
   .detail-actions { margin-top: 8px; }
   .detail-kyc { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; padding: 10px 14px; border-radius: 6px; font-size: 13px; }

@@ -292,7 +292,7 @@ onMounted(() => {
   padding: 0;
   border: none;
   background: none;
-  color: #438cde;
+  color: #0b7a75;
   font-family: inherit;
   font-size: 14px;
   line-height: 22px;

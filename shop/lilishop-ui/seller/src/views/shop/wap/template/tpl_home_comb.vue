@@ -47,7 +47,7 @@
           :style="{
             color:
               activeTabIndex === idx
-                ? res.tabActiveColor || '#E93323'
+                ? res.tabActiveColor || '#e4572e'
                 : res.tabColor || '#FFFFFF',
           }"
           @click.stop="activeTabIndex = idx"
@@ -56,7 +56,7 @@
           <span
             v-if="activeTabIndex === idx"
             class="tab-line"
-            :style="{ background: res.tabActiveColor || '#E93323' }"
+            :style="{ background: res.tabActiveColor || '#e4572e' }"
           ></span>
         </div>
       </div>
@@ -136,7 +136,7 @@
           :class="[res.indicatorStyle || 'round', { active: i === currentSlide }]"
           :style="
             i === currentSlide
-              ? { background: res.indicatorColor || '#E93323' }
+              ? { background: res.indicatorColor || '#e4572e' }
               : {}
           "
         ></div>
@@ -317,7 +317,7 @@ const bannerImgStyle = computed(() => ({
   inset: 0;
   z-index: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, #e93323 0%, #f5f5f5 100%);
+  background: linear-gradient(180deg, #e4572e 0%, #f5f5f5 100%);
   img {
     width: 100%;
     height: 100%;

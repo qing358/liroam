@@ -135,10 +135,10 @@ function setCurrentValue(value) {
   padding: 1vh 0;
 }
 .password-tip-weak .words {
-  color: #ed3f14;
+  color: #c8461f;
 }
 .password-tip-middle .words {
-  color: #2d8cf0;
+  color: #0b7a75;
 }
 .password-tip-strong .words {
   color: #52c41a;

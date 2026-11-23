@@ -2173,7 +2173,7 @@ function editAddressSubmit () {
   .delivery-title-bar {
     width: 3px;
     height: 15px;
-    background: #409eff;
+    background: #0b7a75;
     border-radius: 2px;
   }
 
@@ -2237,7 +2237,7 @@ function editAddressSubmit () {
 
       .pkg-icon {
         font-size: 15px;
-        color: #3b82f6;
+        color: #0b7a75;
       }
     }
 
@@ -2283,11 +2283,11 @@ function editAddressSubmit () {
         cursor: pointer;
         display: inline-flex;
         align-items: center;
-        color: #3b82f6;
+        color: #0b7a75;
         transition: transform 0.15s ease, color 0.15s ease;
 
         &:hover {
-          color: #2563eb;
+          color: #0b7a75;
           transform: scale(1.15);
         }
       }

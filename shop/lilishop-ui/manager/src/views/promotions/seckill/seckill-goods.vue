@@ -389,7 +389,7 @@ onMounted(() => {
         width: 4px;
         height: 16px;
         border-radius: 2px;
-        background-color: #409eff;
+        background-color: #0b7a75;
       }
 
       .section-title {
@@ -414,7 +414,7 @@ onMounted(() => {
           width: 4px;
           height: 16px;
           border-radius: 2px;
-          background-color: #409eff;
+          background-color: #0b7a75;
         }
 
         .section-title {

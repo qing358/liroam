@@ -131,11 +131,12 @@ li {
 }
 
 // 主题颜色
+@import "../../../brand/tokens.scss";
 
 $success_color: #68cabe;
 $warning_color: #fa6419;
-$error_color: #ff3c2a;
-$theme_color: #F31947;
+$error_color: $lr-accent;
+$theme_color: $lr-primary;
 .theme_color {
   color: $theme_color !important;
 }

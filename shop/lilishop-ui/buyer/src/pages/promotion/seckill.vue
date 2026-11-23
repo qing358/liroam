@@ -93,7 +93,7 @@
               <el-progress
                 :show-text="false"
                 :stroke-width="6"
-                :color="'var(--theme-color, #ff3c2a)'"
+                :color="'var(--theme-color, #0b7a75)'"
                 :percentage="salePercent(item)"
               />
             </template>
@@ -266,7 +266,7 @@ onBeforeUnmount(() => {
 
 /* 顶部氛围 Hero 横幅 */
 .seckill-hero {
-  background: linear-gradient(135deg, #e52d27 0%, #b31217 60%, #790c10 100%);
+  background: linear-gradient(135deg, #e4572e 0%, #b31217 60%, #790c10 100%);
   color: #fff;
   padding: 30px 0 38px;
   box-shadow: inset 0 -4px 12px rgba(0, 0, 0, 0.15);
@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
 
       &:hover:not(.currTimeline) {
         background: #fafafa;
-        color: var(--theme-color, #e52d27);
+        color: var(--theme-color, #e4572e);
       }
 
       .timeline-hour {
@@ -457,12 +457,12 @@ onBeforeUnmount(() => {
     }
 
     .currTimeline {
-      background: linear-gradient(135deg, var(--theme-color, #e52d27) 0%, #ff5252 100%);
+      background: linear-gradient(135deg, var(--theme-color, #e4572e) 0%, #ff5252 100%);
       color: #fff;
       box-shadow: 0 4px 12px rgba(229, 45, 39, 0.3);
 
       &:hover {
-        background: linear-gradient(135deg, var(--theme-color, #e52d27) 0%, #ff5252 100%);
+        background: linear-gradient(135deg, var(--theme-color, #e4572e) 0%, #ff5252 100%);
       }
 
       .timeline-hour {
@@ -567,7 +567,7 @@ onBeforeUnmount(() => {
     margin-top: 12px;
 
     .price-main {
-      color: var(--theme-color, #e52d27);
+      color: var(--theme-color, #e4572e);
       font-weight: 800;
       display: flex;
       align-items: baseline;
@@ -642,7 +642,7 @@ onBeforeUnmount(() => {
 
     .store-name {
       &:hover {
-        color: var(--theme-color, #e52d27);
+        color: var(--theme-color, #e4572e);
       }
     }
   }
@@ -660,7 +660,7 @@ onBeforeUnmount(() => {
     user-select: none;
 
     &.btn-active {
-      background: linear-gradient(135deg, var(--theme-color, #e52d27) 0%, #ff5252 100%);
+      background: linear-gradient(135deg, var(--theme-color, #e4572e) 0%, #ff5252 100%);
       color: #fff;
       box-shadow: 0 4px 10px rgba(229, 45, 39, 0.25);
 

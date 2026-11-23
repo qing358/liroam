@@ -31,7 +31,7 @@
   width: 100%;
   height: 100%;
   box-shadow: 0 0 6px #000;
-  background-color: #e31414;
+  background-color: #e4572e;
   font-size: 12px;
   cursor: pointer;
   color: #fff;
@@ -68,7 +68,7 @@
 }
 
 .hz-m-wrap .hz-m-box .hz-icon:hover {
-  background-color: #e31414;
+  background-color: #e4572e;
   opacity: 0.8;
 }
 
@@ -503,8 +503,8 @@ html.z-modal body {
 }
 
 .hz-u-input.hz-u-input-error {
-  color: #dd4b39;
-  border-color: #dd4b39;
+  color: #c8461f;
+  border-color: #e4572e;
 }
 
 .hz-u-input.hz-u-input-blank {
@@ -547,7 +547,7 @@ html.z-modal body {
 
 .hz-u-formitem .hz-formitem_rqr {
   line-height: 28px;
-  color: #dd4b39;
+  color: #c8461f;
 }
 
 .hz-u-formitem .hz-formitem_tt {

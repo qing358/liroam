@@ -112,7 +112,7 @@ const customStyle = computed(() => {
         font-size: 11px;
         font-weight: 600;
         background: #eff6ff;
-        color: #2563eb;
+        color: #0b7a75;
         padding: 2px 8px;
         border-radius: 4px;
       }
@@ -147,7 +147,7 @@ const customStyle = computed(() => {
 
     :deep(h2) {
       font-size: 20px;
-      border-left: 4px solid #2563eb;
+      border-left: 4px solid #0b7a75;
       padding-left: 10px;
     }
 
@@ -169,7 +169,7 @@ const customStyle = computed(() => {
       margin: 16px 0;
       padding: 12px 18px;
       background: #f8fafc;
-      border-left: 4px solid #3b82f6;
+      border-left: 4px solid #0b7a75;
       border-radius: 0 8px 8px 0;
       color: #475569;
       font-style: italic;

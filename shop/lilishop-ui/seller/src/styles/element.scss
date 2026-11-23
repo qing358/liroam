@@ -1,21 +1,10 @@
-/* Element Plus 主题覆盖（对齐原 iView 主色） */
+/* Element Plus 字号覆盖；主题色见前端公共目录 brand/theme.css */
 :root {
-  // --el-color-primary: #f31947;
-  // --el-color-success: #67c23a;
-  // --el-color-warning: #fa6419;
-  // --el-color-danger: #ff3c2a;
   --el-font-size-extra-small: 12px;
   --el-font-size-small: 13px;
   --el-font-size-base: 14px;
   --el-font-size-large: 16px;
 }
-
-// .el-button--primary {
-//   --el-button-bg-color: #f31947;
-//   --el-button-border-color: #f31947;
-//   --el-button-hover-bg-color: #ff4d6d;
-//   --el-button-hover-border-color: #ff4d6d;
-// }
 
 .el-table--border {
   .el-table__cell {
@@ -49,7 +38,7 @@
 /* 全局表格表头 */
 .el-table {
   .el-table__header th.el-table__cell {
-    background: var(--el-color-primary-light-9, #ecf5ff);
+    background: var(--el-color-primary-light-9, #eef6f5);
     color: #303133;
     font-weight: normal;
   }
@@ -61,12 +50,12 @@
 }
 
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 
   &:hover {
-    color: #66b1ff;
+    color: #54a29e;
   }
 
   &.disabled {
@@ -88,12 +77,12 @@
   justify-content: center;
 
   a:not(.link-text) {
-    color: #409eff;
+    color: #0b7a75;
     cursor: pointer;
     text-decoration: none;
 
     &:hover {
-      color: #66b1ff;
+      color: #54a29e;
     }
   }
 

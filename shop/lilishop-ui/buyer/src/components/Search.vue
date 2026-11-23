@@ -387,7 +387,7 @@ onUnmounted(() => {
     width: 100%;
 
     :deep(.el-input__wrapper) {
-      border: 2px solid #409EFF;
+      border: 2px solid #0b7a75;
       border-radius: 4px;
       padding-left: 26px;
       padding-right: calc(#{$btn-gap * 2} + #{$btn-width});
@@ -412,12 +412,12 @@ onUnmounted(() => {
     align-items: center;
     justify-content: center;
     z-index: 1;
-    background-color: #409EFF;
+    background-color: #0b7a75;
     color: #ffffff;
     transition: background 0.2s;
 
     &:hover {
-      background-color: #66b1ff;
+      background-color: #54a29e;
     }
   }
 }
@@ -449,12 +449,12 @@ onUnmounted(() => {
   user-select: none;
 
   &:hover {
-    color: #409EFF;
+    color: #0b7a75;
   }
 
   &.active {
     color: #fff;
-    background: #409EFF;
+    background: #0b7a75;
   }
 }
 

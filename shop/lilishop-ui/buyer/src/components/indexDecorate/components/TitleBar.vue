@@ -138,7 +138,7 @@ const isCompact = computed(() => props.componentStyle?.widthRatio === '33.33%');
     cursor: pointer;
 
     &:hover {
-      color: #e11d48;
+      color: #c8461f;
     }
   }
 

@@ -116,7 +116,7 @@ export default {
       return this.first.cartStyle || "plus";
     },
     themePrice() {
-      return "#FF5C58";
+      return "#0b7a75";
     },
     priceColor() {
       return this.res.toneMode === "custom" && this.res.priceColor

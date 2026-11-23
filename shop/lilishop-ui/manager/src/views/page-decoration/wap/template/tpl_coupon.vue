@@ -194,7 +194,7 @@ export default {
   width: 90px;
   padding: 12px 0;
   text-align: center;
-  color: #e1251b;
+  color: #c8461f;
   border-right: 1px dashed #f0c0bb;
 }
 .coupon-amount {
@@ -218,7 +218,7 @@ export default {
   color: #333;
 }
 .coupon-btn {
-  background: #e1251b;
+  background: #e4572e;
   color: #fff;
   font-size: 12px;
   padding: 4px 10px;
@@ -263,7 +263,7 @@ export default {
   width: 132px;
   height: 66px;
   border-radius: 6px;
-  background: linear-gradient(135deg, #ff5a36, #e1251b);
+  background: linear-gradient(135deg, #ff5a36, #e4572e);
   color: #fff;
 }
 .cp1-left {
@@ -307,8 +307,8 @@ export default {
   width: 74px;
   border-radius: 6px;
   background: #fff;
-  border-left: 2px solid #f5483a;
-  border-right: 2px solid #f5483a;
+  border-left: 2px solid #e4572e;
+  border-right: 2px solid #e4572e;
   overflow: hidden;
 }
 .cp2-top {
@@ -318,11 +318,11 @@ export default {
 .cp2-value {
   font-size: 17px;
   font-weight: 700;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp2-symbol {
   font-size: 10px;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp2-threshold {
   font-size: 9px;
@@ -330,7 +330,7 @@ export default {
   margin-top: 1px;
 }
 .cp2-btn {
-  background: linear-gradient(90deg, #ff6a3d, #e1251b);
+  background: linear-gradient(90deg, #ff6a3d, #e4572e);
   color: #fff;
   font-size: 10px;
   text-align: center;
@@ -346,7 +346,7 @@ export default {
   height: 60px;
   border-radius: 6px;
   background: #fdf1ec;
-  border: 1px dashed #f5483a;
+  border: 1px dashed #e4572e;
 }
 .cp3-left {
   flex: 1;
@@ -359,15 +359,15 @@ export default {
 .cp3-value {
   font-size: 19px;
   font-weight: 700;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp3-symbol {
   font-size: 10px;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp3-threshold {
   font-size: 10px;
-  color: #e1251b;
+  color: #c8461f;
   margin-top: 1px;
 }
 .cp3-right {
@@ -377,8 +377,8 @@ export default {
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #e1251b;
-  border-left: 1px dashed #f5483a;
+  color: #c8461f;
+  border-left: 1px dashed #e4572e;
 }
 .cp3-item .cp-notch {
   right: 28px;
@@ -406,15 +406,15 @@ export default {
 .cp4-value {
   font-size: 17px;
   font-weight: 700;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp4-symbol {
   font-size: 10px;
-  color: #e1251b;
+  color: #c8461f;
 }
 .cp4-threshold {
   font-size: 9px;
-  color: #e1251b;
+  color: #c8461f;
   margin-top: 1px;
 }
 .cp4-right {
@@ -425,7 +425,7 @@ export default {
   justify-content: center;
   font-size: 11px;
   color: #fff;
-  background: linear-gradient(180deg, #ff6a3d, #e1251b);
+  background: linear-gradient(180deg, #ff6a3d, #e4572e);
 }
 .cp4-item .cp-notch {
   right: 22px;

@@ -29,7 +29,7 @@ module.exports = {
   /**
    * 如需更换主题请修改此处以及theme.less中修改
    */
-  mainColor: "#ff5c58", //主题色
+  mainColor: "#0b7a75", //主题色
   setting: {
     isUseTabsRouter: false, // 商家后台固定关闭多标签页内嵌模式，详情使用新页面展示。
   },

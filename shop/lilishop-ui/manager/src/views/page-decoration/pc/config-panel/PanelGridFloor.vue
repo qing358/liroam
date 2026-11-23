@@ -544,7 +544,7 @@ function applySelectedGoods(selectedGoods) {
       transition: border-color 0.2s;
 
       &:hover {
-        border-color: #409eff;
+        border-color: #0b7a75;
       }
 
       .preview-img {
@@ -582,7 +582,7 @@ function applySelectedGoods(selectedGoods) {
         cursor: pointer;
 
         &:hover {
-          background: #ef4444;
+          background: #e4572e;
         }
       }
     }
@@ -613,12 +613,12 @@ function applySelectedGoods(selectedGoods) {
       padding: 0 10px;
 
       &.link-btn {
-        background: #ecf5ff;
+        background: #eef6f5;
         border-color: #b3d8ff;
-        color: #409eff;
+        color: #0b7a75;
 
         &:hover {
-          background: #409eff;
+          background: #0b7a75;
           color: #ffffff;
         }
       }
@@ -638,13 +638,13 @@ function applySelectedGoods(selectedGoods) {
     overflow: hidden;
 
     .tag-label {
-      color: #3b82f6;
+      color: #0b7a75;
       font-weight: 500;
       flex-shrink: 0;
     }
 
     .tag-val {
-      color: #1e40af;
+      color: #09625e;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -726,7 +726,7 @@ function applySelectedGoods(selectedGoods) {
           .g-price {
             font-size: 11px;
             font-weight: 700;
-            color: #e11d48;
+            color: #c8461f;
           }
         }
       }

@@ -296,7 +296,7 @@ defineExpose({ invoiceAvailable });
 }
 .add-inv {
   font-size: 12px;
-  color: #438cde;
+  color: #0b7a75;
   cursor: pointer;
   &:hover {
     color: $theme_color;

@@ -4,6 +4,7 @@ import "./styles/theme.less";
 import App from "./App.vue";
 import { router } from "./router/index";
 import { setupElementPlus } from "@/plugins/element";
+import "../../brand/theme.css";
 import { setupLegacyMessage } from "@/utils/message";
 import { setupImgFallback } from "@/utils/imgFallback";
 import liliDialog from "@/views/lili-dialog";

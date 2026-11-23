@@ -694,7 +694,7 @@ em {
 }
 
 .action-link {
-  color: #2d8cf0;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

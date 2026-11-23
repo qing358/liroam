@@ -373,7 +373,7 @@ const customStyle = computed(() => {
             font-weight: 700;
             padding: 2px 6px;
             border-radius: 3px;
-            background: #ef4444;
+            background: #e4572e;
             color: #ffffff;
           }
 
@@ -489,13 +489,13 @@ const customStyle = computed(() => {
               .sym {
                 font-size: 11px;
                 font-weight: 700;
-                color: #e11d48;
+                color: #c8461f;
               }
 
               .val {
                 font-size: 16px;
                 font-weight: 800;
-                color: #e11d48;
+                color: #c8461f;
               }
 
               .orig {

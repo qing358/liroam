@@ -5,7 +5,7 @@
       <div
         v-if="options.showAllCategory"
         class="all-category-btn"
-        :style="{ backgroundColor: options.activeColor || '#e11d48' }"
+        :style="{ backgroundColor: options.activeColor || '#e4572e' }"
       >
         <img
           v-if="options.allCategoryIcon"
@@ -30,7 +30,7 @@
             class="nav-link"
             :style="{
               '--text-color': options.textColor || '#334155',
-              '--active-color': options.activeColor || '#e11d48'
+              '--active-color': options.activeColor || '#e4572e'
             }"
             active-class="is-active"
           >
@@ -39,7 +39,7 @@
             <span
               class="badge"
               v-if="item.badge"
-              :style="{ backgroundColor: options.activeColor || '#e11d48' }"
+              :style="{ backgroundColor: options.activeColor || '#e4572e' }"
             >
               {{ item.badge }}
             </span>
@@ -172,7 +172,7 @@ const customStyle = computed(() => {
           }
 
           &:hover, &.is-active {
-            color: var(--active-color, #e11d48) !important;
+            color: var(--active-color, #e4572e) !important;
 
             .cat-icon {
               transform: scale(1.12);

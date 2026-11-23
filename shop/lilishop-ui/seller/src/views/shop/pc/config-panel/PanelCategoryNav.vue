@@ -422,7 +422,7 @@ function handleAddItem() {
               height: 26px;
 
               &:hover {
-                color: #2563eb;
+                color: #0b7a75;
                 border-color: #93c5fd;
               }
             }
@@ -475,7 +475,7 @@ function handleAddItem() {
               transition: background 0.15s;
 
               &:hover {
-                background: #e11d48;
+                background: #e4572e;
               }
             }
 
@@ -505,7 +505,7 @@ function handleAddItem() {
             height: 26px;
 
             &.del-btn {
-              color: #ef4444;
+              color: #c8461f;
               &:hover {
                 background: #fee2e2;
                 border-color: #fca5a5;
@@ -526,7 +526,7 @@ function handleAddItem() {
 
       &:hover {
         background: #eff6ff;
-        border-color: #3b82f6;
+        border-color: #0b7a75;
       }
     }
   }

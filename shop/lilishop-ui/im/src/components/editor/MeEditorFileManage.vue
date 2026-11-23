@@ -31,7 +31,7 @@
 
           <div class="status">
             <span v-if="file.status == 0">等待上传</span>
-            <span v-else-if="file.status == 1" style="color: #66b1ff">
+            <span v-else-if="file.status == 1" style="color: #54a29e">
               正在上传...
             </span>
             <span v-else-if="file.status == 2" style="color: #67c23a">
@@ -326,7 +326,7 @@ defineExpose({ upload, clear })
     .type-icon {
       height: 30px;
       width: 30px;
-      background-color: #66b1ff;
+      background-color: #54a29e;
       border-radius: 50%;
       margin-left: 5px;
       font-size: 10px;

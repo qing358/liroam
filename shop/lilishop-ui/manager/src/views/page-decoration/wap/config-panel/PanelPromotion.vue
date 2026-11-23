@@ -240,7 +240,7 @@ const DEFAULTS = {
   showOriginalPrice: true,
   showGroupBtn: true,
   headBgType: "color",
-  headBgColor1: "#F5483A",
+  headBgColor1: "#e4572e",
   headBgColor2: "#FF7E3D",
   headTitleType: "text",
 };
@@ -248,7 +248,7 @@ const DEFAULTS = {
 // 秒杀参考 CRMEB 默认：背景红→白渐变、标题白色、圆角 背景 7 / 内容 5
 const SECKILL_DEFAULTS = {
   ...DEFAULTS,
-  bgColor1: "#FF2200",
+  bgColor1: "#e4572e",
   bgColor2: "#FFFFFF",
   titleColor: "#FFFFFF",
   borderRadius: 7,

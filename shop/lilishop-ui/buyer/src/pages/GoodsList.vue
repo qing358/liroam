@@ -314,7 +314,7 @@ getGoodsList();
   text-align: center;
   align-content: center;
   padding: 0 3px;
-  background-color: #e23a3a;
+  background-color: #e4572e;
 }
 
 .goods-show-tag {
@@ -335,11 +335,11 @@ getGoodsList();
 }
 
 .goods-show-tag-self {
-  --el-tag-bg-color: #fa2c19;
-  --el-tag-border-color: #fa2c19;
+  --el-tag-bg-color: #e4572e;
+  --el-tag-border-color: #e4572e;
   --el-tag-text-color: #fff;
-  background-color: #fa2c19;
-  border-color: #fa2c19;
+  background-color: #e4572e;
+  border-color: #e4572e;
   color: #fff;
 
   :deep(.el-tag__content) {
@@ -550,7 +550,7 @@ getGoodsList();
 }
 
 .goods-show-seller {
-  color: #438cde;
+  color: #0b7a75;
   font-size: 14px;
 
   span:hover {

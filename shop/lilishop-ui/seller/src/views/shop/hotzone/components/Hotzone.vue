@@ -304,7 +304,7 @@ defineExpose({
   background: #fff;
   border: none;
   border-radius: 5px;
-  color: #ff5c58;
+  color: #0b7a75;
   display: flex;
   height: 40px;
   justify-content: center;

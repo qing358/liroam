@@ -1921,7 +1921,7 @@ onUnmounted(() => {
 
             &:hover {
 
-              border-color: #3b82f6;
+              border-color: #0b7a75;
 
               background: #eff6ff;
 
@@ -1931,13 +1931,13 @@ onUnmounted(() => {
 
               .comp-icon {
 
-                color: #2563eb;
+                color: #0b7a75;
 
               }
 
               .comp-name {
 
-                color: #2563eb;
+                color: #0b7a75;
 
               }
 
@@ -2046,7 +2046,7 @@ onUnmounted(() => {
 
               border-radius: 50%;
 
-              &.red { background: #ef4444; }
+              &.red { background: #e4572e; }
 
               &.yellow { background: #f59e0b; }
 
@@ -2108,7 +2108,7 @@ onUnmounted(() => {
 
             &.is-row-selected {
 
-              border-color: #2563eb !important;
+              border-color: #0b7a75 !important;
 
               border-style: solid !important;
 
@@ -2196,23 +2196,23 @@ onUnmounted(() => {
                   width: 22px;
                   height: 22px;
                   border-radius: 50%;
-                  background: #409EFF;
+                  background: #0b7a75;
                   color: #ffffff;
                   display: flex;
                   align-items: center;
                   justify-content: center;
                   font-size: 11px;
                   cursor: pointer;
-                  box-shadow: 0 2px 6px rgba(64, 158, 255, 0.4);
+                  box-shadow: 0 2px 6px rgba(11, 122, 117, 0.4);
                   transition: transform 0.15s, background-color 0.15s;
 
                   &:hover {
                     transform: scale(1.15);
-                    background: #337ecc;
+                    background: #09625e;
                   }
 
                   &.del:hover {
-                    background: #dc2626;
+                    background: #e4572e;
                   }
                 }
               }
@@ -2267,14 +2267,14 @@ onUnmounted(() => {
                 transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 
                 &:hover {
-                  border-color: rgba(64, 158, 255, 0.5);
+                  border-color: rgba(11, 122, 117, 0.5);
                   border-style: dashed;
                 }
 
                 &.is-selected {
-                  border-color: #409EFF !important;
+                  border-color: #0b7a75 !important;
                   border-style: solid !important;
-                  box-shadow: 0 0 0 1px rgba(64, 158, 255, 0.25);
+                  box-shadow: 0 0 0 1px rgba(11, 122, 117, 0.25);
                   z-index: 30;
                 }
 
@@ -2282,7 +2282,7 @@ onUnmounted(() => {
                   position: absolute;
                   top: 0;
                   left: 0;
-                  background: #409EFF;
+                  background: #0b7a75;
                   color: #ffffff;
                   font-size: 11px;
                   line-height: 1;
@@ -2292,7 +2292,7 @@ onUnmounted(() => {
                   pointer-events: none;
                   font-weight: 500;
                   letter-spacing: 0.5px;
-                  box-shadow: 0 1px 3px rgba(64, 158, 255, 0.3);
+                  box-shadow: 0 1px 3px rgba(11, 122, 117, 0.3);
                 }
 
                 .comp-preview-body {
@@ -2336,7 +2336,7 @@ onUnmounted(() => {
 
                     .mock-icon {
 
-                      color: #3b82f6;
+                      color: #0b7a75;
 
                     }
 

@@ -1,16 +1,17 @@
 //引入主题色
+@import "../../../../brand/tokens.scss";
 
 
 // 明亮主题颜色
-$primary_color: #2d8cf0;
+$primary_color: $lr-primary;
 $primary_light_color: #0f1011;
-$primary_dark_color: #2b85e4;
+$primary_dark_color: $lr-primary-hover;
 $success_color: #19be6b;
 $warning_color: #ff9900;
-$error_color: #ed3f14;
-$handle-btn-color: #438cde;
+$error_color: $lr-accent;
+$handle-btn-color: $lr-primary;
 
-$theme_color: var(--theme-color, #ff3c2a);
+$theme_color: var(--theme-color, #{$lr-primary});
 
 $border_color: #dddee1;
 $title_color: #8c8c8c;

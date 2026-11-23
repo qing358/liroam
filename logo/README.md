@@ -39,7 +39,25 @@
 | 日光黄 | 深底站点 | `#FFC04D` | 255 192 77 | 只用于漫游青 / 夜航墨背景上的站点与 i 点；与漫游青 3.2:1、与夜航墨 9.0:1 |
 | 雾青 | 浅背景 | `#EEF6F5` | 238 246 245 | 版面浅底 |
 
-站点色随背景换：浅底用日出橙，深底用日光黄；同一画面不混用。暖色只出现在站点与 i 点，不扩大到其它元素。
+站点色随背景换：浅底用日出橙，深底用日光黄；同一画面不混用。标识内暖色只出现在站点与 i 点，不扩大到其它元素。
+
+### 前端主题色
+
+界面（四端商城前端）用同一色板，派生色只按下表取，令牌在 `shop/lilishop-ui/brand/`（`tokens.scss` / `tokens.less` / `theme.css` 三份同值，`scripts/brand.test.mjs` 校验与上表一致）：
+
+| 令牌 | HEX | 用途 | 对比（白底 / 白字） |
+|------|-----|------|------|
+| `primary` 漫游青 | `#0B7A75` | 主按钮、链接、选中、标签、进度、Element `--el-color-primary` | 5.2:1 |
+| `primary-hover` | `#09625E` | 主按钮悬停、链接悬停（Element `dark-2`）；不用 Element 默认的「变浅」悬停，白字会不够清楚 | 7.2:1 |
+| `primary-active` | `#074E4B` | 主按钮按下 | 9.5:1 |
+| `primary-light-3/5/7/8` | `#54A29E` `#85BDBA` `#B6D7D6` `#CEE4E3` | 禁用态、描边、浅色块（主色与白按 70/50/30/20% 混合）；不承载正文文字 | — |
+| `mist` 雾青 | `#EEF6F5` | 选中行、浅底、表头（Element `light-9`） | — |
+| `ink` 夜航墨 | `#102A43` | 深色侧栏、深色区块、标题文字 | 14.6:1 |
+| `accent` 日出橙 | `#E4572E` | 强调色：促销角标底、描边、大号数字与图形点缀 | 3.7:1，只配大字或图形 |
+| `accent-text` | `#C8461F` | 强调色的文字版：价格、优惠、提示文字等小字 | 4.8:1 |
+| `accent-light-9` | `#FCEEEA` | 强调浅底 | — |
+
+Element 的成功 / 警告 / 危险状态色保持其语义色，不换成品牌色。买家端主题色可由运营在后台「主题设置」改（`THEME_SETTING`），出厂值为漫游青。
 
 ## 3. 版本与选用
 
@@ -130,4 +148,4 @@ python3 -m venv /tmp/liroam-logo-venv
 
 中文字形取自 `NotoSansSC-VF.ttf`，默认路径为 WSL 下的 Windows 字体目录，可用环境变量 `LIROAM_FONT_SC` 指向其它位置（[Google Fonts 下载](https://fonts.google.com/noto/specimen/Noto+Sans+SC)）。
 
-商城前端（`shop/lilishop-ui` 四端）已换用本标识：浅底一律墨色组合标 `liroam-horizontal-ink.svg`（商家端收起侧栏用 `liroam-mark-ink.svg`），管理端登录页深色品牌区用 `liroam-horizontal-reverse.svg`；四端都没有明暗主题切换，按浅色处理。favicon 固定用 `png/favicon.ico`，不随主题或站点设置变化。后台站点设置里的 logo / icon 为空时回落到上述内置标识；运营上传了自定义 logo 则以设置为准。替换范围与合并注意见 `docs/upstream.md` 改动清单「品牌」一行，回归闸为 `node --test scripts/brand.test.mjs`。
+商城前端（`shop/lilishop-ui` 四端）已换用本标识：浅底一律墨色组合标 `liroam-horizontal-ink.svg`（商家端收起侧栏用 `liroam-mark-ink.svg`），管理端登录页深色品牌区用 `liroam-horizontal-reverse.svg`；四端都没有明暗主题切换，按浅色处理。favicon 固定用 `png/favicon.ico`，不随主题或站点设置变化。后台站点设置里的 logo / icon 为空时回落到上述内置标识；运营上传了自定义 logo 则以设置为准。四端主题色按上文「前端主题色」取令牌（`shop/lilishop-ui/brand/theme.css` 由四端 `main.js` 加载，覆盖 Element Plus 主色变量）。替换范围与合并注意见 `docs/upstream.md` 改动清单「品牌」一行，回归闸为 `node --test scripts/brand.test.mjs`。

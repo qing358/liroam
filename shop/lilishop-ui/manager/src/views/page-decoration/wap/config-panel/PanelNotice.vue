@@ -303,7 +303,7 @@ export default {
     transition: all 0.2s ease;
     &.active {
       background: #ffffff;
-      color: #409eff;
+      color: #0b7a75;
       font-weight: 600;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
     }
@@ -379,10 +379,10 @@ export default {
     cursor: pointer;
     color: #606266;
     &:hover {
-      color: #409eff;
+      color: #0b7a75;
     }
     &.del:hover {
-      color: #e1251b;
+      color: #c8461f;
     }
     &.disabled {
       color: #dcdfe6;

@@ -172,10 +172,10 @@ import ossManage from "@/views/sys/oss-manage/ossManage";
 
 const DEFAULTS = {
   layoutStyle: "1",
-  pointColor: "#F5483A",
+  pointColor: "#e4572e",
   headBgType: "color",
   headBg1: "#FF6A00",
-  headBg2: "#FF2200",
+  headBg2: "#e4572e",
   headBgImage: "",
   titleType: "text",
   titleImage: "",

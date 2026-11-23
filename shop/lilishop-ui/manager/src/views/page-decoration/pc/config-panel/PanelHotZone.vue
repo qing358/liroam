@@ -480,7 +480,7 @@ function handleChangeZone(zoneList) {
           color: #334155;
 
           .zone-num-badge {
-            background: #409EFF;
+            background: #0b7a75;
             color: #ffffff;
             font-size: 10px;
             font-weight: 700;
@@ -531,12 +531,12 @@ function handleChangeZone(zoneList) {
             padding: 0 10px;
 
             &.link-btn {
-              background: #ecf5ff;
+              background: #eef6f5;
               border-color: #b3d8ff;
-              color: #409EFF;
+              color: #0b7a75;
 
               &:hover {
-                background: #409EFF;
+                background: #0b7a75;
                 color: #ffffff;
               }
             }
@@ -556,13 +556,13 @@ function handleChangeZone(zoneList) {
           overflow: hidden;
 
           .tag-label {
-            color: #3b82f6;
+            color: #0b7a75;
             flex-shrink: 0;
             font-weight: 500;
           }
 
           .tag-val {
-            color: #1e40af;
+            color: #09625e;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

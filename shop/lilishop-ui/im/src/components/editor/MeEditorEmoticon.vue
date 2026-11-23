@@ -198,7 +198,7 @@ function customUploadEmoji(e) {
       position: absolute;
       right: 10px;
       top: 1px;
-      color: #409eff;
+      color: #0b7a75;
       cursor: pointer;
     }
   }
@@ -322,7 +322,7 @@ function customUploadEmoji(e) {
     }
 
     &:active {
-      color: #409eff;
+      color: #0b7a75;
     }
   }
 }

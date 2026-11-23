@@ -234,14 +234,14 @@ const SETTING_KEY = "THEME_SETTING";
 
 /** 系统预设主题色系：主题色 + 辅助色 + 浅底色（展示用三色块） */
 const PRESET_THEMES = [
+  { themeColor: "#0B7A75", aiderLightColor: "#54A29E", paleColor: "#EEF6F5" },
+  { themeColor: "#E4572E", aiderLightColor: "#EC7A57", paleColor: "#FCEEEA" },
   { themeColor: "#FF6600", aiderLightColor: "#FF8533", paleColor: "#FFF1E8" },
   { themeColor: "#F7B500", aiderLightColor: "#FAD961", paleColor: "#FFF8E1" },
   { themeColor: "#13C2C2", aiderLightColor: "#36CFC9", paleColor: "#E6FFFB" },
   { themeColor: "#07C160", aiderLightColor: "#4BD88A", paleColor: "#E8F9F0" },
-  { themeColor: "#2B85E4", aiderLightColor: "#5CA8FF", paleColor: "#E8F3FF" },
   { themeColor: "#722ED1", aiderLightColor: "#9254DE", paleColor: "#F5EEFF" },
   { themeColor: "#FF4D94", aiderLightColor: "#FF85B3", paleColor: "#FFEAF3" },
-  { themeColor: "#F5222D", aiderLightColor: "#FF4D4F", paleColor: "#FFECE8" },
   { themeColor: "#F5C10B", aiderLightColor: "#D4A017", paleColor: "#000000" },
   { themeColor: "#000000", aiderLightColor: "#434343", paleColor: "#F5F5F5" },
 ];
@@ -252,8 +252,8 @@ const presetThemes = ref(PRESET_THEMES);
 // form 在 loadSetting 中被整体替换，使用 ref
 const form = ref({
   mode: "custom",
-  themeColor: "#ff3c2a",
-  aiderLightColor: "#ff9f28",
+  themeColor: "#0B7A75",
+  aiderLightColor: "#54A29E",
 });
 
 // 与移动端一致：提交订单等按钮为 主题色(91deg)→辅助色 渐变

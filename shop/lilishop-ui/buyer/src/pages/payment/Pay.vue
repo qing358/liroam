@@ -1390,7 +1390,7 @@ function useScope(type, storeName) {
   padding: 0;
   border: none;
   background: none;
-  color: #438cde;
+  color: #0b7a75;
   font-family: inherit;
   font-size: 14px;
   line-height: 22px;
@@ -1535,7 +1535,7 @@ function useScope(type, storeName) {
   > span:nth-child(2) {
     font-size: 14px;
     font-weight: 400;
-    color: #438cde;
+    color: #0b7a75;
     cursor: pointer;
 
     &:hover {
@@ -1552,7 +1552,7 @@ function useScope(type, storeName) {
   span {
     font-size: 14px;
     font-weight: 400;
-    color: #438cde;
+    color: #0b7a75;
     cursor: pointer;
 
     &:hover {
@@ -1581,7 +1581,7 @@ function useScope(type, storeName) {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #438cde;
+  color: #0b7a75;
   font-size: 14px;
 }
 
@@ -1661,7 +1661,7 @@ function useScope(type, storeName) {
 .pay-gcc-help {
   font-size: 14px;
   font-weight: 400;
-  color: #438cde;
+  color: #0b7a75;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -1826,7 +1826,7 @@ function useScope(type, storeName) {
   text-align: right;
 }
 .gift-zero-price {
-  color: #e4393c !important;
+  color: #c8461f !important;
   font-weight: 500;
 }
 </style>

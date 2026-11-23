@@ -135,7 +135,7 @@ function handleClickPlaceholder() {
       .play-icon {
         width: 48px;
         height: 48px;
-        background: #e11d48;
+        background: #e4572e;
         border-radius: 50%;
         display: flex;
         align-items: center;
@@ -184,8 +184,8 @@ function handleClickPlaceholder() {
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: #e11d48;
-      box-shadow: 0 0 8px #e11d48;
+      background: #e4572e;
+      box-shadow: 0 0 8px #e4572e;
     }
 
     .cta-text {

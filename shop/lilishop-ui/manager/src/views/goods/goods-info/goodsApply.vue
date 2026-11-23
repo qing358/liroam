@@ -158,7 +158,7 @@ function showDetail(v) {
 
 <style scoped>
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

@@ -85,7 +85,7 @@ defineProps({
   font-size: 14px;
   font-weight: normal;
   line-height: 17px;
-  color: #f31947;
+  color: #0b7a75;
   margin-top: 8px;
 }
 
@@ -138,7 +138,7 @@ defineProps({
   height: 27px;
   line-height: 27px;
   border-radius: 13.3px 0 0 13.3px;
-  background: #f31947;
+  background: #0b7a75;
   font-size: 12.6px;
   text-align: center;
   color: #ffffff;

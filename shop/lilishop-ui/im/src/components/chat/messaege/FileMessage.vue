@@ -122,7 +122,7 @@ fileSize.value = formatSize(props.file.file_size)
   .footer {
     height: 30px;
     line-height: 37px;
-    color: #409eff;
+    color: #0b7a75;
     text-align: right;
     font-size: 12px;
     border-top: 1px solid #eff7ef;

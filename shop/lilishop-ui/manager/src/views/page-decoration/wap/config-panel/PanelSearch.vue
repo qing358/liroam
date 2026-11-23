@@ -215,7 +215,7 @@ export default {
     transition: all 0.2s ease;
     &.active {
       background: #ffffff;
-      color: #409eff;
+      color: #0b7a75;
       font-weight: 600;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
     }
@@ -255,7 +255,7 @@ export default {
     font-size: 18px;
     flex-shrink: 0;
     &:hover {
-      color: #e1251b;
+      color: #c8461f;
     }
   }
 }

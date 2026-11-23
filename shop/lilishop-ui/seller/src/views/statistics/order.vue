@@ -511,7 +511,7 @@ onMounted(() => {
     align-items: center;
     justify-content: center;
     color: #fff;
-    filter: drop-shadow(0 4px 8px rgba(243, 25, 71, 0.18));
+    filter: drop-shadow(0 4px 8px rgba(11, 122, 117, 0.18));
     .layer-name {
       font-size: 14px;
       font-weight: 600;
@@ -681,7 +681,7 @@ h4 {
   margin-bottom: 10px;
 }
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

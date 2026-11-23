@@ -375,7 +375,7 @@ function moveHotWord(idx, offset) {
           border-radius: 50%;
 
           &:hover {
-            color: #ef4444;
+            color: #c8461f;
           }
         }
       }

@@ -9,6 +9,7 @@ import face from "@/components/face";
 import faceNull from "@/components/face-null";
 import config from "@/config/config";
 import { setupElementPlus } from "@/plugins/element";
+import "../../brand/theme.css";
 import { setupLegacyMessage } from "@/utils/message";
 import { registerDirectives } from "./core/directives";
 import { registerGlobalComponents } from "./core/global-component";

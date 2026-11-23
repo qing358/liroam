@@ -712,11 +712,11 @@ window.onscroll = () => {
 }
 
 .goods-show-tag-self {
-  --el-tag-bg-color: #fa2c19;
-  --el-tag-border-color: #fa2c19;
+  --el-tag-bg-color: #e4572e;
+  --el-tag-border-color: #e4572e;
   --el-tag-text-color: #fff;
-  background-color: #fa2c19;
-  border-color: #fa2c19;
+  background-color: #e4572e;
+  border-color: #e4572e;
   color: #fff;
 }
 

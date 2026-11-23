@@ -397,7 +397,7 @@ function detail(v) {
 <style lang="scss" scoped>
 @import "@/styles/table-common.scss";
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }
@@ -524,12 +524,12 @@ function detail(v) {
       width: 3px;
       height: 14px;
       border-radius: 2px;
-      background: #409eff;
+      background: #0b7a75;
     }
   }
   .reply-bubble {
     padding: 12px;
-    background: #ecf5ff;
+    background: #eef6f5;
     border-radius: 6px;
     .reply-text {
       margin: 0;

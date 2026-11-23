@@ -621,10 +621,10 @@ table {
       margin-right: 14px;
       font-weight: normal;
       background-color: #e6f7ff;
-      color: #1890ff;
+      color: #0b7a75;
     }
     .current {
-      background-color: #2d8cf0;
+      background-color: #0b7a75;
       color: #ffffff;
     }
     .future {

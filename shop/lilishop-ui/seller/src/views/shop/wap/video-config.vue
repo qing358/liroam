@@ -347,7 +347,7 @@ function resetBgColors() {
   background: #fafafa;
 
   &:hover {
-    border-color: #409eff;
+    border-color: #0b7a75;
   }
 }
 

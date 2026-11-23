@@ -322,7 +322,7 @@ onMounted(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #409eff;
+  background: #0b7a75;
   flex-shrink: 0;
 }
 .goods-name {
@@ -331,7 +331,7 @@ onMounted(() => {
   white-space: nowrap;
 }
 .price {
-  color: #ff5c58;
+  color: #0b7a75;
   font-weight: bold;
 }
 .tips {

@@ -289,13 +289,13 @@ const customStyle = computed(() => {
             .sym {
               font-size: 12px;
               font-weight: 700;
-              color: #dc2626;
+              color: #c8461f;
             }
 
             .val {
               font-size: 18px;
               font-weight: 800;
-              color: #dc2626;
+              color: #c8461f;
             }
 
             .del {

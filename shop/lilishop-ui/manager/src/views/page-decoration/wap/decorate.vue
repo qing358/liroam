@@ -121,7 +121,7 @@
             v-if="res.close || res.type == 'promotionDetail'"
             @click="closeDecorate(index)"
             :size="20"
-            color="#e1251b"
+            color="#c8461f"
             class="close-icon"
           >
             <CircleClose />
@@ -374,7 +374,7 @@
                 class="decorate-notice"
               >
                 <el-input v-model="t.context" style="width: 200px" />
-                <el-icon @click="removeNotice(tindex)" :size="16" color="#e1251b">
+                <el-icon @click="removeNotice(tindex)" :size="16" color="#c8461f">
                   <CircleClose />
                 </el-icon>
               </div>

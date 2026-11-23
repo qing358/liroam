@@ -65,8 +65,8 @@ const REPORT_MODULES = [
     desc: "支付金额、营业额、转化率及同环比分析",
     tags: ["支付金额", "转化率", "同环比"],
     icon: TrendCharts,
-    color: "#409eff",
-    bg: "#ecf5ff",
+    color: "#0b7a75",
+    bg: "#eef6f5",
   },
   {
     name: "goodsComparisonReport",

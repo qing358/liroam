@@ -137,7 +137,7 @@ const customStyle = computed(() => {
         &.is-active .el-carousel__button {
           width: 16px;
           border-radius: 3px;
-          background-color: #409EFF;
+          background-color: #0b7a75;
         }
       }
     }

@@ -969,8 +969,8 @@ function remove(v) {
         color: #909399;
 
         .store-tag {
-          color: #409eff;
-          background-color: #ecf5ff;
+          color: #0b7a75;
+          background-color: #eef6f5;
           padding: 1px 5px;
           border-radius: 2px;
           font-size: 11px;
@@ -1210,8 +1210,8 @@ function remove(v) {
         gap: 10px;
 
         .detail-avatar {
-          background-color: #ecf5ff;
-          color: #409eff;
+          background-color: #eef6f5;
+          color: #0b7a75;
           font-size: 14px;
         }
 

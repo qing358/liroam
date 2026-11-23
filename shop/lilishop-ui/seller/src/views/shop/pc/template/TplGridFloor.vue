@@ -201,7 +201,7 @@ const customStyle = computed(() => {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
+        background: linear-gradient(135deg, #0b7a75, #09625e);
         color: #ffffff;
         font-weight: 800;
         font-size: 13px;
@@ -247,7 +247,7 @@ const customStyle = computed(() => {
           transition: all 0.2s;
 
           &:hover, &.active {
-            color: #2563eb;
+            color: #0b7a75;
             background: #eff6ff;
             font-weight: 600;
           }
@@ -264,7 +264,7 @@ const customStyle = computed(() => {
         transition: color 0.2s;
 
         &:hover {
-          color: #2563eb;
+          color: #0b7a75;
         }
       }
     }
@@ -376,7 +376,7 @@ const customStyle = computed(() => {
             cursor: pointer;
 
             &:hover {
-              background: #2563eb;
+              background: #0b7a75;
               color: #ffffff;
             }
           }
@@ -429,7 +429,7 @@ const customStyle = computed(() => {
             position: absolute;
             top: 6px;
             left: 6px;
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: linear-gradient(135deg, #e4572e, #e4572e);
             color: #ffffff;
             font-size: 10px;
             font-weight: 700;
@@ -467,11 +467,11 @@ const customStyle = computed(() => {
               padding: 1px 5px;
               border-radius: 3px;
               background: #fee2e2;
-              color: #dc2626;
+              color: #c8461f;
 
               &.light {
                 background: #eff6ff;
-                color: #2563eb;
+                color: #0b7a75;
               }
             }
           }
@@ -490,13 +490,13 @@ const customStyle = computed(() => {
               .currency {
                 font-size: 12px;
                 font-weight: 700;
-                color: #e11d48;
+                color: #c8461f;
               }
 
               .amount {
                 font-size: 17px;
                 font-weight: 800;
-                color: #e11d48;
+                color: #c8461f;
               }
 
               .orig-amount {
@@ -521,7 +521,7 @@ const customStyle = computed(() => {
               transition: all 0.2s;
 
               &:hover {
-                background: #2563eb;
+                background: #0b7a75;
                 color: #ffffff;
               }
             }

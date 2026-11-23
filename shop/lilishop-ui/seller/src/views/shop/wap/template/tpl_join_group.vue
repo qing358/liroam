@@ -39,7 +39,7 @@ defineProps(["res"]);
   > span {
     font-size: 15px;
     font-weight: 500;
-    color: #e1212b;
+    color: #c8461f;
   }
 }
 .join-item {

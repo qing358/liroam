@@ -30,7 +30,7 @@ export const modelData = [
       searchRadius: 30,
       showTabs: true,
       tabColor: "#FFFFFF",
-      tabActiveColor: "#E93323",
+      tabActiveColor: "#e4572e",
       tabList: [
         { title: "精选", dataType: "category", value: "" },
         { title: "靓丽美妆", dataType: "category", value: "" }
@@ -38,7 +38,7 @@ export const modelData = [
       swiperStyle: "card",
       indicatorStyle: "round",
       indicatorPosition: "center",
-      indicatorColor: "#E93323",
+      indicatorColor: "#e4572e",
       bannerRadius: 14,
       pageGap: 0,
       list: [
@@ -582,7 +582,7 @@ export const modelData = [
     promotionsType: "PINTUAN",
     name: "拼团活动",
     icon: "UserFilled",
-    subBkColor: "#e1212b",
+    subBkColor: "#e4572e",
     subName: "惊喜折扣",
     subColor: "#fff",
     img: "md-image",
@@ -592,7 +592,7 @@ export const modelData = [
           type: "PINTUAN",
           title: "超值拼团",
           title1: "惊喜折扣",
-          bk_color: "#e1212b",
+          bk_color: "#e4572e",
           color1: "#fff",
           groupSuccess: "134人拼团成功",
           data: [
@@ -659,7 +659,7 @@ export const modelData = [
     promotionsType: "LIVE",
     name: "直播活动",
     icon: "VideoPlay",
-    subBkColor: "#e1212b",
+    subBkColor: "#e4572e",
     subName: "优惠好价",
     subColor: "#fff",
     img: "md-image",
@@ -670,7 +670,7 @@ export const modelData = [
           type: "LIVE",
           title: "精彩直播",
           title1: "精彩抢先看",
-          bk_color: "#e1212b",
+          bk_color: "#e4572e",
           color1: "#fff",
           data: [
             {
@@ -707,7 +707,7 @@ export const modelData = [
     promotionsType: "SECKILL",
     name: "秒杀活动",
     icon: "Timer",
-    subBkColor: "#e1212b",
+    subBkColor: "#e4572e",
     subName: "x点场",
     subColor: "#fff",
     img: "md-image",
@@ -718,7 +718,7 @@ export const modelData = [
           type: "SECKILL",
           title: "限时秒杀",
           title1: "邀请你的好友来参与",
-          bk_color: "#e1212b",
+          bk_color: "#e4572e",
           color1: "#fff",
           data: [
             {
@@ -756,7 +756,7 @@ export const modelData = [
     promotionsType: "KANJIA",
     name: "砍价活动",
     icon: "Scissor",
-    subBkColor: "#e1212b",
+    subBkColor: "#e4572e",
     subName: "超值好物",
     subColor: "#fff",
     img: "md-image",
@@ -767,7 +767,7 @@ export const modelData = [
           type: "KANJIA",
           title: "砍价免费拿",
           title1: "邀请好友来砍价",
-          bk_color: "#e1212b",
+          bk_color: "#e4572e",
           color1: "#fff",
           data: [
             {
@@ -1038,7 +1038,7 @@ export const modelData = [
       bgColor2: "#FFFFFF",
       titleColor: "#282828",
       toneMode: "theme",
-      priceColor: "#FF5C58",
+      priceColor: "#0b7a75",
       salesColor: "#666666",
       paddingTop: 10,
       paddingBottom: 10,

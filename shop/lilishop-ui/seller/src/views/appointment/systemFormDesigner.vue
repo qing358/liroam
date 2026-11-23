@@ -692,7 +692,7 @@ function handleSave() {
   background: var(--el-color-primary);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.28);
+  box-shadow: 0 4px 12px rgba(11, 122, 117, 0.28);
 }
 .item-actions button {
   width: 36px;

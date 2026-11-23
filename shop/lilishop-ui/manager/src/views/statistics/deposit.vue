@@ -87,7 +87,7 @@ function renderBarChart(chartKey, containerId, data, xTitle) {
     chart
       .interval()
       .position("label*memberNum")
-      .color("#409EFF")
+      .color("#0b7a75")
       .label("memberNum", {
         offset: 8,
       })

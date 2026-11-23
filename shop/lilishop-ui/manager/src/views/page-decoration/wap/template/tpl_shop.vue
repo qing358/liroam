@@ -336,7 +336,7 @@ export default {
   z-index: 2;
   font-size: 10px;
   color: #fff;
-  background: #e1251b;
+  background: #e4572e;
   padding: 1px 5px;
   border-radius: 4px;
   line-height: 1.3;
@@ -440,7 +440,7 @@ export default {
   flex-shrink: 0;
   font-size: 9px;
   color: #fff;
-  background: #e1251b;
+  background: #e4572e;
   padding: 0 4px;
   border-radius: 3px;
   line-height: 14px;
@@ -457,10 +457,10 @@ export default {
   font-weight: 500;
   color: $theme_color;
   background: #fff;
-  border: 1px solid rgba(255, 60, 42, 0.25);
+  border: 1px solid rgba(11, 122, 117, 0.25);
   padding: 3px 8px;
   border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(255, 60, 42, 0.05);
+  box-shadow: 0 1px 2px rgba(11, 122, 117, 0.05);
   cursor: pointer;
   margin-left: 8px;
 }

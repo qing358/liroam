@@ -1030,7 +1030,7 @@ function submitAudit() {
   min-width: 48px;
   padding: 2px 10px;
   border-radius: 4px;
-  background: var(--el-color-primary-light-9, #ecf5ff);
+  background: var(--el-color-primary-light-9, #eef6f5);
   color: var(--el-color-primary);
   font-size: 13px;
   font-weight: 600;

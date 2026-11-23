@@ -102,6 +102,67 @@ test('三端登录页带各自角色的轻游定位语', () => {
   }
 });
 
+// 上游主题色：管理 / 商家 / 买家的主题红、Element 默认蓝及其派生色、装修模板与面板里的强调红 / 蓝（含 rgb 写法）。
+// Element 的状态色（成功 / 警告 / 危险 #f56c6c）是语义色，不在此列；装修「预设」整页模板（presets/）是运营可选的活动样例，也不在此列。
+const UPSTREAM_COLORS = new RegExp('#(' + [
+  '409eff', '2d8cf0', '2b85e4', '1890ff', '1677ff', '66b1ff', '5cadff', '79bbff', 'a0cfff', 'c6e2ff', 'd9ecff', 'ecf5ff', '3a8ee6', '337ecc',
+  '3b82f6', '2563eb', '1d4ed8', '1e40af', '438cde', '57a3f3', '508afe', '315efb', '005cc5', '3a6fd8',
+  'ff5c58', 'f31947', 'ff3c2a', 'f5222d', 'ef4444', 'e1251b', 'e4393c', 'e23a3a', 'ed3f14', 'ff4d4f', 'ff7875', 'ff6b35', 'ff9f28',
+  'e11d48', 'dc2626', 'f5483a', 'e1212b', 'e93323', 'fa2c19', 'ff1e1e', 'e52d27', 'ed4014', 'dd4b39', 'ff2200', 'e31414',
+].join('|') + ')(?![0-9a-f])|rgba?\\( *(64, *158, *255|255, *92, *88|243, *25, *71|255, *60, *42|239, *68, *68)\\b', 'i');
+const STYLE = /\.(vue|js|scss|less|css|html)$/;
+
+function colorHits(file) {
+  return fs.readFileSync(file, 'utf8').split('\n').flatMap((line, i) =>
+    UPSTREAM_COLORS.test(line) ? [`${path.relative(repoRoot, file)}:${i + 1}: ${line.trim().slice(0, 120)}`] : []);
+}
+
+test('前端不再出现上游主题红 / 蓝色值', () => {
+  const hits = appFiles
+    .filter((f) => STYLE.test(f) && !f.endsWith('config.local.js') && !f.includes(`${path.sep}presets${path.sep}`))
+    .flatMap(colorHits);
+  assert.deepEqual(hits, []);
+});
+
+const palette = Object.fromEntries(
+  [...fs.readFileSync(path.join(repoRoot, 'logo/README.md'), 'utf8').matchAll(/^\| (漫游青|夜航墨|日出橙|日光黄|雾青) \|[^|]*\| `(#[0-9A-F]{6})`/gm)]
+    .map((m) => [m[1], m[2].toLowerCase()]));
+const tokens = (rel) => fs.readFileSync(path.join(uiRoot, rel), 'utf8');
+
+test('主题色板与 logo/README.md 一致（scss / less / css 三份令牌同值）', () => {
+  assert.equal(Object.keys(palette).length, 5, 'logo/README.md 色值表');
+  const expect = { primary: palette['漫游青'], ink: palette['夜航墨'], accent: palette['日出橙'], mist: palette['雾青'] };
+  const read = {
+    scss: (k) => tokens('brand/tokens.scss').match(new RegExp(`^\\$lr-${k}: (#[0-9a-f]{6});`, 'mi'))?.[1].toLowerCase(),
+    less: (k) => tokens('brand/tokens.less').match(new RegExp(`^@lr-${k}: (#[0-9a-f]{6});`, 'mi'))?.[1].toLowerCase(),
+    css: (k) => tokens('brand/theme.css').match(new RegExp(`--lr-${k}: (#[0-9a-f]{6});`, 'i'))?.[1].toLowerCase(),
+  };
+  for (const [k, v] of Object.entries(expect)) for (const [kind, get] of Object.entries(read)) assert.equal(get(k), v, `${kind} ${k}`);
+  for (const k of ['primary-hover', 'primary-active', 'primary-light-3', 'primary-light-5', 'primary-light-7', 'primary-light-8', 'accent-text']) {
+    assert.ok(read.scss(k), `scss 缺 ${k}`);
+    assert.equal(read.less(k), read.scss(k), `less ${k}`);
+    assert.equal(read.css(k), read.scss(k), `css ${k}`);
+  }
+  assert.match(tokens('brand/theme.css'), /--el-color-primary: var\(--lr-primary\);/);
+  assert.match(tokens('buyer/src/utils/theme.js'), new RegExp(`themeColor: "${expect.primary}"`, 'i'));
+});
+
+test('四端都加载轻游主题', () => {
+  for (const app of APPS) {
+    assert.match(fs.readFileSync(path.join(uiRoot, app, 'src/main.js'), 'utf8'), /import ["'](\.\.\/)+brand\/theme\.css["']/, app);
+  }
+});
+
+test('闸本身：拦上游主色，放过状态色', () => {
+  assert.ok(UPSTREAM_COLORS.test('color: #409EFF;'));
+  assert.ok(UPSTREAM_COLORS.test('background: rgba(64, 158, 255, 0.1)'));
+  assert.ok(UPSTREAM_COLORS.test("mainColor:'#ff5c58'"));
+  assert.ok(UPSTREAM_COLORS.test('border-color: #E11D48'));
+  assert.ok(!UPSTREAM_COLORS.test('color: #f56c6c;'));
+  assert.ok(!UPSTREAM_COLORS.test('color: #409eff0;'));
+  assert.ok(!UPSTREAM_COLORS.test('color: #0b7a75;'));
+});
+
 test('闸本身：能抓到品牌名，放过演示素材与部署地址', () => {
   const probe = (line) => BRAND.test(ALLOWED.reduce((s, re) => s.replace(re, ''), line));
   assert.ok(probe("title: 'lilishop'"));

@@ -1,0 +1,45 @@
+/*
+ * 轻游 Liroam 前端主题：四端在 main.js 里最先引入。
+ * 基色取自 logo/README.md 色值表；与 tokens.scss / tokens.less 同值，由 scripts/brand.test.mjs 校验。
+ * 选择器加权（html:root、.el-button.el-button--primary）以压过 Element Plus 自带样式，与引入顺序无关。
+ * 主按钮悬停 / 按下取更深的青（白字对比 ≥ 6:1），不用 Element 默认的变浅色（白字对比不足）。
+ */
+html:root {
+  --lr-primary: #0b7a75;
+  --lr-primary-hover: #09625e;
+  --lr-primary-active: #074e4b;
+  --lr-primary-light-3: #54a29e;
+  --lr-primary-light-5: #85bdba;
+  --lr-primary-light-7: #b6d7d6;
+  --lr-primary-light-8: #cee4e3;
+  --lr-mist: #eef6f5;
+  --lr-ink: #102a43;
+  --lr-accent: #e4572e;
+  --lr-accent-text: #c8461f;
+  --lr-accent-light-9: #fceeea;
+
+  --el-color-primary: var(--lr-primary);
+  --el-color-primary-light-3: var(--lr-primary-light-3);
+  --el-color-primary-light-5: var(--lr-primary-light-5);
+  --el-color-primary-light-7: var(--lr-primary-light-7);
+  --el-color-primary-light-8: var(--lr-primary-light-8);
+  --el-color-primary-light-9: var(--lr-mist);
+  --el-color-primary-dark-2: var(--lr-primary-hover);
+}
+
+.el-button.el-button--primary {
+  --el-button-hover-bg-color: var(--el-color-primary-dark-2);
+  --el-button-hover-border-color: var(--el-color-primary-dark-2);
+  --el-button-active-bg-color: var(--lr-primary-active);
+  --el-button-active-border-color: var(--lr-primary-active);
+}
+
+.el-button.el-button--primary.is-plain,
+.el-button.el-button--primary.is-text,
+.el-button.el-button--primary.is-link {
+  --el-button-hover-text-color: var(--el-color-primary-dark-2);
+}
+
+.el-link.el-link--primary:hover {
+  --el-link-hover-text-color: var(--el-color-primary-dark-2);
+}

@@ -344,7 +344,7 @@ defineExpose({ refresh });
 }
 
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: default;
 }
 
@@ -358,7 +358,7 @@ defineExpose({ refresh });
   background: #909399;
 
   &.primary {
-    background: #409eff;
+    background: #0b7a75;
   }
   &.success {
     background: #67c23a;

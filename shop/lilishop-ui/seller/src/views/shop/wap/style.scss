@@ -36,7 +36,7 @@
         width: 3px;
         height: 12px;
         border-radius: 2px;
-        background: #409eff;
+        background: #0b7a75;
         margin-right: 6px;
       }
     }
@@ -72,19 +72,19 @@
       height: 36px;
       border-radius: 8px;
       background: #f0f5ff;
-      color: #409eff;
+      color: #0b7a75;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: all 0.2s ease;
     }
     &:hover {
-      border-color: #c6e2ff;
-      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.15);
+      border-color: #b6d7d6;
+      box-shadow: 0 4px 12px rgba(11, 122, 117, 0.15);
       transform: translateY(-2px);
       color: #303133;
       .el-icon {
-        background: #409eff;
+        background: #0b7a75;
         color: #ffffff;
       }
     }
@@ -175,7 +175,7 @@
     cursor: pointer;
     color: #606266;
     &:hover {
-      color: #409eff;
+      color: #0b7a75;
     }
     &.disabled {
       color: #dcdfe6;

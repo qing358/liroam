@@ -25,7 +25,7 @@
     </el-card>
 
     <el-dialog v-model="openModal" :title="openModalTitle" width="700px" :close-on-click-modal="false">
-      <h3 style="color: #ff3c2a; margin-bottom: 10px">是否需要电子面单</h3>
+      <h3 style="color: #0b7a75; margin-bottom: 10px">是否需要电子面单</h3>
       <el-button-group style="margin-bottom: 10px">
         <el-button :type="faceSheetForm.faceSheetFlag ? 'primary' : 'default'" @click="faceSheetForm.faceSheetFlag = true">
           需要
@@ -36,7 +36,7 @@
       </el-button-group>
 
       <el-card v-if="openText" class="modalStyle">
-        <h3 style="color: #ff3c2a; margin-bottom: 10px">请输入详细信息</h3>
+        <h3 style="color: #0b7a75; margin-bottom: 10px">请输入详细信息</h3>
         <el-form ref="formValidate" label-width="250px" label-position="right" :model="faceSheetForm" :rules="ruleValidate">
           <el-form-item label="电子面单客户账户/月结账号/客户代码" prop="customerName">
             <el-input v-model="faceSheetForm.customerName" class="faceSheetInput" />
@@ -210,7 +210,7 @@ onMounted(() => {
   width: 300px;
 }
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

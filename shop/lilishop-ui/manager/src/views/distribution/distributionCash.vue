@@ -310,7 +310,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .ops a {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }
@@ -338,7 +338,7 @@ onMounted(() => {
   font-weight: 600;
   color: #303133;
   padding-left: 8px;
-  border-left: 3px solid var(--el-color-primary, #409eff);
+  border-left: 3px solid var(--el-color-primary, #0b7a75);
   margin-top: 8px;
 }
 .detail-meta {

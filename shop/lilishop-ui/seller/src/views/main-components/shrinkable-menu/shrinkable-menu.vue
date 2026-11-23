@@ -83,17 +83,17 @@ watch([() => route.fullPath, () => appStore.navigationMenus], syncRouteMenu, { i
 }
 .nav-heading { width: 100%; display: flex; align-items: center; gap: 13px; min-height: 46px; padding: 11px 14px; border: 0; border-radius: 6px; background: transparent; color: #242832; text-align: left; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
   &:hover { background: #f7f8fc; }
-  &:focus-visible { outline: 2px solid #315efb; outline-offset: -2px; }
-  &.is-active { color: #315efb; background: #f0f4ff; }
+  &:focus-visible { outline: 2px solid #0b7a75; outline-offset: -2px; }
+  &.is-active { color: #0b7a75; background: #f0f4ff; }
 }
 .home-link { margin-bottom: 16px; }
 .nav-section { margin-bottom: 22px; }
 .section-arrow { margin-left: auto; color: #b8bdc7; transition: transform .15s; &.is-open { transform: rotate(180deg); } }
 .nav-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 8px; padding: 2px 5px 0 43px; }
 .nav-link { min-width: 0; min-height: 36px; padding: 7px 5px; border: 0; border-radius: 5px; background: transparent; color: #62666f; text-align: left; font: inherit; font-size: 13px; line-height: 22px; overflow-wrap: anywhere; cursor: pointer;
-  &:hover { background: #f5f7fc; color: #315efb; }
-  &:focus-visible { outline: 2px solid #315efb; outline-offset: -2px; }
-  &.is-active { color: #315efb; background: #eef3ff; font-weight: 600; }
+  &:hover { background: #f5f7fc; color: #0b7a75; }
+  &:focus-visible { outline: 2px solid #0b7a75; outline-offset: -2px; }
+  &.is-active { color: #0b7a75; background: #eef3ff; font-weight: 600; }
 }
 @media (prefers-reduced-motion: reduce) { .section-arrow { transition: none; } }
 </style>

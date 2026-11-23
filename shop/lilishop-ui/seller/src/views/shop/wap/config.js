@@ -640,7 +640,7 @@ export const modelData = [
       "bgColor2": "#FFFFFF",
       "titleColor": "#282828",
       "toneMode": "theme",
-      "priceColor": "#FF5C58",
+      "priceColor": "#0b7a75",
       "salesColor": "#666666",
       "paddingTop": 10,
       "paddingBottom": 10,

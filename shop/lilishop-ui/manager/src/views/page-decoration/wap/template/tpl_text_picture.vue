@@ -62,7 +62,7 @@ const gapStyle = computed(() => cubeGapStyle(props.res));
      }
 }
 .-item-tilte {
-  background: #ff9f28;
+  background: #e4572e;
   height: 30px;
   color: #fff;
   font-size: 14px;

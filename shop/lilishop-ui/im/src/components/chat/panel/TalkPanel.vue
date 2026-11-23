@@ -1108,7 +1108,7 @@ function talkPanelScrollBottom() {
   color: white;
   padding: 0 15px 0 30px;
   font-size: 13px;
-  background: #409eff;
+  background: #0b7a75;
 
   i {
     font-size: 22px;
@@ -1141,7 +1141,7 @@ function talkPanelScrollBottom() {
     color: #cec4c4;
 
     .color-blue {
-      color: #409eff;
+      color: #0b7a75;
     }
   }
 
@@ -1174,7 +1174,7 @@ function talkPanelScrollBottom() {
         font-size: 22px;
 
         &.selected {
-          color: #409eff !important;
+          color: #0b7a75 !important;
         }
       }
     }
@@ -1256,14 +1256,14 @@ function talkPanelScrollBottom() {
       border: 1px dashed #c4c4ec;
 
       &:hover {
-        border-color: #409eff;
+        border-color: #0b7a75;
       }
     }
   }
 }
 
 @bg-left-color: #f2f2f2;
-@bg-right-color: #409eff;
+@bg-right-color: #0b7a75;
 
 .text-message {
   position: relative;

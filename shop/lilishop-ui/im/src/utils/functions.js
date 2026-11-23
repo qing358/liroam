@@ -497,7 +497,7 @@ export function getMutipSort (arr) {
  * @param {String} text 文本
  * @param {String} color 超链接颜色
  */
-export function textReplaceLink (text, color = "#409eff") {
+export function textReplaceLink (text, color = "#0b7a75") {
   let exp =
     /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gi;
   return text.replace(

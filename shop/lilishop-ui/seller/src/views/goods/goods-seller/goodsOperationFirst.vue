@@ -245,8 +245,8 @@ defineExpose({ selectGoodsType });
 
 .content-goods-publish {
   .goods-category li.activeClass {
-    background-color: #409eff;
-    border-color: #409eff;
+    background-color: #0b7a75;
+    border-color: #0b7a75;
     color: #fff;
   }
 }
@@ -273,14 +273,14 @@ defineExpose({ selectGoodsType });
 }
 
 .goods-type-card:hover {
-  border-color: #c6e2ff;
-  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.08);
+  border-color: #b6d7d6;
+  box-shadow: 0 4px 12px rgba(11, 122, 117, 0.08);
 }
 
 .goods-type-card.active {
-  border-color: #409eff;
+  border-color: #0b7a75;
   background: #f5faff;
-  box-shadow: 0 0 0 1px #409eff inset;
+  box-shadow: 0 0 0 1px #0b7a75 inset;
 }
 
 .card-icon {
@@ -295,7 +295,7 @@ defineExpose({ selectGoodsType });
 }
 
 .tone-physical {
-  background: #409eff;
+  background: #0b7a75;
 }
 
 .tone-virtual {

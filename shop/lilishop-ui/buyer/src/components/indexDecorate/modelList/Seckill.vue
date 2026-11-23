@@ -132,7 +132,7 @@ function getListByDay() {
     width: 190px;
     height: 100%;
     color: #fff;
-    background: linear-gradient(180deg, var(--theme-color, #F31947) 0%, var(--theme-light, #ff6b35) 100%);
+    background: linear-gradient(180deg, var(--theme-color, #0b7a75) 0%, var(--theme-light, #e4572e) 100%);
     .title {
       width: 100%;
       text-align: center;

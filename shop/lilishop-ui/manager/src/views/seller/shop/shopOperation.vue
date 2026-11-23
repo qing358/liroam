@@ -957,12 +957,12 @@ init();
     transition: border-color 0.2s, background-color 0.2s;
 
     &:hover {
-      border-color: var(--el-color-primary, #409eff);
+      border-color: var(--el-color-primary, #0b7a75);
     }
 
     &.is-checked {
-      border-color: var(--el-color-primary, #409eff);
-      background-color: var(--el-color-primary-light-9, #ecf5ff);
+      border-color: var(--el-color-primary, #0b7a75);
+      background-color: var(--el-color-primary-light-9, #eef6f5);
     }
 
     .el-checkbox__label {

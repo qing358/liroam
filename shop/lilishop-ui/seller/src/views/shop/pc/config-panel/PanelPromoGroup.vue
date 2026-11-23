@@ -355,7 +355,7 @@ function handleAddCard() {
             transition: border-color 0.2s;
 
             &:hover {
-              border-color: #409EFF;
+              border-color: #0b7a75;
             }
 
             .preview-img {
@@ -393,7 +393,7 @@ function handleAddCard() {
               cursor: pointer;
 
               &:hover {
-                background: #ef4444;
+                background: #e4572e;
               }
             }
           }
@@ -425,12 +425,12 @@ function handleAddCard() {
             padding: 0 10px;
 
             &.link-btn {
-              background: #ecf5ff;
+              background: #eef6f5;
               border-color: #b3d8ff;
-              color: #409EFF;
+              color: #0b7a75;
 
               &:hover {
-                background: #409EFF;
+                background: #0b7a75;
                 color: #ffffff;
               }
             }
@@ -450,13 +450,13 @@ function handleAddCard() {
           overflow: hidden;
 
           .tag-label {
-            color: #3b82f6;
+            color: #0b7a75;
             flex-shrink: 0;
             font-weight: 500;
           }
 
           .tag-val {
-            color: #1e40af;
+            color: #09625e;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;

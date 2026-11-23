@@ -100,6 +100,6 @@ async function submit() {
   :deep(.el-radio__label) { display: flex; flex: 1; justify-content: space-between; }
 }
 .topup-name { color: #303133; }
-.topup-price { color: var(--theme-color, #f31947); font-weight: 600; }
+.topup-price { color: var(--theme-color, #0b7a75); font-weight: 600; }
 .topup-empty { padding: 32px 0; text-align: center; color: #909399; }
 </style>

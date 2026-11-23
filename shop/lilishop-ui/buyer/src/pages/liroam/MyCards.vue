@@ -161,7 +161,7 @@ onMounted(() => {
   &__head { padding: 16px 18px 12px; background: linear-gradient(120deg, #f2f7ff, #f9fbff); }
   &__title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
   &__name { font-size: 15px; font-weight: 600; color: #252833; }
-  &__status { padding: 1px 7px; border-radius: 4px; background: #e8f1ff; color: #3a6fd8; font-size: 12px; }
+  &__status { padding: 1px 7px; border-radius: 4px; background: #e8f1ff; color: #0b7a75; font-size: 12px; }
   &__hold { padding: 1px 7px; border-radius: 4px; background: #fdf6ec; color: #e6a23c; font-size: 12px; }
   &__meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; font-size: 12px; color: #7a8294; }
   &__body { flex: 1; padding: 14px 18px 4px; }

@@ -162,7 +162,7 @@ defineExpose({
 .picker-heading p { margin: 0; color: #909399; font-size: 13px; }
 .picker-footer { display: flex; justify-content: space-between; align-items: center; }
 .picker-selection { color: #606266; font-size: 14px; }
-.picker-selection strong { color: #409eff; margin: 0 4px; }
+.picker-selection strong { color: #0b7a75; margin: 0 4px; }
 .picker-selection .el-button { margin-left: 16px; }
 .lili-goods-drawer {
   :deep(.el-drawer__header) {

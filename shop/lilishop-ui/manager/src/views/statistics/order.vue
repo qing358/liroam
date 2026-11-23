@@ -113,7 +113,7 @@
                 >
                   <defs>
                     <linearGradient id="gradTier1" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stop-color="#FF5C58" />
+                      <stop offset="0%" stop-color="#0b7a75" />
                       <stop offset="100%" stop-color="#E83D39" />
                     </linearGradient>
                     <linearGradient id="gradTier2" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -798,7 +798,7 @@ onMounted(() => {
     flex-shrink: 0;
 
     &.dot-tier1 {
-      background: #ff5c58;
+      background: #0b7a75;
     }
     &.dot-tier2 {
       background: #ff8259;
@@ -890,7 +890,7 @@ h4 {
   margin-bottom: 10px;
 }
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

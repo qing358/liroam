@@ -300,7 +300,7 @@ const DEFAULTS = {
   bgColor2: "#FFFFFF",
   titleColor: "#282828",
   toneMode: "theme",
-  priceColor: "#FF5C58",
+  priceColor: "#0b7a75",
   salesColor: "#666666",
   paddingTop: 10,
   paddingBottom: 10,
@@ -555,7 +555,7 @@ export default {
 }
 .seg-item.active .cart-text-ico,
 .seg-item.active .cart-plus-ico {
-  background: #409eff;
+  background: #0b7a75;
 }
 .cart-cart-ico {
   display: inline-flex;
@@ -612,8 +612,8 @@ export default {
   font-size: 22px;
   cursor: pointer;
   &:hover {
-    border-color: #409eff;
-    color: #409eff;
+    border-color: #0b7a75;
+    color: #0b7a75;
   }
 }
 </style>

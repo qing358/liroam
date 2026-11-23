@@ -262,7 +262,7 @@ onBeforeUnmount(() => {
         &.active {
           width: 16px;
           border-radius: 3px;
-          background: #409EFF;
+          background: #0b7a75;
         }
 
         &:hover:not(.active) {

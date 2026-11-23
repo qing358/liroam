@@ -167,8 +167,8 @@ function handleClaim(cp) {
   }
 
   &.skin-red {
-    .coupon-card .card-left { background: linear-gradient(135deg, #f43f5e, #e11d48); }
-    .claim-btn { background: #ffe4e6; color: #e11d48; }
+    .coupon-card .card-left { background: linear-gradient(135deg, #f43f5e, #e4572e); }
+    .claim-btn { background: #ffe4e6; color: #c8461f; }
   }
 
   &.skin-dark {

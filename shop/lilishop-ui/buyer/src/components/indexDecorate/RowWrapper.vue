@@ -371,7 +371,7 @@ function getComponentCellStyle(style, rowStyle = {}, totalComps = 1, compType = 
 
   border: 1px dashed #f87171;
 
-  color: #dc2626;
+  color: #c8461f;
 
   text-align: center;
 

@@ -767,7 +767,7 @@ onBeforeUnmount(() => {
 
         &.is-focus {
           background-color: #fff;
-          box-shadow: 0 0 0 1px #409eff inset;
+          box-shadow: 0 0 0 1px #0b7a75 inset;
         }
       }
 
@@ -837,7 +837,7 @@ onBeforeUnmount(() => {
         flex-basis: 32px;
         width: 32px;
         height: 32px;
-        background-color: #508afe;
+        background-color: #0b7a75;
         border-radius: 50%;
         display: flex;
         justify-content: center;
@@ -866,7 +866,7 @@ onBeforeUnmount(() => {
         overflow: hidden;
 
         &.active {
-          color: #508afe;
+          color: #0b7a75;
         }
       }
     }
@@ -919,7 +919,7 @@ onBeforeUnmount(() => {
       height: 35px;
       width: 35px;
       flex-shrink: 0;
-      background-color: #508afe;
+      background-color: #0b7a75;
       border-radius: 50%;
       display: flex;
       justify-content: center;

@@ -69,7 +69,7 @@
           <el-input
             v-model="options.activeColor"
             size="small"
-            placeholder="#409EFF"
+            placeholder="#0b7a75"
             class="color-input"
           />
         </div>
@@ -364,7 +364,7 @@ function moveCat(idx, dir) {
                 &.del-btn:hover {
                   border-color: #fecaca;
                   background: #fef2f2;
-                  color: #ef4444;
+                  color: #c8461f;
                 }
               }
             }

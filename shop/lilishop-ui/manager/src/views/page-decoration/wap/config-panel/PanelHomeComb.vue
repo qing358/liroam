@@ -439,7 +439,7 @@ const DEFAULTS = {
   // 选项卡
   showTabs: true,
   tabColor: "#FFFFFF",
-  tabActiveColor: "#E93323",
+  tabActiveColor: "#e4572e",
   tabList: [
     { title: "精选", dataType: "category", value: "" },
     { title: "靓丽美妆", dataType: "category", value: "" },
@@ -448,7 +448,7 @@ const DEFAULTS = {
   swiperStyle: "card", // "card" 样式1 | "full" 样式2
   indicatorStyle: "round", // "round" | "line" | "none"
   indicatorPosition: "center", // "left" | "center" | "right"
-  indicatorColor: "#E93323",
+  indicatorColor: "#e4572e",
   bannerRadius: 14,
   pageGap: 0,
 };
@@ -687,7 +687,7 @@ export default {
     overflow: hidden;
     background: #fafafa;
     &:hover {
-      border-color: #409eff;
+      border-color: #0b7a75;
     }
     img {
       width: 100%;
@@ -696,7 +696,7 @@ export default {
     }
     .logo-add {
       font-size: 12px;
-      color: #409eff;
+      color: #0b7a75;
     }
   }
 }
@@ -723,7 +723,7 @@ export default {
     font-size: 18px;
     flex-shrink: 0;
     &:hover {
-      color: #e1251b;
+      color: #c8461f;
     }
   }
 }
@@ -770,10 +770,10 @@ export default {
     cursor: pointer;
     color: #606266;
     &:hover {
-      color: #409eff;
+      color: #0b7a75;
     }
     &.del:hover {
-      color: #e1251b;
+      color: #c8461f;
     }
     &.disabled {
       color: #dcdfe6;

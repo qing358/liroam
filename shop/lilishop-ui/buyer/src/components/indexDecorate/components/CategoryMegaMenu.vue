@@ -19,7 +19,7 @@
         :class="{ 'is-active': activeIndex === idx && panelVisible }"
         :style="{
           '--text-color': options.textColor || '#334155',
-          '--active-color': options.activeColor || '#409EFF',
+          '--active-color': options.activeColor || '#0b7a75',
           '--font-size': `${options.fontSize || 13}px`
         }"
         @mouseenter="handleMouseEnter(idx, cat)"
@@ -382,15 +382,15 @@ const customStyle = computed(() => {
 
       &:hover,
       &.is-active {
-        background: #ecf5ff;
+        background: #eef6f5;
 
         .cat-name {
-          color: var(--active-color, #409EFF);
+          color: var(--active-color, #0b7a75);
           font-weight: 600;
         }
 
         .arrow-icon {
-          color: var(--active-color, #409EFF);
+          color: var(--active-color, #0b7a75);
           transform: translateX(2px);
         }
       }
@@ -443,11 +443,11 @@ const customStyle = computed(() => {
         }
 
         &:hover {
-          background: #ecf5ff;
-          color: #409EFF;
+          background: #eef6f5;
+          color: #0b7a75;
 
           .pill-arrow {
-            color: #409EFF;
+            color: #0b7a75;
           }
         }
       }
@@ -500,9 +500,9 @@ const customStyle = computed(() => {
           }
 
           &:hover {
-            color: #409EFF;
+            color: #0b7a75;
             .lvl2-arrow {
-              color: #409EFF;
+              color: #0b7a75;
             }
           }
         }
@@ -521,7 +521,7 @@ const customStyle = computed(() => {
             line-height: 1.6;
 
             &:hover {
-              color: #409EFF;
+              color: #0b7a75;
             }
           }
         }

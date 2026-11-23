@@ -91,7 +91,7 @@ const customStyle = computed(() => {
     .zone-mask {
       position: absolute;
       background: rgba(37, 99, 235, 0.22);
-      border: 1.5px dashed #2563eb;
+      border: 1.5px dashed #0b7a75;
       color: #ffffff;
       border-radius: 6px;
       display: flex;
@@ -103,7 +103,7 @@ const customStyle = computed(() => {
 
       &:hover {
         background: rgba(37, 99, 235, 0.35);
-        border-color: #3b82f6;
+        border-color: #0b7a75;
       }
 
       .zone-label {

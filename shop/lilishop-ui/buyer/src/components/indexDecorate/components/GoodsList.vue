@@ -283,7 +283,7 @@ function addToCart(item) {
       transition: color 0.2s;
 
       &:hover {
-        color: #e11d48;
+        color: #c8461f;
       }
     }
   }
@@ -311,7 +311,7 @@ function addToCart(item) {
         }
 
         .add-cart-circle {
-          background: #e11d48;
+          background: #e4572e;
           color: #ffffff;
         }
       }
@@ -338,7 +338,7 @@ function addToCart(item) {
           position: absolute;
           top: 6px;
           left: 6px;
-          background: #e11d48;
+          background: #e4572e;
           color: #ffffff;
           font-size: 9px;
           font-weight: 700;
@@ -368,7 +368,7 @@ function addToCart(item) {
             color: #1e293b;
             text-decoration: none;
             &:hover {
-              color: #e11d48;
+              color: #c8461f;
             }
           }
         }
@@ -395,13 +395,13 @@ function addToCart(item) {
             .symbol {
               font-size: 11px;
               font-weight: 700;
-              color: #e11d48;
+              color: #c8461f;
             }
 
             .price-val {
               font-size: 16px;
               font-weight: 800;
-              color: #e11d48;
+              color: #c8461f;
             }
 
             .orig-price {

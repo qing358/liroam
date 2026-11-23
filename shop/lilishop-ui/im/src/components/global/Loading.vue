@@ -51,7 +51,7 @@ defineProps({
   font-feature-settings: 'tnum';
   position: absolute;
   display: none;
-  color: #1890ff;
+  color: #0b7a75;
   text-align: center;
   vertical-align: middle;
   opacity: 0;
@@ -184,7 +184,7 @@ defineProps({
   display: block;
   width: 9px;
   height: 9px;
-  background-color: #1890ff;
+  background-color: #0b7a75;
   border-radius: 100%;
   -webkit-transform: scale(0.75);
   transform: scale(0.75);

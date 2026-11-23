@@ -145,7 +145,7 @@ onMounted(() => {
     .text-logo {
       font-size: 22px;
       font-weight: 800;
-      color: #409EFF;
+      color: #0b7a75;
       letter-spacing: -0.5px;
       line-height: 1;
     }
@@ -158,7 +158,7 @@ onMounted(() => {
 
   .search-box {
     display: flex;
-    border: 2px solid #409EFF;
+    border: 2px solid #0b7a75;
     border-radius: 4px;
     overflow: hidden;
     height: 38px;
@@ -181,7 +181,7 @@ onMounted(() => {
     }
 
     .search-btn {
-      background: #409EFF;
+      background: #0b7a75;
       color: #ffffff;
       border: none;
       padding: 0 22px;
@@ -195,7 +195,7 @@ onMounted(() => {
       flex-shrink: 0;
 
       &:hover {
-        background: #66b1ff;
+        background: #54a29e;
       }
     }
   }
@@ -223,7 +223,7 @@ onMounted(() => {
 
     .cart-icon {
       font-size: 16px;
-      color: #409EFF;
+      color: #0b7a75;
     }
 
     .cart-text {
@@ -232,7 +232,7 @@ onMounted(() => {
     }
 
     .cart-count {
-      background: #409EFF;
+      background: #0b7a75;
       color: #ffffff;
       font-size: 11px;
       font-weight: 700;
@@ -243,8 +243,8 @@ onMounted(() => {
     }
 
     &:hover {
-      border-color: #409EFF;
-      color: #409EFF;
+      border-color: #0b7a75;
+      color: #0b7a75;
     }
   }
 }

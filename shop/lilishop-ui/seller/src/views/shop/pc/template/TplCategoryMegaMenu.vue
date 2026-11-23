@@ -19,7 +19,7 @@
         :class="{ 'is-active': activeIndex === idx && panelVisible }"
         :style="{
           '--text-color': options.textColor || '#334155',
-          '--active-color': options.activeColor || '#409EFF',
+          '--active-color': options.activeColor || '#0b7a75',
           '--font-size': `${options.fontSize || 13}px`
         }"
         @mouseenter="handleMouseEnter(idx, cat)"
@@ -306,15 +306,15 @@ const customStyle = computed(() => {
 
       &:hover,
       &.is-active {
-        background: #ecf5ff;
+        background: #eef6f5;
 
         .cat-name {
-          color: var(--active-color, #409EFF);
+          color: var(--active-color, #0b7a75);
           font-weight: 600;
         }
 
         .arrow-icon {
-          color: var(--active-color, #409EFF);
+          color: var(--active-color, #0b7a75);
           transform: translateX(2px);
         }
       }

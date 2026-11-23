@@ -169,7 +169,7 @@ const sampleGoods = computed(() => {
         font-size: 11px;
         background: #eff6ff;
         border: 1px solid #bfdbfe;
-        color: #2563eb;
+        color: #0b7a75;
         padding: 2px 6px;
         border-radius: 4px;
         font-weight: 500;
@@ -213,7 +213,7 @@ const sampleGoods = computed(() => {
           position: absolute;
           top: 6px;
           left: 6px;
-          background: #e11d48;
+          background: #e4572e;
           color: #ffffff;
           font-size: 9px;
           font-weight: 700;
@@ -263,13 +263,13 @@ const sampleGoods = computed(() => {
             .symbol {
               font-size: 11px;
               font-weight: 700;
-              color: #e11d48;
+              color: #c8461f;
             }
 
             .price-val {
               font-size: 16px;
               font-weight: 800;
-              color: #e11d48;
+              color: #c8461f;
             }
 
             .orig-price {

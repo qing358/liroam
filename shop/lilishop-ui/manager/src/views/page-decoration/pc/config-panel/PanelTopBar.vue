@@ -477,11 +477,11 @@ function addMenuItem() {
 
             &.del-btn {
               border-color: #fca5a5;
-              color: #ef4444;
+              color: #c8461f;
 
               &:hover {
                 background: #fef2f2;
-                border-color: #ef4444;
+                border-color: #e4572e;
               }
             }
 

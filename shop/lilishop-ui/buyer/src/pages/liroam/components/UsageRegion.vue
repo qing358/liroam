@@ -68,7 +68,7 @@ watch(() => props.skuId, load, { immediate: true });
     margin-bottom: 14px;
     h3 { margin: 0; font-size: 16px; font-weight: 600; color: #171a26; }
   }
-  &__headline { font-size: 13px; color: #e1251b; }
+  &__headline { font-size: 13px; color: #c8461f; }
   &__table {
     width: 100%;
     border-collapse: collapse;
@@ -77,7 +77,7 @@ watch(() => props.skuId, load, { immediate: true });
     th { background: #f7f7f7; font-weight: 500; color: #666; }
     td { color: #333; }
   }
-  &__kyc { color: #e1251b; }
+  &__kyc { color: #c8461f; }
   &__note { color: #666; white-space: pre-wrap; }
   &__full { margin-top: 14px; font-size: 13px; line-height: 1.8; color: #666; white-space: pre-wrap; }
 }

@@ -264,7 +264,7 @@ h4 {
   font-weight: 600;
 }
 .metric-rate.up {
-  color: #f5222d;
+  color: #c8461f;
 }
 .metric-rate.down {
   color: #52c41a;

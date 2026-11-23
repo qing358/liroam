@@ -357,12 +357,12 @@ function handleSelectMoreLink() {
       padding: 0 10px;
 
       &.link-btn {
-        background: #ecf5ff;
+        background: #eef6f5;
         border-color: #b3d8ff;
-        color: #409eff;
+        color: #0b7a75;
 
         &:hover {
-          background: #409eff;
+          background: #0b7a75;
           color: #ffffff;
         }
       }
@@ -382,13 +382,13 @@ function handleSelectMoreLink() {
     overflow: hidden;
 
     .tag-label {
-      color: #3b82f6;
+      color: #0b7a75;
       font-weight: 500;
       flex-shrink: 0;
     }
 
     .tag-val {
-      color: #1e40af;
+      color: #09625e;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -402,7 +402,7 @@ function handleSelectMoreLink() {
       flex-shrink: 0;
 
       &:hover {
-        color: #ef4444;
+        color: #c8461f;
       }
     }
   }

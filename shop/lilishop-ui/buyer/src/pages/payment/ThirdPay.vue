@@ -217,7 +217,7 @@ onBeforeUnmount(() => {
     right: 20px;
     top: 20px;
     cursor: pointer;
-    color: #409eff;
+    color: #0b7a75;
     text-decoration: none;
   }
 }

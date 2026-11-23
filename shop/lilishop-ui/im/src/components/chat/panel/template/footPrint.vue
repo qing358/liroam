@@ -269,7 +269,7 @@ onMounted(() => {
   white-space: nowrap;
 
   &:hover {
-    color: #409eff;
+    color: #0b7a75;
   }
 }
 
@@ -409,7 +409,7 @@ onMounted(() => {
     cursor: pointer;
 
     &:hover {
-      color: #409eff;
+      color: #0b7a75;
     }
   }
 

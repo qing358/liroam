@@ -5,7 +5,7 @@
       <div
         v-if="options.showAllCategory"
         class="all-category-btn"
-        :style="{ backgroundColor: options.activeColor || '#e11d48' }"
+        :style="{ backgroundColor: options.activeColor || '#e4572e' }"
       >
         <img
           v-if="options.allCategoryIcon"
@@ -37,12 +37,12 @@
             class="cat-title"
             :style="{
               '--text-color': options.textColor || '#334155',
-              '--active-color': options.activeColor || '#e11d48'
+              '--active-color': options.activeColor || '#e4572e'
             }"
           >
             {{ item.title }}
           </span>
-          <span v-if="item.badge" class="cat-badge" :style="{ backgroundColor: options.activeColor || '#e11d48' }">
+          <span v-if="item.badge" class="cat-badge" :style="{ backgroundColor: options.activeColor || '#e4572e' }">
             {{ item.badge }}
           </span>
         </div>
@@ -195,7 +195,7 @@ function handleClickItem(item) {
           }
 
           .cat-title {
-            color: var(--active-color, #e11d48);
+            color: var(--active-color, #e4572e);
           }
         }
       }

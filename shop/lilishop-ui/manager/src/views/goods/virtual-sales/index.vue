@@ -600,7 +600,7 @@ onMounted(() => {
 }
 
 .link-text {
-  color: #2d8cf0;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
   font-size: 14px;
@@ -608,7 +608,7 @@ onMounted(() => {
   display: inline-block;
 
   &:hover {
-    color: #57a3f3;
+    color: #54a29e;
   }
 
   &.disabled {

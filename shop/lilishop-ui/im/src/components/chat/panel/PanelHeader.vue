@@ -174,7 +174,7 @@ defineExpose({ setGroupNum })
       font-size: 15px;
 
       &.color {
-        color: #1890ff;
+        color: #0b7a75;
       }
 
       .online-status {
@@ -186,7 +186,7 @@ defineExpose({ setGroupNum })
         vertical-align: middle;
         border-radius: 50%;
         position: relative;
-        background-color: #1890ff;
+        background-color: #0b7a75;
         margin-right: 5px;
 
         &:after {
@@ -195,7 +195,7 @@ defineExpose({ setGroupNum })
           left: -1px;
           width: 100%;
           height: 100%;
-          border: 1px solid #1890ff;
+          border: 1px solid #0b7a75;
           border-radius: 50%;
           -webkit-animation: antStatusProcessing 1.2s ease-in-out infinite;
           animation: antStatusProcessing 1.2s ease-in-out infinite;

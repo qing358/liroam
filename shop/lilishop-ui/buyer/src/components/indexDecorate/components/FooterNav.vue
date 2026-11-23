@@ -90,8 +90,8 @@ const customStyle = computed(() => {
           width: 44px;
           height: 44px;
           border-radius: 50%;
-          border: 2px solid #e11d48;
-          color: #e11d48;
+          border: 2px solid #e4572e;
+          color: #c8461f;
           font-size: 20px;
           font-weight: 700;
           display: flex;
@@ -146,7 +146,7 @@ const customStyle = computed(() => {
             transition: color 0.2s;
 
             &:hover {
-              color: #e11d48;
+              color: #c8461f;
             }
           }
         }

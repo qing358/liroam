@@ -647,7 +647,7 @@ function getDataList() {
   font-size: 14px;
 }
 .gcc-batch-issue-filename {
-  color: #409eff;
+  color: #0b7a75;
   font-size: 13px;
   word-break: break-all;
 }

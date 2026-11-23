@@ -293,7 +293,7 @@ function getCartList() {
   transition: color 0.15s ease;
 
   &:hover {
-    color: #409EFF;
+    color: #0b7a75;
   }
 }
 

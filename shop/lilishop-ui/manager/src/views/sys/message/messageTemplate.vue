@@ -739,13 +739,13 @@ onMounted(() => {
   gap: 8px;
 
   .link-text {
-    color: #409eff;
+    color: #0b7a75;
     cursor: pointer;
     text-decoration: none;
     font-size: 13px;
 
     &:hover {
-      color: #66b1ff;
+      color: #54a29e;
       text-decoration: underline;
     }
   }
@@ -774,7 +774,7 @@ onMounted(() => {
     color: #303133;
     margin-bottom: 16px;
     padding-left: 8px;
-    border-left: 3px solid #409eff;
+    border-left: 3px solid #0b7a75;
   }
 }
 

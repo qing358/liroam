@@ -427,7 +427,7 @@ function submit(submitWay) {
       cursor: pointer;
       color: #909399;
       &:hover {
-        color: #409eff;
+        color: #0b7a75;
       }
     }
   }

@@ -262,7 +262,7 @@ function applySelectedGoods(selectedGoods) {
         .g-price {
           font-size: 11px;
           font-weight: 700;
-          color: #e11d48;
+          color: #c8461f;
         }
       }
     }

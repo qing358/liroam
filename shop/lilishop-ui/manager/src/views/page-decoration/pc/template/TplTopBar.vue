@@ -100,7 +100,7 @@ const customStyle = computed(() => {
         white-space: nowrap;
 
         .auth-btn {
-          color: #409EFF;
+          color: #0b7a75;
           cursor: pointer;
           &:hover {
             text-decoration: underline;
@@ -122,7 +122,7 @@ const customStyle = computed(() => {
         white-space: nowrap;
 
         &:hover {
-          color: #409EFF;
+          color: #0b7a75;
         }
       }
     }

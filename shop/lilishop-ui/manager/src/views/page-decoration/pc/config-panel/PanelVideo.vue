@@ -340,7 +340,7 @@ function handleSelectLink() {
     }
 
     .status-clear-btn {
-      color: #dc2626;
+      color: #c8461f;
       cursor: pointer;
       font-size: 11px;
       padding-left: 4px;
@@ -374,7 +374,7 @@ function handleSelectLink() {
       transition: border-color 0.2s;
 
       &:hover {
-        border-color: #409eff;
+        border-color: #0b7a75;
       }
 
       .preview-img {
@@ -412,7 +412,7 @@ function handleSelectLink() {
         cursor: pointer;
 
         &:hover {
-          background: #ef4444;
+          background: #e4572e;
         }
       }
     }
@@ -432,12 +432,12 @@ function handleSelectLink() {
       padding: 0 10px;
 
       &.link-btn {
-        background: #ecf5ff;
+        background: #eef6f5;
         border-color: #b3d8ff;
-        color: #409eff;
+        color: #0b7a75;
 
         &:hover {
-          background: #409eff;
+          background: #0b7a75;
           color: #ffffff;
         }
       }
@@ -457,13 +457,13 @@ function handleSelectLink() {
     overflow: hidden;
 
     .tag-label {
-      color: #3b82f6;
+      color: #0b7a75;
       font-weight: 500;
       flex-shrink: 0;
     }
 
     .tag-val {
-      color: #1e40af;
+      color: #09625e;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

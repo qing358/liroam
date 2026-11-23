@@ -511,7 +511,7 @@ const seckillData = computed(() => {
 const seckillCardStyle = computed(() =>
   styled.value
     ? {}
-    : { background: "linear-gradient(180deg, #FF2200 0%, #FFFFFF 45%)" }
+    : { background: "linear-gradient(180deg, #e4572e 0%, #FFFFFF 45%)" }
 );
 const layoutStyle = computed(() => (props.res && props.res.layoutStyle) || "1");
 const liveTagOf = (status) => {
@@ -658,7 +658,7 @@ const imgRadiusStyle = computed(() =>
   > span {
     font-size: 14px;
     font-weight: 500;
-    color: #e1212b;
+    color: #c8461f;
   }
 }
 .join-item {
@@ -707,7 +707,7 @@ const imgRadiusStyle = computed(() =>
     width: 30%;
   }
   .sub {
-    background-color: #e1212b;
+    background-color: #e4572e;
     margin-right: 40px;
   }
 }
@@ -724,7 +724,7 @@ const imgRadiusStyle = computed(() =>
   align-items: center;
   height: 44px;
   padding: 0 12px;
-  background: linear-gradient(90deg, #f5483a, #ff7e3d);
+  background: linear-gradient(90deg, #e4572e, #ff7e3d);
   color: #fff;
 }
 .pt-title {
@@ -826,7 +826,7 @@ const imgRadiusStyle = computed(() =>
   gap: 6px;
 }
 .pt-tag-group {
-  background: linear-gradient(90deg, #f5483a, #ff6a3d);
+  background: linear-gradient(90deg, #e4572e, #ff6a3d);
   color: #fff;
   font-size: 10px;
   padding: 2px 6px;
@@ -834,7 +834,7 @@ const imgRadiusStyle = computed(() =>
 }
 .pt-tag-joined {
   background: #fdeae7;
-  color: #f5483a;
+  color: #c8461f;
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 3px;
@@ -851,13 +851,13 @@ const imgRadiusStyle = computed(() =>
 }
 .pt-price-label {
   font-size: 11px;
-  color: #f5483a;
+  color: #c8461f;
   margin-right: 2px;
 }
 .pt-price {
   font-size: 18px;
   font-weight: bold;
-  color: #f5483a;
+  color: #c8461f;
   em {
     font-style: normal;
     font-size: 12px;
@@ -869,7 +869,7 @@ const imgRadiusStyle = computed(() =>
   margin-top: 2px;
 }
 .pt-btn {
-  background: linear-gradient(90deg, #f5483a, #ff6a3d);
+  background: linear-gradient(90deg, #e4572e, #ff6a3d);
   color: #fff;
   font-size: 12px;
   padding: 6px 14px;
@@ -909,7 +909,7 @@ const imgRadiusStyle = computed(() =>
 }
 .pt-tag-soft {
   background: #fdeae7;
-  color: #f5483a;
+  color: #c8461f;
   font-size: 10px;
   padding: 2px 5px;
   border-radius: 3px;
@@ -940,7 +940,7 @@ const imgRadiusStyle = computed(() =>
 .pt-price-sm {
   font-size: 15px;
   font-weight: bold;
-  color: #f5483a;
+  color: #c8461f;
   flex-shrink: 0;
   em {
     font-style: normal;
@@ -983,7 +983,7 @@ const imgRadiusStyle = computed(() =>
   top: 0;
   left: 0;
   background: #fdeae7;
-  color: #f5483a;
+  color: #c8461f;
   font-size: 10px;
   padding: 2px 5px;
   border-radius: 8px 0 8px 0;
@@ -1080,13 +1080,13 @@ const imgRadiusStyle = computed(() =>
   border-radius: 0 0 6px 0;
 }
 .lv-tag-live {
-  background: #f5483a;
+  background: #e4572e;
 }
 .lv-tag-replay {
   background: #909399;
 }
 .lv-tag-preview {
-  background: #409eff;
+  background: #0b7a75;
 }
 .lv-time {
   position: absolute;
@@ -1277,7 +1277,7 @@ const imgRadiusStyle = computed(() =>
   margin-top: 3px;
   font-size: 13px;
   font-weight: bold;
-  color: #f5483a;
+  color: #c8461f;
   em {
     font-style: normal;
     font-size: 10px;

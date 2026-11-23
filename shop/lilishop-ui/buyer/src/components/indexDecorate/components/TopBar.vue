@@ -145,7 +145,7 @@ const customStyle = computed(() => {
         white-space: nowrap;
 
         .auth-item {
-          color: #409EFF;
+          color: #0b7a75;
           text-decoration: none;
           cursor: pointer;
 
@@ -165,7 +165,7 @@ const customStyle = computed(() => {
           text-decoration: none;
 
           &:hover {
-            color: #409EFF;
+            color: #0b7a75;
           }
         }
       }
@@ -184,7 +184,7 @@ const customStyle = computed(() => {
         white-space: nowrap;
 
         &:hover {
-          color: #409EFF;
+          color: #0b7a75;
         }
       }
     }

@@ -7,6 +7,7 @@ import "./assets/styles/theme.less";
 import App from "./App.vue";
 import { router } from "./router/index";
 import { setupElementPlus } from "@/plugins/element";
+import "../../brand/theme.css";
 import { setupLegacyMessage } from "@/utils/message";
 import { registerGlobalComponents } from "@/components/global.js";
 import * as filters from "./plugins/filters";

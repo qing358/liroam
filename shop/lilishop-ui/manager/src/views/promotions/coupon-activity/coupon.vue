@@ -98,7 +98,7 @@
             </div>
             <div style="margin-top: 15px; font-size: 13px; color: #555; word-break: break-all; text-align: left; background: #f8f9fa; padding: 10px; border-radius: 6px;">
               <div style="font-weight: bold; margin-bottom: 4px;">H5 访问链接：</div>
-              <div style="color: #409eff;">{{ qrCodeInfo.h5Url }}</div>
+              <div style="color: #0b7a75;">{{ qrCodeInfo.h5Url }}</div>
             </div>
             <el-button type="primary" style="margin-top: 15px; width: 100%;" @click="copyH5Url">复制 H5 访问链接</el-button>
           </div>
@@ -347,7 +347,7 @@ onMounted(() => {
   line-height: 1.6;
 }
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

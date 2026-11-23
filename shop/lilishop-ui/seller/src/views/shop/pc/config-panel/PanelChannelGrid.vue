@@ -394,7 +394,7 @@ function handleAddChannel() {
               cursor: pointer;
 
               &:hover {
-                background: #ef4444;
+                background: #e4572e;
               }
             }
           }
@@ -454,7 +454,7 @@ function handleAddChannel() {
               &:hover {
                 border-color: #fecaca;
                 background: #fef2f2;
-                color: #ef4444;
+                color: #c8461f;
               }
             }
           }

@@ -262,7 +262,7 @@ function handleRefresh() {
       gap: 8px;
 
       .heart-icon {
-        color: #ef4444;
+        color: #c8461f;
       }
 
       .main-title {
@@ -308,7 +308,7 @@ function handleRefresh() {
         position: absolute;
         top: 12px;
         left: 12px;
-        background: linear-gradient(135deg, #ef4444, #f97316);
+        background: linear-gradient(135deg, #e4572e, #f97316);
         color: #ffffff;
         font-size: 10px;
         font-weight: 700;
@@ -356,7 +356,7 @@ function handleRefresh() {
             color: #0f172a;
             text-decoration: none;
             &:hover {
-              color: #ef4444;
+              color: #c8461f;
             }
           }
         }
@@ -386,7 +386,7 @@ function handleRefresh() {
             font-weight: 500;
 
             &.highlight {
-              color: #dc2626;
+              color: #c8461f;
               background: #fee2e2;
               font-weight: 600;
             }
@@ -434,7 +434,7 @@ function handleRefresh() {
           gap: 4px;
           padding: 6px 10px;
           background: #fbfbfb;
-          border-left: 3px solid #ef4444;
+          border-left: 3px solid #e4572e;
           border-radius: 0 4px 4px 0;
           margin-bottom: 12px;
 
@@ -466,13 +466,13 @@ function handleRefresh() {
             .sym {
               font-size: 13px;
               font-weight: 700;
-              color: #dc2626;
+              color: #c8461f;
             }
 
             .val {
               font-size: 20px;
               font-weight: 800;
-              color: #dc2626;
+              color: #c8461f;
             }
 
             .del {
@@ -484,7 +484,7 @@ function handleRefresh() {
           }
 
           .big-buy-btn {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: linear-gradient(135deg, #e4572e, #e4572e);
             color: #ffffff;
             font-size: 12px;
             font-weight: 700;
@@ -534,7 +534,7 @@ function handleRefresh() {
       }
 
       .cart-pill-btn {
-        background: #ef4444;
+        background: #e4572e;
         color: #ffffff;
       }
     }
@@ -560,7 +560,7 @@ function handleRefresh() {
         position: absolute;
         top: 6px;
         left: 6px;
-        background: #ef4444;
+        background: #e4572e;
         color: #ffffff;
         font-size: 9px;
         font-weight: 700;
@@ -589,7 +589,7 @@ function handleRefresh() {
           color: #1e293b;
           text-decoration: none;
           &:hover {
-            color: #ef4444;
+            color: #c8461f;
           }
         }
       }
@@ -628,13 +628,13 @@ function handleRefresh() {
           .sym {
             font-size: 11px;
             font-weight: 700;
-            color: #dc2626;
+            color: #c8461f;
           }
 
           .val {
             font-size: 16px;
             font-weight: 800;
-            color: #dc2626;
+            color: #c8461f;
           }
         }
 
@@ -678,9 +678,9 @@ function handleRefresh() {
       transition: all 0.2s;
 
       &:hover {
-        border-color: #ef4444;
-        color: #ef4444;
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.12);
+        border-color: #e4572e;
+        color: #c8461f;
+        box-shadow: 0 4px 12px rgba(228, 87, 46, 0.12);
       }
     }
   }

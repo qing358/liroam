@@ -268,13 +268,13 @@ const customStyle = computed(() => {
 
           &.tag-new {
             background: #eff6ff;
-            color: #2563eb;
+            color: #0b7a75;
             border: 1px solid #bfdbfe;
           }
 
           &.tag-promo {
             background: #fef2f2;
-            color: #ef4444;
+            color: #c8461f;
             border: 1px solid #fecaca;
           }
 

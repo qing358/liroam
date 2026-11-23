@@ -93,7 +93,7 @@ function openVisitCard(user_id) {
       span {
         width: 65px;
         height: 30px;
-        background: #409eff;
+        background: #0b7a75;
         color: white;
         font-size: 13px;
         border-radius: 20px;

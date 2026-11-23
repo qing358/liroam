@@ -68,7 +68,7 @@ function goHome() {
       text-align: center;
       font-size: 240px;
       font-weight: 700;
-      color: #2d8cf0;
+      color: #0b7a75;
       height: 260px;
       line-height: 260px;
       margin-top: 40px;
@@ -78,8 +78,8 @@ function goHome() {
         width: 120px;
         height: 120px;
         border-radius: 50%;
-        border: 20px solid #ed3f14;
-        color: #ed3f14;
+        border: 20px solid #e4572e;
+        color: #c8461f;
         margin-right: 10px;
         font-size: 60px;
         line-height: 80px;

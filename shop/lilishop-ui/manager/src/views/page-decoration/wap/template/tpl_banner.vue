@@ -73,7 +73,7 @@ const cardMode = computed(() => props.res && props.res.swiperStyle === "card");
 const indicatorColor = computed(() =>
   props.res.indicatorColorMode === "custom" && props.res.indicatorColor
     ? props.res.indicatorColor
-    : "#409eff"
+    : "#0b7a75"
 );
 // 卡片宽 82%，两侧各露出 9%
 const trackOffset = computed(

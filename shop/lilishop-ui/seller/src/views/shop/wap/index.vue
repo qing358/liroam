@@ -439,7 +439,7 @@ function handleMove() {
   z-index: 200;
   padding: 6px 14px;
   font-size: 13px;
-  color: #409eff;
+  color: #0b7a75;
   background: #ffffff;
   border: 1px solid #dcdfe6;
   border-radius: 6px;
@@ -447,9 +447,9 @@ function handleMove() {
   cursor: pointer;
   transition: all 0.2s;
   &:hover {
-    border-color: #409eff;
-    color: #409eff;
-    box-shadow: 0 2px 8px rgba(64, 158, 255, 0.2);
+    border-color: #0b7a75;
+    color: #0b7a75;
+    box-shadow: 0 2px 8px rgba(11, 122, 117, 0.2);
   }
 }
 .content > .draggable {

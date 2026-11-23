@@ -2,9 +2,9 @@
  * 平台主题色工具
  */
 const DEFAULT_THEME = {
-  themeColor: "#ff3c2a",
-  lightColor: "#ff6b35",
-  aiderLightColor: "#ff9f28",
+  themeColor: "#0b7a75",
+  lightColor: "#e4572e",
+  aiderLightColor: "#54a29e",
 };
 
 const STORAGE_KEY = "theme_setting";

@@ -483,7 +483,7 @@ onMounted(() => {
         cursor: pointer;
 
         &.selected {
-          color: #66b1ff;
+          color: #54a29e;
         }
       }
 

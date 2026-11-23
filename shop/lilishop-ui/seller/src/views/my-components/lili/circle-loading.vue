@@ -1,6 +1,6 @@
 <template>
   <div style="display: inline-block">
-    <el-icon class="spin-icon-load" :size="18" color="#ff5c58">
+    <el-icon class="spin-icon-load" :size="18" color="#0b7a75">
       <Loading />
     </el-icon>
   </div>

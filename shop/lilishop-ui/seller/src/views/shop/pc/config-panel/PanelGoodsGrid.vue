@@ -403,12 +403,12 @@ function applySelectedGoods(selectedGoods) {
       padding: 0 10px;
 
       &.link-btn {
-        background: #ecf5ff;
+        background: #eef6f5;
         border-color: #b3d8ff;
-        color: #409eff;
+        color: #0b7a75;
 
         &:hover {
-          background: #409eff;
+          background: #0b7a75;
           color: #ffffff;
         }
       }
@@ -428,13 +428,13 @@ function applySelectedGoods(selectedGoods) {
     overflow: hidden;
 
     .tag-label {
-      color: #3b82f6;
+      color: #0b7a75;
       font-weight: 500;
       flex-shrink: 0;
     }
 
     .tag-val {
-      color: #1e40af;
+      color: #09625e;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -448,7 +448,7 @@ function applySelectedGoods(selectedGoods) {
       flex-shrink: 0;
 
       &:hover {
-        color: #ef4444;
+        color: #c8461f;
       }
     }
   }
@@ -549,7 +549,7 @@ function applySelectedGoods(selectedGoods) {
             align-items: center;
             gap: 2px;
             font-size: 11px;
-            color: #ef4444;
+            color: #c8461f;
             font-weight: 600;
 
             .price-mini-input {
@@ -558,7 +558,7 @@ function applySelectedGoods(selectedGoods) {
                 font-size: 11px;
                 padding: 0 4px;
                 height: 22px;
-                color: #ef4444;
+                color: #c8461f;
                 font-weight: 600;
               }
             }
@@ -574,7 +574,7 @@ function applySelectedGoods(selectedGoods) {
           border: 1px solid #dbeafe;
           border-radius: 3px;
           padding: 2px 6px;
-          color: #2563eb;
+          color: #0b7a75;
 
           .url-label {
             font-size: 10px;
@@ -595,7 +595,7 @@ function applySelectedGoods(selectedGoods) {
             color: #94a3b8;
 
             &:hover {
-              color: #ef4444;
+              color: #c8461f;
             }
           }
         }

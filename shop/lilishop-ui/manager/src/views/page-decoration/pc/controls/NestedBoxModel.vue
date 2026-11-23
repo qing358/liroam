@@ -512,7 +512,7 @@ const radiusPreviewStyle = computed(() => {
         .radius-preview-box {
           width: 44px;
           height: 44px;
-          border: 2px solid #409eff;
+          border: 2px solid #0b7a75;
           background: #fdfdfd;
           box-sizing: border-box;
           transition: border-radius 0.2s;

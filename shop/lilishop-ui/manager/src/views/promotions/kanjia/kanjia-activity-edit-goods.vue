@@ -566,7 +566,7 @@ function closeCurrentPage() {
       .section-indicator {
         width: 4px;
         height: 16px;
-        background-color: #409eff;
+        background-color: #0b7a75;
         border-radius: 2px;
       }
 

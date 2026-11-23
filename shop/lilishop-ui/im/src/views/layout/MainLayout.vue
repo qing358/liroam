@@ -181,7 +181,7 @@ function setApplyNum () {
       .notify {
         width: 5px;
         height: 5px;
-        background: #ff1e1e;
+        background: #e4572e;
         display: inline-block;
         border-radius: 5px;
         position: absolute;
@@ -266,7 +266,7 @@ function setApplyNum () {
 
 @keyframes notifymove {
   0% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 
   25% {
@@ -274,7 +274,7 @@ function setApplyNum () {
   }
 
   50% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 
   75% {
@@ -282,13 +282,13 @@ function setApplyNum () {
   }
 
   100% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 }
 
 @-webkit-keyframes notifymove {
   0% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 
   25% {
@@ -296,7 +296,7 @@ function setApplyNum () {
   }
 
   50% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 
   75% {
@@ -304,7 +304,7 @@ function setApplyNum () {
   }
 
   100% {
-    background: #ff1e1e;
+    background: #e4572e;
   }
 }
 
@@ -328,7 +328,7 @@ function setApplyNum () {
   height: 35px;
   width: 35px;
   flex-shrink: 0;
-  background-color: #508afe;
+  background-color: #0b7a75;
   border-radius: 50%;
   display: flex;
   justify-content: center;

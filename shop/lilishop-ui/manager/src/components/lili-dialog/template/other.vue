@@ -187,8 +187,8 @@ function handleLink(val, index) {
   }
 }
 .card:hover {
-  border-color: #409eff;
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.12);
+  border-color: #0b7a75;
+  box-shadow: 0 2px 8px rgba(11, 122, 117, 0.12);
   transform: translateY(-1px);
 }
 .link-icon {
@@ -198,8 +198,8 @@ function handleLink(val, index) {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  color: #409eff;
-  background: #ecf5ff;
+  color: #0b7a75;
+  background: #eef6f5;
   border-radius: 10px;
 }
 .arrow-icon {
@@ -209,20 +209,20 @@ function handleLink(val, index) {
   position: absolute;
   top: 8px;
   right: 8px;
-  color: #409eff;
+  color: #0b7a75;
 }
 .active,
 .active:hover {
-  color: #409eff;
-  background: #ecf5ff;
-  border-color: #409eff;
+  color: #0b7a75;
+  background: #eef6f5;
+  border-color: #0b7a75;
   box-shadow: none;
   p {
-    color: #409eff;
+    color: #0b7a75;
   }
   .link-icon {
     color: #fff;
-    background: #409eff;
+    background: #0b7a75;
   }
 }
 </style>

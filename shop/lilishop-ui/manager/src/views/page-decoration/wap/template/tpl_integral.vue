@@ -252,7 +252,7 @@ const imgRadiusStyle = computed(() =>
   > span {
     font-size: 15px;
     font-weight: 500;
-    color: #e1212b;
+    color: #c8461f;
   }
 }
 .join-item {
@@ -320,7 +320,7 @@ const imgRadiusStyle = computed(() =>
   align-items: center;
   font-size: 14px;
   font-weight: bold;
-  color: #f5483a;
+  color: #c8461f;
   white-space: nowrap;
 }
 .ig-price-sm {

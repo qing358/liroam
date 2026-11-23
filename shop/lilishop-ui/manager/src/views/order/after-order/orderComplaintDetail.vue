@@ -1181,7 +1181,7 @@ watch(
         }
 
         &.text-primary {
-          color: #409eff;
+          color: #0b7a75;
         }
       }
 
@@ -1221,7 +1221,7 @@ watch(
     color: #303133;
 
     .el-icon {
-      color: #409eff;
+      color: #0b7a75;
       font-size: 16px;
     }
   }
@@ -1240,7 +1240,7 @@ watch(
       color: #303133;
 
       .el-icon {
-        color: #409eff;
+        color: #0b7a75;
         font-size: 16px;
       }
     }
@@ -1299,7 +1299,7 @@ watch(
       margin-bottom: 8px;
 
       &:hover {
-        color: #409eff;
+        color: #0b7a75;
       }
 
       .link-icon {
@@ -1448,7 +1448,7 @@ watch(
         flex-shrink: 0;
 
         .avatar-platform {
-          background-color: #409eff;
+          background-color: #0b7a75;
           color: #fff;
         }
 
@@ -1492,8 +1492,8 @@ watch(
 
       &.sender-platform {
         .chat-bubble-body {
-          background-color: #ecf5ff;
-          border: 1px solid #d9ecff;
+          background-color: #eef6f5;
+          border: 1px solid #cee4e3;
           color: #1f2d3d;
         }
       }
@@ -1539,9 +1539,9 @@ watch(
         transition: all 0.2s;
 
         &:hover {
-          color: #409eff;
-          border-color: #409eff;
-          background-color: #ecf5ff;
+          color: #0b7a75;
+          border-color: #0b7a75;
+          background-color: #eef6f5;
         }
       }
     }

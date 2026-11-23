@@ -609,7 +609,7 @@ onBeforeUnmount(() => {
       top: 8px;
       span {
         margin-left: 12px;
-        color: #438cde;
+        color: #0b7a75;
         display: inline-flex;
         align-items: center;
         gap: 2px;
@@ -698,7 +698,7 @@ onBeforeUnmount(() => {
       top: 8px;
       span {
         margin-left: 12px;
-        color: #438cde;
+        color: #0b7a75;
         display: inline-flex;
         align-items: center;
         gap: 2px;
@@ -717,7 +717,7 @@ onBeforeUnmount(() => {
 .more-options{
   margin: 0;
   padding: 10px 16px;
-  color: #438cde;
+  color: #0b7a75;
   font-size: 14px;
   cursor: pointer;
   text-align: right;

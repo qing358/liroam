@@ -168,14 +168,14 @@ function onValueChange(index, val) {
       transition: all 0.2s;
 
       &:hover {
-        border-color: #3b82f6;
-        color: #3b82f6;
+        border-color: #0b7a75;
+        color: #0b7a75;
       }
 
       &.active {
         background: #eff6ff;
-        border-color: #3b82f6;
-        color: #2563eb;
+        border-color: #0b7a75;
+        color: #0b7a75;
         font-weight: 500;
       }
     }

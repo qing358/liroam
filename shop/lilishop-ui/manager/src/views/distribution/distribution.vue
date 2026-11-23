@@ -914,7 +914,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .link-text {
-  color: #2d8cf0;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }
@@ -1076,10 +1076,10 @@ onMounted(() => {
   color: #808695;
 }
 .distribution-detail-drawer .detail-stat-highlight {
-  color: #2d8cf0;
+  color: #0b7a75;
 }
 .distribution-detail-drawer .detail-stat-link {
-  color: #2d8cf0;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

@@ -232,7 +232,7 @@ function deleteReal(v) {
 <style lang="scss" scoped>
 @import "./message.scss";
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 

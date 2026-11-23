@@ -388,13 +388,13 @@ h4 {
 
   .select-clear {
     margin-left: 12px;
-    color: #409eff;
+    color: #0b7a75;
     cursor: pointer;
   }
 }
 
 .link-text {
-  color: #409eff;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

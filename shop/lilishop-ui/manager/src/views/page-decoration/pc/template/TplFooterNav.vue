@@ -130,8 +130,8 @@ const customStyle = computed(() => {
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          border: 1px solid #e11d48;
-          color: #e11d48;
+          border: 1px solid #e4572e;
+          color: #c8461f;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -190,7 +190,7 @@ const customStyle = computed(() => {
             transition: color 0.15s ease;
 
             &:hover {
-              color: #e11d48;
+              color: #c8461f;
             }
           }
         }
@@ -210,7 +210,7 @@ const customStyle = computed(() => {
         transition: color 0.15s ease;
 
         &:hover {
-          color: #e11d48;
+          color: #c8461f;
           text-decoration: underline;
         }
       }

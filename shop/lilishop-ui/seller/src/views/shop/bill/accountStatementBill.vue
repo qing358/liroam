@@ -175,7 +175,7 @@ function detail(v) {
 <style lang="scss" scoped>
 @import "@/styles/table-common.scss";
 .link-text {
-  color: #2d8cf0;
+  color: #0b7a75;
   cursor: pointer;
   text-decoration: none;
 }

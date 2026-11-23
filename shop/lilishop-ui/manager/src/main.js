@@ -7,6 +7,7 @@ import App from "./App.vue";
 import { router } from "./router/index";
 import i18n from "@/locale";
 import { setupElementPlus } from "@/plugins/element";
+import "../../brand/theme.css";
 import { setupLegacyMessage } from "@/utils/message";
 import { setupImgFallback } from "@/utils/imgFallback";
 import liliDialog from "@/components/lili-dialog";

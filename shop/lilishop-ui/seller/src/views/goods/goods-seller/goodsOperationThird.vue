@@ -36,12 +36,12 @@ function gotoBack() {
 
 .success {
   a {
-    color: #409eff;
+    color: #0b7a75;
     cursor: pointer;
     text-decoration: none;
 
     &:hover {
-      color: #66b1ff;
+      color: #54a29e;
     }
   }
 }

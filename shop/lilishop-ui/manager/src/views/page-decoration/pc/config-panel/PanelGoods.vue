@@ -844,7 +844,7 @@ function removeSelectedGoods(index) {
         gap: 6px;
         background: #eff6ff;
         border: 1px solid #bfdbfe;
-        color: #1d4ed8;
+        color: #09625e;
         padding: 6px 10px;
         border-radius: 4px;
         font-size: 12px;
@@ -985,7 +985,7 @@ function removeSelectedGoods(index) {
 
                 .price-sym {
                   font-size: 12px;
-                  color: #e11d48;
+                  color: #c8461f;
                   font-weight: 700;
                 }
 
@@ -1033,7 +1033,7 @@ function removeSelectedGoods(index) {
 
               .badge-del {
                 cursor: pointer;
-                color: #ef4444;
+                color: #c8461f;
                 font-size: 10px;
                 flex-shrink: 0;
 
@@ -1111,7 +1111,7 @@ function removeSelectedGoods(index) {
       transition: border-color 0.2s;
 
       &:hover {
-        border-color: #409eff;
+        border-color: #0b7a75;
       }
 
       .preview-img {
@@ -1149,7 +1149,7 @@ function removeSelectedGoods(index) {
         cursor: pointer;
 
         &:hover {
-          background: #ef4444;
+          background: #e4572e;
         }
       }
     }
@@ -1180,12 +1180,12 @@ function removeSelectedGoods(index) {
       padding: 0 10px;
 
       &.link-btn {
-        background: #ecf5ff;
+        background: #eef6f5;
         border-color: #b3d8ff;
-        color: #409eff;
+        color: #0b7a75;
 
         &:hover {
-          background: #409eff;
+          background: #0b7a75;
           color: #ffffff;
         }
       }
@@ -1205,13 +1205,13 @@ function removeSelectedGoods(index) {
     overflow: hidden;
 
     .tag-label {
-      color: #3b82f6;
+      color: #0b7a75;
       font-weight: 500;
       flex-shrink: 0;
     }
 
     .tag-val {
-      color: #1e40af;
+      color: #09625e;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

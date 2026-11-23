@@ -175,7 +175,7 @@ onMounted(() => {
           line-height: 22px;
 
           .red {
-            color: #ed3f14;
+            color: #c8461f;
           }
 
           .middle {
