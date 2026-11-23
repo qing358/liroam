@@ -134,7 +134,7 @@ function addToCart(item) {
       .grid-title-decor {
         width: 4px;
         height: 18px;
-        background: #f97316;
+        background: var(--lr-accent);
         border-radius: 2px;
       }
 
@@ -159,7 +159,7 @@ function addToCart(item) {
       transition: color 0.2s;
 
       &:hover {
-        color: #f97316;
+        color: var(--lr-accent-text);
       }
     }
   }
@@ -199,7 +199,7 @@ function addToCart(item) {
         }
 
         .action-add-pill {
-          background: #f97316;
+          background: var(--lr-accent-text);
           color: #ffffff;
         }
       }
@@ -214,9 +214,9 @@ function addToCart(item) {
           display: inline-block;
           font-size: 10px;
           font-weight: 800;
-          color: #f97316;
-          background: #fff7ed;
-          border: 1px solid #fed7aa;
+          color: var(--lr-accent-text);
+          background: #ffffff;
+          border: 1px solid var(--lr-accent);
           padding: 1px 6px;
           border-radius: 4px;
         }
@@ -261,7 +261,7 @@ function addToCart(item) {
             color: #334155;
             text-decoration: none;
             &:hover {
-              color: #f97316;
+              color: var(--lr-accent-text);
             }
           }
         }
@@ -272,8 +272,8 @@ function addToCart(item) {
 
           .badge-label {
             font-size: 10px;
-            color: #d97706;
-            background: #fef3c7;
+            color: var(--lr-primary-hover);
+            background: var(--lr-mist);
             padding: 1px 6px;
             border-radius: 3px;
           }

@@ -134,7 +134,7 @@ function handleClickItem(item) {
         }
 
         .card-text .main-title {
-          color: #ea580c;
+          color: var(--lr-accent-text);
         }
       }
 
@@ -156,7 +156,7 @@ function handleClickItem(item) {
         .thumb-placeholder {
           width: 100%;
           height: 100%;
-          background: linear-gradient(135deg, #f97316, #ea580c);
+          background: linear-gradient(135deg, var(--lr-primary), var(--lr-primary-active));
           color: #ffffff;
           display: flex;
           align-items: center;

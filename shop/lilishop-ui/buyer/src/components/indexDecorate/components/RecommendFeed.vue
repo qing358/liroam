@@ -299,7 +299,7 @@ function handleRefresh() {
         position: absolute;
         top: 12px;
         left: 12px;
-        background: linear-gradient(135deg, #e4572e, #f97316);
+        background: var(--lr-accent-text);
         color: #ffffff;
         font-size: 10px;
         font-weight: 700;
@@ -354,8 +354,8 @@ function handleRefresh() {
 
         .big-reason {
           font-size: 12px;
-          color: #f97316;
-          background: #fff7ed;
+          color: var(--lr-primary-hover);
+          background: var(--lr-mist);
           padding: 4px 8px;
           border-radius: 4px;
           margin-bottom: 10px;
@@ -587,11 +587,11 @@ function handleRefresh() {
 
       .recommend-meta {
         font-size: 10px;
-        color: #f97316;
+        color: var(--lr-primary-hover);
         margin-bottom: 6px;
 
         .reason-tag {
-          background: #fff7ed;
+          background: var(--lr-mist);
           padding: 1px 5px;
           border-radius: 3px;
         }

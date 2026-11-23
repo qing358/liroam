@@ -114,7 +114,7 @@ const isCompact = computed(() => props.componentStyle?.widthRatio === '33.33%');
           cursor: pointer;
           transition: color 0.15s ease;
           &:hover {
-            color: #f97316;
+            color: var(--lr-accent-text);
           }
         }
       }

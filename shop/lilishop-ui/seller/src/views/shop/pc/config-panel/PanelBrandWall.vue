@@ -299,8 +299,8 @@ function handleAddImage() {
             transition: all 0.2s;
 
             &:hover {
-              border-color: #f97316;
-              color: #ea580c;
+              border-color: var(--lr-primary);
+              color: var(--lr-primary-hover);
             }
           }
 
@@ -319,7 +319,7 @@ function handleAddImage() {
             transition: all 0.2s;
 
             &:hover {
-              border-color: #f97316;
+              border-color: var(--lr-primary);
             }
 
             .thumb-img {
@@ -394,9 +394,9 @@ function handleAddImage() {
               }
 
               &.is-linked {
-                border-color: #fdba74;
-                background: #fff7ed;
-                color: #ea580c;
+                border-color: var(--lr-primary);
+                background: var(--lr-mist);
+                color: var(--lr-primary-hover);
               }
 
               &.del-btn:hover {
@@ -422,9 +422,9 @@ function handleAddImage() {
       transition: all 0.2s;
 
       &:hover {
-        border-color: #f97316;
-        color: #ea580c;
-        background: #fffaf5;
+        border-color: var(--lr-primary);
+        color: var(--lr-primary-hover);
+        background: var(--lr-mist);
       }
     }
 

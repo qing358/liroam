@@ -1673,7 +1673,7 @@ onMounted(() => {
       gap: 10px;
 
       .el-icon {
-        color: #ff6a00;
+        color: var(--lr-primary);
         font-size: 18px;
       }
 
@@ -1919,7 +1919,7 @@ onMounted(() => {
       color: #1e293b;
 
       .el-icon {
-        color: #ff6a00;
+        color: var(--lr-primary);
         font-size: 18px;
       }
     }

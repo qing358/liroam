@@ -236,8 +236,8 @@ const predefineColors = [
   '#f1f5f9',
   '#f3f4f6',
   '#fee2e2',
-  '#ffedd5',
-  '#fef3c7',
+  '#fceeea',
+  '#eef6f5',
   '#e0e7ff',
   '#1e293b',
   '#0f172a'

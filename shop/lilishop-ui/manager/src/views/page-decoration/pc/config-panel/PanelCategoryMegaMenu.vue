@@ -169,7 +169,7 @@ if (!props.options.source) props.options.source = 'system';
 if (!props.options.title) props.options.title = '分类';
 if (!props.options.textColor) props.options.textColor = '#111927';
 if (!props.options.fontSize) props.options.fontSize = 14;
-if (!props.options.activeColor) props.options.activeColor = '#ea580c';
+if (!props.options.activeColor) props.options.activeColor = '#0b7a75';
 if (!Array.isArray(props.options.categories)) {
   props.options.categories = [
     {
@@ -383,9 +383,9 @@ function moveCat(idx, dir) {
         transition: all 0.2s;
 
         &:hover {
-          border-color: #ea580c;
-          color: #ea580c;
-          background: #fffaf5;
+          border-color: var(--lr-primary-hover);
+          color: var(--lr-primary-hover);
+          background: var(--lr-mist);
         }
       }
     }

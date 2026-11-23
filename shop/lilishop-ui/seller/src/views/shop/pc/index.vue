@@ -2052,7 +2052,7 @@ onUnmounted(() => {
 
               &.red { background: #e4572e; }
 
-              &.yellow { background: #f59e0b; }
+              &.yellow { background: var(--lr-sun); }
 
               &.green { background: #10b981; }
 

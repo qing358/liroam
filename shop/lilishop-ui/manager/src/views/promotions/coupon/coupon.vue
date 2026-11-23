@@ -565,15 +565,15 @@ defineExpose({ check, getSelection, clearSelectAll });
 
 <style scoped>
 .activity-coupon-button {
-  --el-button-text-color: #b35c12;
-  --el-button-bg-color: #fff7ed;
-  --el-button-border-color: #fed7aa;
-  --el-button-hover-text-color: #9a4b0b;
-  --el-button-hover-bg-color: #ffedd5;
-  --el-button-hover-border-color: #fdba74;
-  --el-button-active-text-color: #9a4b0b;
-  --el-button-active-bg-color: #fed7aa;
-  --el-button-active-border-color: #fb923c;
+  --el-button-text-color: var(--lr-accent-text);
+  --el-button-bg-color: #ffffff;
+  --el-button-border-color: var(--lr-accent);
+  --el-button-hover-text-color: #ffffff;
+  --el-button-hover-bg-color: var(--lr-accent-text);
+  --el-button-hover-border-color: var(--lr-accent-text);
+  --el-button-active-text-color: #ffffff;
+  --el-button-active-bg-color: var(--lr-accent-text);
+  --el-button-active-border-color: var(--lr-accent-text);
   font-weight: 500;
 }
 

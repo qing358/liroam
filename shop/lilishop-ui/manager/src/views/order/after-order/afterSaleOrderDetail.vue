@@ -1009,7 +1009,7 @@ onMounted(() => {
 
       .el-icon {
         font-size: 17px;
-        color: #ff6a00;
+        color: var(--lr-primary);
       }
 
       &.text-danger .el-icon {
@@ -1065,7 +1065,7 @@ onMounted(() => {
         }
 
         &:hover {
-          color: #ff6a00;
+          color: var(--lr-primary-hover);
         }
       }
 
@@ -1084,7 +1084,7 @@ onMounted(() => {
         }
 
         .goods-num b {
-          color: #ff6a00;
+          color: var(--lr-accent-text);
         }
       }
     }

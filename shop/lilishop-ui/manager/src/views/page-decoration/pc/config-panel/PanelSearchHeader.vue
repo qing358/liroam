@@ -422,7 +422,7 @@ function moveHotWord(idx, offset) {
 
         &:hover {
           background: #f1f5f9;
-          color: #ff6a00;
+          color: var(--lr-primary);
         }
       }
     }

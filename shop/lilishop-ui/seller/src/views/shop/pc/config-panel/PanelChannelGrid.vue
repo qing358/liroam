@@ -339,8 +339,8 @@ function handleAddChannel() {
             transition: all 0.2s;
 
             &:hover {
-              border-color: #f97316;
-              color: #ea580c;
+              border-color: var(--lr-primary);
+              color: var(--lr-primary-hover);
             }
           }
 
@@ -359,10 +359,10 @@ function handleAddChannel() {
             overflow: hidden;
 
             &:hover {
-              border-color: #f97316;
+              border-color: var(--lr-primary);
 
               .upload-tip-text {
-                color: #ea580c;
+                color: var(--lr-primary-hover);
               }
             }
 
@@ -419,7 +419,7 @@ function handleAddChannel() {
               }
 
               &.is-focus {
-                box-shadow: 0 0 0 1px #f97316 inset;
+                box-shadow: 0 0 0 1px var(--lr-primary) inset;
               }
             }
           }
@@ -446,9 +446,9 @@ function handleAddChannel() {
             }
 
             &.link-btn.is-linked {
-              border-color: #fdba74;
-              background: #fff7ed;
-              color: #ea580c;
+              border-color: var(--lr-primary);
+              background: var(--lr-mist);
+              color: var(--lr-primary-hover);
             }
 
             &.del-btn {
@@ -476,9 +476,9 @@ function handleAddChannel() {
       transition: all 0.2s;
 
       &:hover {
-        border-color: #f97316;
-        color: #ea580c;
-        background: #fffaf5;
+        border-color: var(--lr-primary);
+        color: var(--lr-primary-hover);
+        background: var(--lr-mist);
       }
     }
 

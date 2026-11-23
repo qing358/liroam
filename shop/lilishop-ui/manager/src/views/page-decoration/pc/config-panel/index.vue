@@ -599,7 +599,7 @@ const businessPanelComponent = computed(() => {
 
       &:hover {
 
-        color: #ff6a00;
+        color: var(--lr-primary);
 
       }
 
@@ -607,11 +607,11 @@ const businessPanelComponent = computed(() => {
 
       &.active {
 
-        color: #ff6a00;
+        color: var(--lr-primary);
 
         font-weight: 600;
 
-        border-bottom-color: #ff6a00;
+        border-bottom-color: var(--lr-primary);
 
       }
 

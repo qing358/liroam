@@ -309,8 +309,8 @@ const radiusPreviewStyle = computed(() => {
     transition: all 0.2s;
 
     &:focus {
-      border-color: #ff6a00;
-      box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.1);
+      border-color: var(--lr-primary);
+      box-shadow: 0 0 0 2px rgba(11, 122, 117, 0.1);
     }
   }
 
@@ -327,7 +327,7 @@ const radiusPreviewStyle = computed(() => {
       font-weight: 600;
 
       &.tag-orange {
-        color: #ff6a00;
+        color: var(--lr-primary);
       }
 
       &.tag-green {
@@ -350,7 +350,7 @@ const radiusPreviewStyle = computed(() => {
   /* 外层容器: 外边距 */
   .outer-box-wrapper {
     position: relative;
-    background: #fffaf5;
+    background: var(--lr-mist);
     border: 1px dashed #ffd8bf;
     border-radius: 8px;
     padding: 8px 10px 10px;

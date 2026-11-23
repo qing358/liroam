@@ -426,8 +426,8 @@ function addMenuItem() {
           transition: all 0.2s;
 
           &:hover {
-            border-color: #ff6a00;
-            color: #ff6a00;
+            border-color: var(--lr-primary);
+            color: var(--lr-primary);
           }
 
           .link-box-text {
@@ -504,8 +504,8 @@ function addMenuItem() {
         transition: all 0.2s;
 
         &:hover {
-          color: #ff6a00;
-          border-color: #ff6a00;
+          color: var(--lr-primary);
+          border-color: var(--lr-primary);
         }
       }
     }

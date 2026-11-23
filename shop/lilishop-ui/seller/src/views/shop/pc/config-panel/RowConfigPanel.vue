@@ -263,8 +263,8 @@ const expandBox = ref(true);
             border: 1px solid #d1d5db;
 
             &:hover {
-              color: #ff6a00;
-              border-color: #ff6a00;
+              color: var(--lr-primary);
+              border-color: var(--lr-primary);
             }
 
             &:disabled {
@@ -315,8 +315,8 @@ const expandBox = ref(true);
             transition: all 0.2s;
 
             &:focus {
-              border-color: #ff6a00;
-              box-shadow: 0 0 0 2px rgba(255, 106, 0, 0.1);
+              border-color: var(--lr-primary);
+              box-shadow: 0 0 0 2px rgba(11, 122, 117, 0.1);
             }
           }
         }

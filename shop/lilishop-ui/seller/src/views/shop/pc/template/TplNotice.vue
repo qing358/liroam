@@ -188,7 +188,7 @@ const customStyle = computed(() => {
     flex-shrink: 0;
 
     .badge-icon {
-      color: #f97316;
+      color: var(--lr-accent);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -243,27 +243,27 @@ const customStyle = computed(() => {
           flex-shrink: 0;
 
           &.tag-new {
-            background: #eff6ff;
-            color: #0b7a75;
-            border: 1px solid #bfdbfe;
+            background: var(--lr-mist);
+            color: var(--lr-primary-hover);
+            border: 1px solid var(--lr-primary-light-7);
           }
 
           &.tag-promo {
-            background: #fef2f2;
-            color: #c8461f;
-            border: 1px solid #fecaca;
+            background: #ffffff;
+            color: var(--lr-accent-text);
+            border: 1px solid var(--lr-accent);
           }
 
           &.tag-notice {
-            background: #fffbeb;
-            color: #d97706;
-            border: 1px solid #fde68a;
+            background: var(--lr-ink);
+            color: var(--lr-sun);
+            border: 1px solid var(--lr-ink);
           }
 
           &.tag-hot {
-            background: #fdf2f8;
-            color: #db2777;
-            border: 1px solid #fbcfe8;
+            background: var(--lr-accent-text);
+            color: #ffffff;
+            border: 1px solid var(--lr-accent-text);
           }
         }
 

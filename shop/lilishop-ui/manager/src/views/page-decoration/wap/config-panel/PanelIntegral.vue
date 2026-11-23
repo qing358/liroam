@@ -174,7 +174,7 @@ const DEFAULTS = {
   layoutStyle: "1",
   pointColor: "#e4572e",
   headBgType: "color",
-  headBg1: "#FF6A00",
+  headBg1: "#C8461F",
   headBg2: "#e4572e",
   headBgImage: "",
   titleType: "text",

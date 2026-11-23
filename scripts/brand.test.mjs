@@ -105,8 +105,9 @@ test('三端登录页带各自角色的轻游定位语', () => {
   }
 });
 
-// 上游主题色：管理 / 商家 / 买家的主题红、Element 默认蓝及其派生色、装修模板与面板里的强调红 / 蓝（含 rgb 写法）、装修优惠券的玫红 / 紫粉皮肤色。
-// 优惠券「石板」皮肤用的 slate / amber 色在别处是普通中性色，不全局拦；优惠券皮肤块另由下方用例要求只用令牌。
+// 上游主题色：管理 / 商家 / 买家的主题红、Element 默认蓝及其派生色、装修模板与面板里的强调红 / 蓝（含 rgb 写法）、装修优惠券的玫红 / 紫粉皮肤色、
+// 上游暖色强调（橙 / 琥珀 / 粉及其浅底与描边，装修组件、编辑器面板、卡券与素材页按钮）。
+// slate 等中性色与 Tailwind 浅蓝 / 浅红底在多处作普通中性色，不全局拦；优惠券皮肤块另由下方用例要求只用令牌。
 // Element 的状态色（成功 / 警告 / 危险 #f56c6c）是语义色，不在此列；装修「预设」整页模板（presets/）是运营可选的活动样例，也不在此列。
 const UPSTREAM_COLORS = new RegExp('#(' + [
   '409eff', '2d8cf0', '2b85e4', '1890ff', '1677ff', '66b1ff', '5cadff', '79bbff', 'a0cfff', 'c6e2ff', 'd9ecff', 'ecf5ff', '3a8ee6', '337ecc',
@@ -114,6 +115,8 @@ const UPSTREAM_COLORS = new RegExp('#(' + [
   'ff5c58', 'f31947', 'ff3c2a', 'f5222d', 'ef4444', 'e1251b', 'e4393c', 'e23a3a', 'ed3f14', 'ff4d4f', 'ff7875', 'ff6b35', 'ff9f28',
   'e11d48', 'dc2626', 'f5483a', 'e1212b', 'e93323', 'fa2c19', 'ff1e1e', 'e52d27', 'ed4014', 'dd4b39', 'ff2200', 'e31414',
   'f43f5e', 'ffe4e6', '8b5cf6', 'ec4899',
+  'ff6a00', 'f97316', 'ea580c', 'fb923c', 'fdba74', 'fed7aa', 'ffedd5', 'fff7ed', 'fffaf5', 'b35c12', '9a4b0b',
+  'f59e0b', 'd97706', 'fde68a', 'fef3c7', 'fffbeb', 'db2777', 'fbcfe8', 'fdf2f8',
 ].join('|') + ')(?![0-9a-f])|rgba?\\( *(64, *158, *255|255, *92, *88|243, *25, *71|255, *60, *42|239, *68, *68)\\b', 'i');
 // 上游散落的纯红（red / #f00 / #ff0000）：只认样式上下文，皮肤名 'red' 之类的标识符不算；报错等语义色改用 var(--el-color-danger)。
 const UPSTREAM_RED = /#(f00|ff0000)(?![0-9a-f])|\b(color|background(-color)?|border(-[a-z]+)*|fill|stroke|outline(-color)?|bg-?color)(\.value)?\s*[:=]\s*["']?red\b|\b(solid|dashed|dotted)\s+red\b/i;
@@ -185,6 +188,8 @@ test('闸本身：拦上游主色，放过状态色', () => {
   assert.ok(UPSTREAM_COLORS.test("mainColor:'#ff5c58'"));
   assert.ok(UPSTREAM_COLORS.test('border-color: #E11D48'));
   assert.ok(UPSTREAM_COLORS.test('background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);'));
+  for (const line of ['color: #f97316;', 'border: 1px solid #FDE68A;', "'#ffedd5',", '&.yellow { background: #f59e0b; }']) assert.ok(UPSTREAM_COLORS.test(line), line);
+  assert.ok(!UPSTREAM_COLORS.test('color: #c8461f;'));
   assert.ok(!UPSTREAM_COLORS.test('color: #f56c6c;'));
   assert.ok(!UPSTREAM_COLORS.test('color: #409eff0;'));
   assert.ok(!UPSTREAM_COLORS.test('color: #0b7a75;'));
