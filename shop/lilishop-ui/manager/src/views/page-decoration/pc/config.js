@@ -104,7 +104,7 @@ export const COMPONENT_DEFINITIONS = [
     description: '顶部欢迎语、登录注册与个人中心入口',
 
     defaultOptions: {
-      welcomeText: '欢迎来到商城',
+      welcomeText: '欢迎来到轻游',
       loginText: '登录',
       loginUrl: '/login',
       registerText: '免费注册',
@@ -159,7 +159,7 @@ export const COMPONENT_DEFINITIONS = [
       defaultSearchType: 'goods',
       storePlaceholder: '请输入店铺名称',
 
-      hotWords: ['手机', '数码家电', '秋季上新', '电脑整机', '智能手表'],
+      hotWords: ['日本', '韩国', '泰国', '欧洲多国', '美国'],
 
       showCart: true,
 
@@ -210,25 +210,25 @@ export const COMPONENT_DEFINITIONS = [
 
       assurances: [
 
-        { code: '多', title: '品类齐全', desc: '轻松购物', url: '/article' },
+        { code: '选', title: '按目的地选购', desc: '天数流量标明', url: '/article' },
 
-        { code: '快', title: '多仓直发', desc: '极速配送', url: '/article' },
+        { code: '发', title: '在线交付', desc: 'eSIM 付款后发码', url: '/article' },
 
-        { code: '好', title: '正品行货', desc: '精致服务', url: '/article' },
+        { code: '查', title: '用量可查', desc: '每张卡单独查看', url: '/article' },
 
-        { code: '省', title: '天天低价', desc: '畅选无忧', url: '/article' }
+        { code: '续', title: '续费加包', desc: '原卡在线办理', url: '/article' }
 
       ],
 
       guideGroups: [
 
-        { title: '购物指南', links: [{ text: '购物流程', url: '/article' }, { text: '会员介绍', url: '/article' }] },
+        { title: '选购指南', links: [{ text: '如何选套餐', url: '/article' }, { text: 'eSIM 与实体卡', url: '/article' }] },
 
-        { title: '配送方式', links: [{ text: '上门自提', url: '/article' }, { text: '211限时达', url: '/article' }] },
+        { title: '开卡与使用', links: [{ text: '激活码使用', url: '/article' }, { text: '开卡进度查询', url: '/article' }] },
 
-        { title: '支付方式', links: [{ text: '货到付款', url: '/article' }, { text: '在线支付', url: '/article' }] },
+        { title: '续费与加包', links: [{ text: '续费说明', url: '/article' }, { text: '加包说明', url: '/article' }] },
 
-        { title: '售后服务', links: [{ text: '售后政策', url: '/article' }, { text: '价格保护', url: '/article' }] }
+        { title: '售后服务', links: [{ text: '退款说明', url: '/article' }, { text: '联系客服', url: '/article' }] }
 
       ],
 
@@ -1017,14 +1017,14 @@ export const COMPONENT_DEFINITIONS = [
       title: '场景频道',
       subtitle: '主视觉 + 商品组合楼层',
       heroImage: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png',
-      heroTitle: '品质生活馆',
-      heroSubtitle: '精选场景好物，一站购齐',
+      heroTitle: '热门目的地',
+      heroSubtitle: '按目的地选购旅行通信卡',
       heroButtonText: '进入频道',
       heroHref: '/goods',
       heroStyle: 'gradient',
       promos: [
-        { title: '大牌补贴', desc: '领券最高减100', tag: '限时', url: '/goods' },
-        { title: '新品驾到', desc: '官方正品首发', tag: '新品', url: '/goods' }
+        { title: '限时特价', desc: '热门套餐限时优惠', tag: '限时', url: '/goods' },
+        { title: '新上架', desc: '新开通目的地套餐', tag: '新品', url: '/goods' }
       ],
       goodsCount: 6,
       goods: [
@@ -1094,7 +1094,7 @@ export const COMPONENT_DEFINITIONS = [
     description: '展示会员信息、登录/注册引导与购物车、优惠券、订单指标',
     defaultOptions: {
       badgeText: '请登录',
-      welcomeText: '欢迎来到商城',
+      welcomeText: '欢迎来到轻游',
       subtitle: '登录后查看专属权益',
       avatar: '',
       loginText: '登录',
@@ -1200,28 +1200,28 @@ export const COMPONENT_DEFINITIONS = [
     name: '文章内容',
     group: 'content',
     icon: 'Document',
-    description: '富文本文章排版：品牌故事、专栏、购物评测与图文',
+    description: '富文本文章排版：品牌介绍、出行指南与图文',
     defaultOptions: {
       showTitle: true,
-      title: '品牌故事 · 匠心传承',
-      subtitle: '关于我们的品牌理念与品质坚持',
+      title: '关于轻游',
+      subtitle: '出境旅行通信卡的选购、开卡与用量管理',
       showMeta: true,
-      tag: '品牌专栏',
-      author: '官方商城运营部',
+      tag: '品牌介绍',
+      author: '轻游运营团队',
       date: '2026-10-28',
       fontSize: 15,
       textAlign: 'left',
-      content: `<h3>关于我们 · 甄选美好生活</h3>
-<p>我们始终坚信，一件好的产品不仅能改善日常生活的品质，更传递着对美好生活的执着追求。自创立以来，我们严选全球顶尖供应链，深耕每一道生产工艺与质检环节，力求将兼具美学价值与极致实用性的商品送达每一位用户手中。</p>
-<blockquote>品质是我们的信仰，体验是我们的底线。从选材到交付，每一步都经得起时光检验。</blockquote>
-<h4>四大核心服务保障</h4>
+      content: `<h3>关于轻游 Liroam</h3>
+<p>轻游是想象智能（济南）有限公司运营的出境旅行通信卡平台。按目的地和行程天数选购 eSIM 与实体卡，eSIM 付款后在线获取激活码，实体卡发货后可查物流。</p>
+<blockquote>一人可以持有多张卡，每张卡单独开卡、查看用量、续费和加包。</blockquote>
+<h4>在轻游可以办理</h4>
 <ul>
-  <li><strong>100% 官方正品</strong>：源头品牌直采，全链路防伪溯源，假一赔十保障。</li>
-  <li><strong>极速顺丰冷链</strong>：全国多仓联动发货，核心城市支持当日达/次日达。</li>
-  <li><strong>7天无理由退换</strong>：专业客服团队 7×24 小时贴心守护，售后无忧。</li>
-  <li><strong>会员专享权益</strong>：尊享积分抵现、生日特权礼及专属品鉴沙龙。</li>
+  <li><strong>按目的地选购</strong>：套餐标明使用区域、天数和流量，下单前即可核对。</li>
+  <li><strong>在线开卡</strong>：eSIM 付款后发放激活码，实体卡发货后可查物流。</li>
+  <li><strong>按卡管理</strong>：在「我的卡」查看开卡进度、已用流量和到期时间。</li>
+  <li><strong>续费与加包</strong>：流量不够或行程延长，直接为原卡续费或加包。</li>
 </ul>
-<p>感谢一路相伴的每一位朋友，未来我们将持续探索更多优质生活场景，与您共同见证品质生活的美好绽放。</p>`
+<p>在京东、小红书等渠道购买的轻游旅行卡，可凭订单号和下单手机号认领到「我的卡」统一管理。</p>`
     },
     defaultComponentStyle: {
       widthRatio: '100%',
@@ -1249,10 +1249,10 @@ export const COMPONENT_DEFINITIONS = [
       moreText: '更多',
       moreUrl: '/article',
       items: [
-        { tag: '最新', title: '商城秋季大促重磅开启，全场满300立减50元！', time: '10-28', url: '/article' },
-        { tag: '活动', title: '会员专享积分商城全新上线，精选好礼0元兑换', time: '10-27', url: '/article' },
-        { tag: '通知', title: '关于商城系统例行优化维护及物流发货保障通知', time: '10-26', url: '/article' },
-        { tag: '热议', title: '品质生活馆场景专区火热来袭，领券最高减100', time: '10-25', url: '/article' }
+        { tag: '最新', title: '日本、韩国、泰国等热门目的地套餐已上架，可按天数选购', time: '10-28', url: '/article' },
+        { tag: '活动', title: '「我的卡」支持在线续费与加包，无需换卡', time: '10-27', url: '/article' },
+        { tag: '通知', title: '实名类套餐请在开卡前完成实名认证', time: '10-26', url: '/article' },
+        { tag: '热议', title: '出境前如何确认手机支持 eSIM？查看设备兼容说明', time: '10-25', url: '/article' }
       ]
     },
 

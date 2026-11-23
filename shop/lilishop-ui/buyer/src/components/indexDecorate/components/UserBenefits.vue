@@ -202,7 +202,7 @@ const displayAvatar = computed(() => isLoggedIn.value
   : props.options.avatar);
 const welcomeText = computed(() => isLoggedIn.value
   ? `你好，${userInfo.value.nickName || userInfo.value.username || '会员'}`
-  : (props.options.welcomeText || '欢迎来到商城'));
+  : (props.options.welcomeText || '欢迎来到轻游'));
 const subtitle = computed(() => isLoggedIn.value
   ? '查看我的订单与专属权益'
   : (props.options.subtitle || '登录后查看专属权益'));

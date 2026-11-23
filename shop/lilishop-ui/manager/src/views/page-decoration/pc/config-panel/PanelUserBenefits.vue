@@ -9,7 +9,7 @@
       </div>
       <div class="form-item mt-10">
         <span class="item-label">欢迎主标语</span>
-        <el-input v-model="options.welcomeText" size="small" placeholder="如：欢迎来到商城" clearable />
+        <el-input v-model="options.welcomeText" size="small" placeholder="如：欢迎来到轻游" clearable />
       </div>
       <div class="form-item mt-10">
         <span class="item-label">副标语提示</span>
@@ -300,7 +300,7 @@ const openLinkPicker = inject('openLinkPicker', null);
 
 // 初始化缺省配置
 if (props.options.badgeText === undefined) props.options.badgeText = '请登录';
-if (props.options.welcomeText === undefined) props.options.welcomeText = '欢迎来到商城';
+if (props.options.welcomeText === undefined) props.options.welcomeText = '欢迎来到轻游';
 if (props.options.subtitle === undefined) props.options.subtitle = '登录后查看专属权益';
 if (props.options.loginText === undefined) props.options.loginText = '登录';
 if (props.options.registerText === undefined) props.options.registerText = '注册';

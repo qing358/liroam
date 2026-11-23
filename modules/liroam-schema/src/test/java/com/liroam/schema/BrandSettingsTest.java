@@ -32,7 +32,9 @@ class BrandSettingsTest {
                 "{\"watermark\": \"LILI-SHOP\", \"interfereNum\": 1, \"loginBypassEnabled\": true}");
         jdbc.update("INSERT INTO li_setting (id, setting_value) VALUES ('SMS_SETTING', ?)", "{\"signName\":\"lili\",\"type\":\"ALI\"}");
         jdbc.update("INSERT INTO li_page_data (id, page_client_type, page_data) VALUES (1, 'PC', ?)",
-                "{\"list\":[{\"options\":{\"logoUrl\":\"" + UPSTREAM_PC_LOGO + "\",\"placeholder\":\"请输入商品名称\"}}]}");
+                "{\"list\":[{\"options\":{\"logoUrl\":\"" + UPSTREAM_PC_LOGO + "\",\"placeholder\":\"请输入商品名称\"}},"
+                        + "{\"options\":{\"welcomeText\":\"欢迎来到商城\",\"loginText\":\"登录\"}},"
+                        + "{\"options\":{\"badgeText\":\"请登录\",\"welcomeText\":\"欢迎来到商城\"}}]}");
         jdbc.update("INSERT INTO li_page_data (id, page_client_type, page_data) VALUES (2, 'H5', ?)",
                 "{\"name\":\"双十一活动\",\"title\":\"lilishop\",\"list\":[]}");
         article(jdbc, 1371780016521609216L, "关于我们", UPSTREAM_ABOUT);
@@ -51,9 +53,15 @@ class BrandSettingsTest {
         assertThat(field(jdbc, "VERIFICATION_SETTING", "watermark")).isEqualTo("LIROAM");
         assertThat(field(jdbc, "VERIFICATION_SETTING", "loginBypassEnabled")).isEqualTo("true");
         assertThat(field(jdbc, "SMS_SETTING", "signName")).isEqualTo("轻游");
-        assertThat(pageData(jdbc, 1)).contains("\"logoUrl\":\"\"").contains("请输入商品名称").doesNotContain("lilishop");
+        assertThat(pageData(jdbc, 1)).contains("\"logoUrl\":\"\"").contains("请输入商品名称").doesNotContain("lilishop")
+                .doesNotContain("欢迎来到商城").contains("\"welcomeText\":\"欢迎来到轻游\",\"loginText\":\"登录\"")
+                .contains("\"badgeText\":\"请登录\",\"welcomeText\":\"欢迎来到轻游\"");
         assertThat(pageData(jdbc, 2)).contains("\"title\":\"轻游\"").contains("双十一活动");
-        assertThat(articleContent(jdbc, 1371780016521609216L)).isEqualTo("<p>轻游 Liroam</p><p>" + COMPANY + "</p>");
+        assertThat(articleContent(jdbc, 1371780016521609216L))
+                .startsWith("<h3>关于轻游 Liroam</h3>")
+                .contains(COMPANY + "运营的出境旅行通信卡平台")
+                .contains("续费").contains("加包").contains("京东").contains("小红书")
+                .doesNotContain("lilishop").doesNotContain("<img");
         assertThat(articleContent(jdbc, 1371779927900160000L)).contains("以下隐私协议是" + COMPANY + "（以下简称").doesNotContain("xxx公司");
     }
 
@@ -64,7 +72,7 @@ class BrandSettingsTest {
                 + "\"icp\":\"鲁ICP备1号\",\"website\":\"https://x\"}";
         jdbc.update("INSERT INTO li_setting (id, setting_value) VALUES ('BASE_SETTING', ?)", base);
         jdbc.update("INSERT INTO li_setting (id, setting_value) VALUES ('SMS_SETTING', ?)", "{\"signName\":\"环球\"}");
-        String page = "{\"list\":[{\"options\":{\"logoUrl\":\"https://x/logo.png\"}}],\"title\":\"环球\"}";
+        String page = "{\"list\":[{\"options\":{\"logoUrl\":\"https://x/logo.png\",\"welcomeText\":\"欢迎光临环球卡铺\"}}],\"title\":\"环球\"}";
         jdbc.update("INSERT INTO li_page_data (id, page_client_type, page_data) VALUES (1, 'PC', ?)", page);
         String about = "<p>环球卡铺是一家卡券平台。</p>";
         article(jdbc, 1371780016521609216L, "关于我们", about);

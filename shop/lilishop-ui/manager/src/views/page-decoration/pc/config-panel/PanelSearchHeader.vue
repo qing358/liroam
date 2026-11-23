@@ -186,7 +186,7 @@ if (props.options.cartBorderColor === undefined) props.options.cartBorderColor =
 if (props.options.cartTextColor === undefined) props.options.cartTextColor = '#111827';
 if (props.options.cartBadgeColor === undefined) props.options.cartBadgeColor = '#e05644';
 if (!Array.isArray(props.options.hotWords)) {
-  props.options.hotWords = ['工业品', '进口好物', '综合特惠', '企业采购'];
+  props.options.hotWords = ['日本', '韩国', '泰国', '欧洲多国'];
 }
 
 const openImagePicker = inject('openImagePicker', null);

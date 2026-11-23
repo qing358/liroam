@@ -22,8 +22,8 @@
       >
         <div class="hero-top-info">
           <div class="hero-badge">SCENE CHANNEL</div>
-          <h3 class="hero-title">{{ options.heroTitle || '品质生活馆' }}</h3>
-          <p class="hero-sub">{{ options.heroSubtitle || '精选场景好物，一站购齐' }}</p>
+          <h3 class="hero-title">{{ options.heroTitle || '热门目的地' }}</h3>
+          <p class="hero-sub">{{ options.heroSubtitle || '按目的地选购旅行通信卡' }}</p>
         </div>
 
         <div class="hero-image-wrap">
@@ -156,8 +156,8 @@ const promosList = computed(() => {
     return props.options.promos;
   }
   return [
-    { title: '大牌补贴', desc: '领券最高减100', tag: '限时', url: '/goods' },
-    { title: '新品驾到', desc: '官方正品首发', tag: '新品', url: '/goods' }
+    { title: '限时特价', desc: '热门套餐限时优惠', tag: '限时', url: '/goods' },
+    { title: '新上架', desc: '新开通目的地套餐', tag: '新品', url: '/goods' }
   ];
 });
 

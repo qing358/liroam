@@ -10,11 +10,15 @@
       </div>
     </div>
     <div class="signup-banner">
-      <img
-        class="signup-bg"
-        src="https://lili-system.oss-cn-beijing.aliyuncs.com/background.jpg"
-        alt=""
-      />
+      <div class="signup-brand">
+        <h2 class="brand-title">出境旅行卡，一个账号管理</h2>
+        <p class="brand-desc">注册后即可选购套餐，并在「我的卡」查看每张卡的开卡进度与用量</p>
+        <ul class="brand-features">
+          <li>eSIM 付款后在线发放激活码，实体卡发货可查物流</li>
+          <li>多张卡集中管理，续费、加包不用换卡</li>
+          <li>在京东、小红书购买的卡，可凭订单号认领</li>
+        </ul>
+      </div>
       <div class="signup-card">
         <el-form
           ref="formRegistRef"
@@ -283,15 +287,56 @@ onMounted(() => {
   position: relative;
   height: 680px;
   overflow: hidden;
+  background: #eef6f5;
 }
 
-.signup-bg {
+.signup-brand {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+  left: max(72px, 8%);
+  top: 50%;
+  max-width: calc(84% - 480px - 96px);
+  transform: translateY(-50%);
+  color: #102a43;
+
+  .brand-title {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  .brand-desc {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #486581;
+  }
+
+  .brand-features {
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334e68;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.65em;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0b7a75;
+      }
+    }
+  }
 }
 
 .signup-card {

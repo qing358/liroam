@@ -3,12 +3,12 @@
     <div class="login-brand">
       <div class="brand-inner">
         <img class="brand-logo" :src="brandLogo" alt="轻游 Liroam" />
-        <h1 class="brand-title">企业级电商运营管理平台</h1>
-        <p class="brand-desc">为平台运营团队提供稳定、高效、可扩展的管理能力</p>
+        <h1 class="brand-title">出境旅行通信卡运营平台</h1>
+        <p class="brand-desc">商品、卡资产、渠道与供应商，在一个后台统一管理</p>
         <ul class="brand-features">
-          <li>全渠道订单与售后协同处理</li>
-          <li>商品、营销、会员一体化运营</li>
-          <li>多店铺管理与经营数据分析</li>
+          <li>商城、京东、小红书订单统一履约与售后</li>
+          <li>每张卡的开卡、用量、续费与加包按卡追踪</li>
+          <li>多供应商对接，代理分销佣金按规则结算</li>
         </ul>
       </div>
       <p class="brand-copyright">Copyright © {{ year }} {{ copyrightOwner }}</p>

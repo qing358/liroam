@@ -2,6 +2,15 @@
   <div class="login" @click="hideVerify">
     <div class="login-hero">
       <img class="login-bg" :src="loginBg" alt="" />
+      <div class="login-brand">
+        <h1 class="brand-title">轻游商家中心</h1>
+        <p class="brand-desc">发布旅行通信卡套餐，处理订单与售后，在一个后台完成</p>
+        <ul class="brand-features">
+          <li>按目的地与天数发布套餐，库存与上下架自主管理</li>
+          <li>订单交码、开卡进度与实体卡物流随时可查</li>
+          <li>店铺经营数据与结算对账按日汇总</li>
+        </ul>
+      </div>
       <div class="login-panel" @keyup.enter="submitLogin">
         <div class="login-wrap">
         <img class="login-logo" :src="loginLogo" alt="轻游 Liroam" />
@@ -361,6 +370,66 @@ function verifyChange(con) {
   z-index: 0;
 }
 
+.login-brand {
+  position: absolute;
+  left: 11.7%;
+  top: 50%;
+  z-index: 1;
+  max-width: 34%;
+  transform: translateY(-62%);
+  color: #102a43;
+
+  .brand-title {
+    margin: 0;
+    font-size: clamp(28px, 2.6vw, 48px);
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .brand-desc {
+    margin: 14px 0 0;
+    font-size: clamp(14px, 1vw, 18px);
+    line-height: 1.6;
+    color: #486581;
+  }
+
+  .brand-desc::after {
+    content: "";
+    display: block;
+    width: 48px;
+    height: 3px;
+    margin-top: 18px;
+    background: #e4572e;
+  }
+
+  .brand-features {
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 10px;
+      font-size: clamp(13px, 0.85vw, 15px);
+      line-height: 1.6;
+      color: #334e68;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.65em;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0b7a75;
+      }
+    }
+  }
+}
+
 .login-panel {
   position: absolute;
   inset: 0;
@@ -598,6 +667,10 @@ function verifyChange(con) {
 }
 
 @media (max-width: 992px) {
+  .login-brand {
+    display: none;
+  }
+
   .login-panel {
     justify-content: center;
     padding: 0 20px;

@@ -2,6 +2,7 @@
   <div class="welcome-box">
     <div class="famous-box">
       <img src="~@/assets/image/chat.png" width="300" />
+      <p>选择左侧会话，解答买家关于选卡、开卡与用量的问题</p>
     </div>
   </div>
 </template>

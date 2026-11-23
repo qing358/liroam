@@ -856,14 +856,14 @@ const ALL_COMPONENT_DEFINITIONS = [
       title: '场景频道',
       subtitle: '主视觉 + 商品组合楼层',
       heroImage: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png',
-      heroTitle: '品质生活馆',
-      heroSubtitle: '精选场景好物，一站购齐',
+      heroTitle: '热门目的地',
+      heroSubtitle: '按目的地选购旅行通信卡',
       heroButtonText: '进入频道',
       heroHref: '/goods',
       heroStyle: 'gradient',
       promos: [
-        { title: '大牌补贴', desc: '领券最高减100', tag: '限时', url: '/goods' },
-        { title: '新品驾到', desc: '官方正品首发', tag: '新品', url: '/goods' }
+        { title: '限时特价', desc: '热门套餐限时优惠', tag: '限时', url: '/goods' },
+        { title: '新上架', desc: '新开通目的地套餐', tag: '新品', url: '/goods' }
       ],
       goodsCount: 6,
       goods: [
@@ -988,10 +988,10 @@ const ALL_COMPONENT_DEFINITIONS = [
       moreText: '更多',
       moreUrl: '/article',
       items: [
-        { tag: '最新', title: '商城秋季大促重磅开启，全场满300立减50元！', time: '10-28', url: '/article' },
-        { tag: '活动', title: '会员专享积分商城全新上线，精选好礼0元兑换', time: '10-27', url: '/article' },
-        { tag: '通知', title: '关于商城系统例行优化维护及物流发货保障通知', time: '10-26', url: '/article' },
-        { tag: '热议', title: '品质生活馆场景专区火热来袭，领券最高减100', time: '10-25', url: '/article' }
+        { tag: '最新', title: '日本、韩国、泰国等热门目的地套餐已上架，可按天数选购', time: '10-28', url: '/article' },
+        { tag: '活动', title: '「我的卡」支持在线续费与加包，无需换卡', time: '10-27', url: '/article' },
+        { tag: '通知', title: '实名类套餐请在开卡前完成实名认证', time: '10-26', url: '/article' },
+        { tag: '热议', title: '出境前如何确认手机支持 eSIM？查看设备兼容说明', time: '10-25', url: '/article' }
       ]
     },
 

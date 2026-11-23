@@ -53,7 +53,7 @@
           class="guide-group-card"
         >
           <div class="group-header">
-            <el-input v-model="group.title" size="small" placeholder="列标题（如：购物指南）" style="width: 160px" />
+            <el-input v-model="group.title" size="small" placeholder="列标题（如：选购指南）" style="width: 160px" />
             <el-button link type="danger" size="small" @click="options.guideGroups.splice(gIdx, 1)">
               <el-icon><Delete /></el-icon>
             </el-button>
@@ -193,7 +193,7 @@ function handleClearGuideLink(link) {
 
 function handleAddAssurance() {
   if (!Array.isArray(props.options.assurances)) props.options.assurances = [];
-  props.options.assurances.push({ code: '优', title: '品质优选', desc: '放心购物', url: '/article' });
+  props.options.assurances.push({ code: '帮', title: '出行帮助', desc: '设备与开卡指引', url: '/article' });
 }
 
 function handleAddGuideGroup() {

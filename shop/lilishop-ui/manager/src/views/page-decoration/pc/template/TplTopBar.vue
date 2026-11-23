@@ -2,7 +2,7 @@
   <div class="tpl-top-bar" :style="customStyle">
     <div class="bar-inner">
       <div class="bar-left">
-        <span class="welcome-txt">{{ options.welcomeText || '欢迎来到商城' }}</span>
+        <span class="welcome-txt">{{ options.welcomeText || '欢迎来到轻游' }}</span>
         <span class="auth-links">
           <span class="auth-btn">[{{ options.loginText || '登录' }}]</span>
           <span class="auth-btn">[{{ options.registerText || '免费注册' }}]</span>

@@ -13,8 +13,8 @@
 
       <div class="user-greeting">
         <div class="badge-tag">{{ options.badgeText || '请登录' }}</div>
-        <div class="welcome-text" :title="options.welcomeText || '欢迎来到商城'">
-          {{ options.welcomeText || '欢迎来到商城' }}
+        <div class="welcome-text" :title="options.welcomeText || '欢迎来到轻游'">
+          {{ options.welcomeText || '欢迎来到轻游' }}
         </div>
         <div class="sub-text" :title="options.subtitle || '登录后查看专属权益'">
           {{ options.subtitle || '登录后查看专属权益' }}

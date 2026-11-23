@@ -13,7 +13,15 @@
       <el-carousel :interval="5000" arrow="never" class="login-carousel" height="550px">
         <el-carousel-item>
           <div class="demo-carousel" @click="hideVerify">
-            <img src="https://lili-system.oss-cn-beijing.aliyuncs.com/background.jpg" />
+            <div class="login-brand">
+              <h2 class="brand-title">出境上网，出发前备好</h2>
+              <p class="brand-desc">按目的地选购旅行通信卡，开卡、用量、续费都在这里办理</p>
+              <ul class="brand-features">
+                <li>按目的地和天数选套餐，eSIM 与实体卡可选</li>
+                <li>一人多卡，每张卡单独查看用量与到期时间</li>
+                <li>流量不够可续费加包，京东、小红书订单也能认领</li>
+              </ul>
+            </div>
           </div>
         </el-carousel-item>
       </el-carousel>
@@ -403,13 +411,55 @@ watch(
     height: 550px;
     width: 100%;
     overflow: hidden;
+    background: #eef6f5;
+  }
+}
 
-    img {
-      display: block;
-      width: 100%;
-      height: 550px;
-      object-fit: cover;
-      object-position: center;
+.login-brand {
+  position: absolute;
+  left: max(96px, 10%);
+  top: 50%;
+  max-width: calc(90% - 460px - var(--login-card-right) - 96px);
+  transform: translateY(-50%);
+  color: #102a43;
+
+  .brand-title {
+    margin: 0;
+    font-size: 36px;
+    line-height: 1.3;
+    font-weight: 600;
+  }
+
+  .brand-desc {
+    margin: 14px 0 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: #486581;
+  }
+
+  .brand-features {
+    margin: 28px 0 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      position: relative;
+      padding-left: 16px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.6;
+      color: #334e68;
+
+      &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.65em;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0b7a75;
+      }
     }
   }
 }

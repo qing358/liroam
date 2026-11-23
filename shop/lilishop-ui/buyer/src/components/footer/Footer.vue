@@ -4,20 +4,20 @@
       <div class="clearfix"></div>
       <div class="icon-row">
         <div class="footer-icon flex flex-a-c">
-          <h5 class="footer-icon-child">多</h5>
-          <span class="footer-icon-text">品类齐全，轻松购物</span>
+          <h5 class="footer-icon-child">选</h5>
+          <span class="footer-icon-text">按目的地和天数选套餐</span>
         </div>
         <div class="footer-icon flex flex-a-c">
-          <h5 class="footer-icon-child footer-icon-child-2">快</h5>
-          <span class="footer-icon-text">多仓直发，极速配送</span>
+          <h5 class="footer-icon-child footer-icon-child-2">发</h5>
+          <span class="footer-icon-text">eSIM 付款后在线发码</span>
         </div>
         <div class="footer-icon flex flex-a-c">
-          <h5 class="footer-icon-child footer-icon-child-3">好</h5>
-          <span class="footer-icon-text">正品行货，精致服务</span>
+          <h5 class="footer-icon-child footer-icon-child-3">查</h5>
+          <span class="footer-icon-text">每张卡用量随时可查</span>
         </div>
         <div class="footer-icon flex flex-a-c">
-          <h5 class="footer-icon-child footer-icon-child-4">省</h5>
-          <span class="footer-icon-text">天天低价，畅选无忧</span>
+          <h5 class="footer-icon-child footer-icon-child-4">续</h5>
+          <span class="footer-icon-text">原卡在线续费加包</span>
         </div>
       </div>
       <div class="service-intro">
@@ -75,10 +75,10 @@ const { companyName, companyUrl, icp, copyrightOwner } = useSiteSettings()
 
 const guideArr = ref([
   // 导航链接
-  ["购物指南", "购物流程", "会员介绍", "生活旅行", "常见问题"],
-  ["配送方式", "上门自提", "配送查询", "收取标准", "物流规则"],
-  ["支付方式", "在线支付", "公司转账", "余额支付", "积分支付"],
-  ["售后服务", "售后政策", "退款说明", "返修/退货", "取消订单"],
+  ["选购指南", "如何选套餐", "eSIM 与实体卡", "设备兼容说明", "常见问题"],
+  ["开卡与使用", "激活码使用", "开卡进度查询", "实名认证", "境外上网设置"],
+  ["续费与加包", "续费说明", "加包说明", "用量查询", "到期提醒"],
+  ["售后服务", "退款说明", "实体卡配送", "渠道订单认领", "取消订单"],
 ])
 const moreLink = ref(["关于我们", "联系我们", "联系客服", "商家帮助", "隐私政策"]) // 更多链接
 const year = ref(new Date().getFullYear()) // 当前年份

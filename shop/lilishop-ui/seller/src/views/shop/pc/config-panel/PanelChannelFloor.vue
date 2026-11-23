@@ -94,12 +94,12 @@
 
       <div class="form-item mt-10">
         <span class="item-label">主视觉大标题</span>
-        <el-input v-model="options.heroTitle" size="small" placeholder="如：品质生活馆" clearable />
+        <el-input v-model="options.heroTitle" size="small" placeholder="如：热门目的地" clearable />
       </div>
 
       <div class="form-item">
         <span class="item-label">主视觉副标题</span>
-        <el-input v-model="options.heroSubtitle" size="small" placeholder="如：精选场景好物，一站购齐" clearable />
+        <el-input v-model="options.heroSubtitle" size="small" placeholder="如：按目的地选购旅行通信卡" clearable />
       </div>
 
       <div class="form-item">
@@ -327,15 +327,15 @@ if (props.options.showTitle === undefined) props.options.showTitle = true;
 if (!props.options.title) props.options.title = '场景频道';
 if (!props.options.subtitle) props.options.subtitle = '主视觉 + 商品组合楼层';
 if (!props.options.heroImage) props.options.heroImage = 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/banner-floor/floor_banner_1.png';
-if (!props.options.heroTitle) props.options.heroTitle = '品质生活馆';
-if (!props.options.heroSubtitle) props.options.heroSubtitle = '精选场景好物，一站购齐';
+if (!props.options.heroTitle) props.options.heroTitle = '热门目的地';
+if (!props.options.heroSubtitle) props.options.heroSubtitle = '按目的地选购旅行通信卡';
 if (!props.options.heroButtonText) props.options.heroButtonText = '进入频道';
 if (!props.options.heroHref) props.options.heroHref = '/goods';
 if (!props.options.heroStyle) props.options.heroStyle = 'gradient';
 if (!props.options.promos) {
   props.options.promos = [
-    { title: '大牌补贴', desc: '领券最高减100', tag: '限时', url: '/goods' },
-    { title: '新品驾到', desc: '官方正品首发', tag: '新品', url: '/goods' }
+    { title: '限时特价', desc: '热门套餐限时优惠', tag: '限时', url: '/goods' },
+    { title: '新上架', desc: '新开通目的地套餐', tag: '新品', url: '/goods' }
   ];
 }
 if (!props.options.goodsCount) props.options.goodsCount = 6;

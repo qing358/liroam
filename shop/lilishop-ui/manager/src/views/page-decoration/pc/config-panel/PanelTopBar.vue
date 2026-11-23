@@ -23,7 +23,7 @@
             <el-input
               v-model="localOptions.welcomeText"
               size="small"
-              placeholder="欢迎来到商城"
+              placeholder="欢迎来到轻游"
             />
           </div>
 
@@ -211,7 +211,7 @@ const expandStyle = ref(true);
 
 const localOptions = computed(() => {
   if (!props.options) return {};
-  if (props.options.welcomeText === undefined) props.options.welcomeText = '欢迎来到商城';
+  if (props.options.welcomeText === undefined) props.options.welcomeText = '欢迎来到轻游';
   if (props.options.loginText === undefined) props.options.loginText = '登录';
   if (props.options.loginUrl === undefined) props.options.loginUrl = '/login';
   if (props.options.registerText === undefined) props.options.registerText = '免费注册';

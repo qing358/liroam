@@ -31,38 +31,38 @@
               {{ featuredGoods.goodsName }}
             </router-link>
           </h4>
-          <div class="big-reason">官方甄选 · 猜你对这款高人气商品感兴趣</div>
+          <div class="big-reason">为你推荐 · 近期热门目的地套餐</div>
 
           <!-- 核心特色标签 -->
           <div class="big-tags-row">
-            <span class="feat-tag highlight">🔥 镇店爆品</span>
-            <span class="feat-tag">🛡️ 官方正品</span>
-            <span class="feat-tag">⚡ 极速发货</span>
-            <span class="feat-tag">🏷️ 售后无忧</span>
+            <span class="feat-tag highlight">热门套餐</span>
+            <span class="feat-tag">在线交付</span>
+            <span class="feat-tag">用量可查</span>
+            <span class="feat-tag">续费加包</span>
           </div>
 
           <!-- 权威热度指标 -->
           <div class="big-stats-bar">
             <div class="stat-cell">
-              <span class="stat-val">100%</span>
-              <span class="stat-lbl">品质正品</span>
+              <span class="stat-val">按卡</span>
+              <span class="stat-lbl">独立开卡</span>
             </div>
             <div class="stat-line"></div>
             <div class="stat-cell">
-              <span class="stat-val">极速达</span>
-              <span class="stat-lbl">顺丰速运</span>
+              <span class="stat-val">随时</span>
+              <span class="stat-lbl">查询用量</span>
             </div>
             <div class="stat-line"></div>
             <div class="stat-cell">
-              <span class="stat-val">TOP 1</span>
-              <span class="stat-lbl">品类热榜</span>
+              <span class="stat-val">在线</span>
+              <span class="stat-lbl">续费加包</span>
             </div>
           </div>
 
           <!-- 服务保障权益 -->
           <div class="big-guarantees">
-            <div class="guar-item"><span class="guar-icon">✓</span> 7天无理由退换货</div>
-            <div class="guar-item"><span class="guar-icon">✓</span> 赠运费险 · 破损包赔</div>
+            <div class="guar-item"><span class="guar-icon">✓</span> 开卡进度在「我的卡」查看</div>
+            <div class="guar-item"><span class="guar-icon">✓</span> 流量不够可在线加包</div>
           </div>
 
           <div class="big-price-row">

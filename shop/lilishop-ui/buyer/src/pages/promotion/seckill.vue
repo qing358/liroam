@@ -12,7 +12,7 @@
             <span>限时特惠 · 爆款直降</span>
           </div>
           <h1 class="hero-title">限时秒杀</h1>
-          <p class="hero-subtitle">正品严选 · 限量低价 · 抢完即止</p>
+          <p class="hero-subtitle">限时特价套餐 · 数量有限 · 售完即止</p>
         </div>
 
         <div class="hero-countdown" v-if="list.length && list[currIndex]">

@@ -10,15 +10,15 @@
       <template v-if="options.showTitle !== false">
         <div class="form-item">
           <span class="item-label">文章主标题</span>
-          <el-input v-model="options.title" size="small" placeholder="如：品牌故事 · 匠心传承" />
+          <el-input v-model="options.title" size="small" placeholder="如：关于轻游" />
         </div>
         <div class="form-item">
           <span class="item-label">副标题</span>
-          <el-input v-model="options.subtitle" size="small" placeholder="如：关于我们的品牌理念与品质坚持" />
+          <el-input v-model="options.subtitle" size="small" placeholder="如：出境旅行通信卡的选购、开卡与用量管理" />
         </div>
         <div class="form-item">
           <span class="item-label">专栏标签</span>
-          <el-input v-model="options.tag" size="small" placeholder="如：品牌专栏" />
+          <el-input v-model="options.tag" size="small" placeholder="如：品牌介绍" />
         </div>
       </template>
 
@@ -29,7 +29,7 @@
       <template v-if="options.showMeta !== false">
         <div class="form-item">
           <span class="item-label">作者/部门</span>
-          <el-input v-model="options.author" size="small" placeholder="如：官方商城运营部" />
+          <el-input v-model="options.author" size="small" placeholder="如：轻游运营团队" />
         </div>
         <div class="form-item">
           <span class="item-label">发布日期</span>
@@ -129,26 +129,26 @@ const props = defineProps({
 });
 
 const defaultArticleHtml = `
-<h3>关于我们 · 甄选美好生活</h3>
-<p>我们始终坚信，一件好的产品不仅能改善日常生活的品质，更传递着对美好生活的执着追求。自创立以来，我们严选全球顶尖供应链，深耕每一道生产工艺与质检环节，力求将兼具美学价值与极致实用性的商品送达每一位用户手中。</p>
-<blockquote>品质是我们的信仰，体验是我们的底线。从选材到交付，每一步都经得起时光检验。</blockquote>
-<h4>四大核心服务保障</h4>
+<h3>关于轻游 Liroam</h3>
+<p>轻游是想象智能（济南）有限公司运营的出境旅行通信卡平台。按目的地和行程天数选购 eSIM 与实体卡，eSIM 付款后在线获取激活码，实体卡发货后可查物流。</p>
+<blockquote>一人可以持有多张卡，每张卡单独开卡、查看用量、续费和加包。</blockquote>
+<h4>在轻游可以办理</h4>
 <ul>
-  <li><strong>100% 官方正品</strong>：源头品牌直采，全链路防伪溯源，假一赔十保障。</li>
-  <li><strong>极速顺丰冷链</strong>：全国多仓联动发货，核心城市支持当日达/次日达。</li>
-  <li><strong>7天无理由退换</strong>：专业客服团队 7×24 小时贴心守护，售后无忧。</li>
-  <li><strong>会员专享权益</strong>：尊享积分抵现、生日特权礼及专属品鉴沙龙。</li>
+  <li><strong>按目的地选购</strong>：套餐标明使用区域、天数和流量，下单前即可核对。</li>
+  <li><strong>在线开卡</strong>：eSIM 付款后发放激活码，实体卡发货后可查物流。</li>
+  <li><strong>按卡管理</strong>：在「我的卡」查看开卡进度、已用流量和到期时间。</li>
+  <li><strong>续费与加包</strong>：流量不够或行程延长，直接为原卡续费或加包。</li>
 </ul>
-<p>感谢一路相伴的每一位朋友，未来我们将持续探索更多优质生活场景，与您共同见证品质生活的美好绽放。</p>
+<p>在京东、小红书等渠道购买的轻游旅行卡，可凭订单号和下单手机号认领到「我的卡」统一管理。</p>
 `.trim();
 
 if (props.options.showTitle === undefined) props.options.showTitle = true;
-if (!props.options.title) props.options.title = '品牌故事 · 匠心传承';
-if (!props.options.subtitle) props.options.subtitle = '关于我们的品牌理念与品质坚持';
+if (!props.options.title) props.options.title = '关于轻游';
+if (!props.options.subtitle) props.options.subtitle = '出境旅行通信卡的选购、开卡与用量管理';
 if (props.options.showMeta === undefined) props.options.showMeta = true;
-if (!props.options.author) props.options.author = '官方商城运营部';
+if (!props.options.author) props.options.author = '轻游运营团队';
 if (!props.options.date) props.options.date = '2026-10-28';
-if (!props.options.tag) props.options.tag = '品牌专栏';
+if (!props.options.tag) props.options.tag = '品牌介绍';
 if (!props.options.fontSize) props.options.fontSize = 15;
 if (!props.options.textAlign) props.options.textAlign = 'left';
 if (!props.options.content) props.options.content = defaultArticleHtml;
