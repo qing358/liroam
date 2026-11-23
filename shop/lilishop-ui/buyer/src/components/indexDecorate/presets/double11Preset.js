@@ -91,7 +91,7 @@ export const DOUBLE11_PAGE_DOCUMENT = {
             "backgroundColor": "#ffffff"
           },
           "options": {
-            "logoUrl": "https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/logo/logo.png",
+            "logoUrl": "",
             "logoAlt": "双11全球狂欢节",
             "placeholder": "双11爆款 5折封顶 · 跨店每满300减50",
             "hotWords": [
@@ -1958,7 +1958,7 @@ export const DOUBLE11_PAGE_DOCUMENT = {
                 "desc": "7天无理由退换 上门取件"
               }
             ],
-            "copyright": "Copyright © 2026 Lilishop. 双11全球狂欢节组委会 版权所有"
+            "copyright": "Copyright © 2026 想象智能（济南）有限公司 版权所有"
           }
         }
       ]

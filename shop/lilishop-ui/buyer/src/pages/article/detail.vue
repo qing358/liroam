@@ -2,7 +2,7 @@
   <div class="box">
     <div class="wrapper">
       <div class="nav" @click="back">
-        <img src="@/assets/images/logo2.png" alt="" class="logo" />
+        <img src="@/assets/images/liroam-horizontal-ink.svg" alt="轻游 Liroam" class="logo" />
         <div class="title">{{ detail.title }}</div>
       </div>
       <div v-html="detail.content"></div>

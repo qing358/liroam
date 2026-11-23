@@ -159,7 +159,7 @@ import { ShoppingCart } from "@element-plus/icons-vue";
 import Draggable from "vuedraggable";
 import ModelFormItem from "./modelFormItem.vue";
 import ossManage from "@/views/sys/oss-manage/ossManage";
-import logoImg from "@/assets/logo.png";
+import logoImg from "@/assets/liroam-horizontal-ink.svg";
 import { formatLinkType } from "@/utils/filters";
 
 defineOptions({ name: "modelForm" });

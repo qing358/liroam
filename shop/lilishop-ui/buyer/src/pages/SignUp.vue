@@ -84,7 +84,7 @@
       </div>
       <div type="flex" justify="center" class="copyright">
         Copyright © {{year}} - Present
-        <a href="https://pickmall.cn" target="_blank" style="margin: 0 5px">{{config.title}}</a>
+        <span style="margin: 0 5px">{{ copyrightOwner }}</span>
         版权所有
       </div>
     </div>
@@ -101,7 +101,7 @@ import * as apiLogin from '@/api/login.js';
 import { sendSms } from '@/api/common.js';
 import Verify from '@/components/verify';
 import { User, Lock, Iphone, Document } from '@element-plus/icons-vue';
-import config from '@/config';
+import { useSiteSettings } from '@/composables/useSiteSettings';
 import { useAppStore } from '@/stores/app';
 
 defineOptions({ name: 'SignUp' });
@@ -109,6 +109,7 @@ defineOptions({ name: 'SignUp' });
 const router = useRouter();
 const appStore = useAppStore();
 const logoImg = computed(() => appStore.logoImg);
+const { copyrightOwner } = useSiteSettings();
 
 const year = new Date().getFullYear();
 const formRegist = reactive({

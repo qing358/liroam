@@ -108,14 +108,14 @@ ignored:
 # Swagger 接口文档基本信息配置
 # -------------------------------------------------------------------
 swagger:
-  title: lili API接口文档
-  description: lili Api Documentation
+  title: 轻游客服 API接口文档
+  description: Liroam IM Api Documentation
   version: 1.0.0
-  termsOfServiceUrl: https://pickmall.cn
+  termsOfServiceUrl: ""
   contact:
-    name: lili
-    url: https://pickmall.cn
-    email: admin@pickmall.com
+    name: 轻游
+    url: ""
+    email: ""
 
 # -------------------------------------------------------------------
 # MyBatis-Plus ORM 框架配置

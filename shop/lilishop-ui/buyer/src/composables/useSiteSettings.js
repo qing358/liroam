@@ -33,6 +33,6 @@ export function useSiteSettings() {
   const companyUrl = computed(() => settings.value ? settings.value.companyUrl || "" : config.company?.href || "");
   const website = computed(() => settings.value ? settings.value.website || "" : config.website || "");
   const icp = computed(() => settings.value ? settings.value.icp || "" : config.icpMessage || "");
-  const copyrightOwner = computed(() => settings.value?.copyrightOwner?.trim() || siteName.value);
+  const copyrightOwner = computed(() => settings.value?.copyrightOwner?.trim() || companyName.value || siteName.value);
   return { settings, siteName, companyName, companyUrl, website, icp, copyrightOwner };
 }

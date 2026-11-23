@@ -31,7 +31,7 @@ function applySiteInfo(data) {
     document.querySelector("link[rel*='icon']") ||
     document.createElement("link");
   link.type = "image/x-icon";
-  link.href = data.buyerSideIcon;
+  link.href = data.buyerSideIcon || `${process.env.BASE_URL}logo.ico`;
   link.rel = "shortcut icon";
   document.getElementsByTagName("head")[0].appendChild(link);
 }

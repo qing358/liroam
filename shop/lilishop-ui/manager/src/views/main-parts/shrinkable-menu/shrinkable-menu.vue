@@ -159,11 +159,11 @@ watch(
 
 .nav-menu-dark {
   width: 80px;
-  background-color: #191a23;
+  background-color: #102a43;
   border-right: none;
 
   :deep(.el-menu-item) {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.72);
     justify-content: center;
     padding: 0 8px !important;
     text-align: center;
@@ -176,19 +176,17 @@ watch(
 
   :deep(.el-menu-item:not(.is-active):hover),
   :deep(.el-menu-item:not(.is-active):focus) {
-    background-color: #43444d !important;
+    background-color: #1d3d5c !important;
     color: #fff !important;
   }
 
-  :deep(.el-menu-item.is-active) {
-    background-color: #fff !important;
-    color: var(--el-color-primary) !important;
-  }
-
+  :deep(.el-menu-item.is-active),
   :deep(.el-menu-item.is-active:hover),
   :deep(.el-menu-item.is-active:focus) {
     background-color: #fff !important;
-    color: var(--el-color-primary) !important;
+    color: #0b7a75 !important;
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 #ffc04d;
   }
 }
 

@@ -19,9 +19,9 @@ export default {
   /**
    * 站点/系统标题名称
    * 用于页面 document.title 设置及系统头部品牌展示
-   * 默认值: "LiLi IM"
+   * 默认值: "轻游客服"
    */
-  WEBSITE_NAME: process.env.VUE_APP_WEBSITE_NAME || "LiLi IM",
+  WEBSITE_NAME: process.env.VUE_APP_WEBSITE_NAME || "轻游客服",
 
   /**
    * IM 专属后端 HTTP API 接口基准请求地址

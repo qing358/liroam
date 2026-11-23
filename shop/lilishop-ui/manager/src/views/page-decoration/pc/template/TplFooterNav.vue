@@ -59,8 +59,8 @@
           target="_blank"
           rel="noopener noreferrer"
           @click.stop
-        >{{ options.copyright || 'Copyright © 2026 Lilishop. All Rights Reserved.' }}</a>
-        <span v-else>{{ options.copyright || 'Copyright © 2026 Lilishop. All Rights Reserved.' }}</span>
+        >{{ options.copyright || 'Copyright © 2026 想象智能（济南）有限公司 版权所有' }}</a>
+        <span v-else>{{ options.copyright || 'Copyright © 2026 想象智能（济南）有限公司 版权所有' }}</span>
       </div>
     </div>
   </div>

@@ -108,7 +108,7 @@
       <div class="form-item">
         <span class="item-label">版权声明文案</span>
         <div class="input-with-action">
-          <el-input v-model="options.copyright" size="small" placeholder="Copyright © 2026 Lilishop." class="flex-1" />
+          <el-input v-model="options.copyright" size="small" placeholder="Copyright © 2026 想象智能（济南）有限公司" class="flex-1" />
           <el-button
             size="small"
             class="action-btn link-btn"

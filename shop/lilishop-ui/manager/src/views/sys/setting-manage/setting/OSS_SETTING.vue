@@ -29,7 +29,7 @@
 
       <el-form-item v-if="formValidate.type==='MINIO'" label="访问地址" key="m_frontUrl" prop="m_frontUrl">
         <el-input v-model="formValidate.m_frontUrl"/>
-        <span class="desc">配置MINIO nginx前端访问转发地址，一般为完整域名，例如：https://minio.pickmall.cn</span>
+        <span class="desc">配置MINIO nginx前端访问转发地址，一般为完整域名，例如：https://minio.example.com</span>
       </el-form-item>
       <el-form-item v-if="formValidate.type==='MINIO'" label="endpoint" key="m_endpoint" prop="m_endpoint">
         <el-input v-model="formValidate.m_endpoint"/>

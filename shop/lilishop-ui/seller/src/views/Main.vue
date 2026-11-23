@@ -105,7 +105,7 @@ import storeQrcode from "@/views/main-components/store-qrcode.vue";
 import Cookies from "js-cookie";
 import util from "@/libs/util.js";
 import { flattenNavigation, findNavigationItem } from "@/libs/seller-navigation";
-import defaultLogo from "@/assets/logo.png";
+import defaultLogo from "@/assets/liroam-horizontal-ink.svg";
 import { loadSiteSettings } from "@/composables/useSiteSettings";
 import { getMessageSendData, logout, userMsg } from "@/api/index";
 import { getIMDetail } from "@/api/common";
@@ -242,10 +242,15 @@ function init() {
         if (logo) {
           localStorage.setItem("sellerlogoImg", logo);
           storeSideLogo.value = logo;
+        } else {
+          localStorage.removeItem("sellerlogoImg");
+          storeSideLogo.value = defaultLogo;
         }
         if (icon) {
           localStorage.setItem("sellerIconImg", icon);
           applyFavicon(icon);
+        } else {
+          localStorage.removeItem("sellerIconImg");
         }
         if (data.siteName) {
           localStorage.setItem("sellersiteName", data.siteName);

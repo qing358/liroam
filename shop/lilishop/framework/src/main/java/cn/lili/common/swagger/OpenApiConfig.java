@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI openAPI(@Value("${spring.application.name:lilishop}") String appName) {
+    public OpenAPI openAPI(@Value("${spring.application.name:liroam}") String appName) {
         return new OpenAPI().info(new Info().title(appName).version("v3"));
     }
 }

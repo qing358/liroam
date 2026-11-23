@@ -1,12 +1,12 @@
 
 module.exports = {
-  title: "lilishop", //配置显示在浏览器标签的title
+  title: "轻游", //配置显示在浏览器标签的title
   icpCard: "", // icp证
   company: {
-    href: "https://pickmall.cn",
-    name: "北京宏业汇成科技有限公司",
+    href: "",
+    name: "想象智能（济南）有限公司",
   }, //公司信息
-  icpMessage: "京ICP备20009696号-1", //icp备案
+  icpMessage: "", //icp备案
   /**
    * 高德地图申请链接
    * https://lbs.amap.com/api/javascript-api/guide/abc/prepare
@@ -21,7 +21,7 @@ module.exports = {
    * 与后端 lili.lbs.key 同一把 Key，控制台需开通 JavaScript API GL
    */
   tMapKey: "ACCBZ-MINKJ-CZ2FN-DJFLN-GKORV-B3BIL",
-  website: "https://www.pickmall.cn", //官网地址
+  website: "", //官网地址
   aMapSwitch:false, //是否开启高德定位
   enableCDN: true, //生产环境 是否启用cdn加载 vue等js
   port: 10002, //端口

@@ -5,7 +5,7 @@
       <div class="left-section">
         <router-link to="/" class="logo-link">
           <img v-if="logoSrc" :src="logoSrc" alt="Logo" class="site-logo" />
-          <span v-else class="text-logo">LiliShop</span>
+          <span v-else class="text-logo">轻游</span>
         </router-link>
       </div>
 

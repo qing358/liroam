@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import storage from "@/plugins/storage.js";
-import defaultLogo from "@/assets/images/logo2.png";
+import defaultLogo from "@/assets/images/liroam-horizontal-ink.svg";
 
 export const useAppStore = defineStore("app", {
   state: () => ({
@@ -8,7 +8,7 @@ export const useAppStore = defineStore("app", {
     cartNum: storage.getItem("cartNum") || 0,
     unreadMsg: 0,
     logoImg: storage.getItem("logoImg") || defaultLogo,
-    siteName: storage.getItem("siteName") || "lilishop",
+    siteName: storage.getItem("siteName") || "轻游",
     hotWordsList: storage.getItem("hotWordsList"),
     category: (() => {
       try {
@@ -36,7 +36,7 @@ export const useAppStore = defineStore("app", {
       this.hotWordsList = data;
     },
     setLogoImg(data) {
-      this.logoImg = data;
+      this.logoImg = data || defaultLogo;
     },
     setSiteName(data) {
       this.siteName = data;

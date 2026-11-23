@@ -115,7 +115,7 @@
               <span class="form-tip">关闭后小程序端不展示公众号通知入口</span>
             </el-form-item>
             <el-form-item label="公众号名称">
-              <el-input v-model="oaSettingForm.accountName" maxlength="30" placeholder="如：Lilishop商城" />
+              <el-input v-model="oaSettingForm.accountName" maxlength="30" placeholder="如：轻游" />
             </el-form-item>
             <el-form-item label="引导关注文章链接" :required="oaSettingForm.enabled">
               <el-input v-model="oaSettingForm.articleUrl" placeholder="https://mp.weixin.qq.com/s/xxxxxx">

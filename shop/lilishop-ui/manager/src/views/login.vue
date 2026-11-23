@@ -2,7 +2,7 @@
   <div class="login" @click="hideVerify">
     <div class="login-brand">
       <div class="brand-inner">
-        <p class="brand-name">LILISHOP</p>
+        <img class="brand-logo" :src="brandLogo" alt="轻游 Liroam" />
         <h1 class="brand-title">企业级电商运营管理平台</h1>
         <p class="brand-desc">为平台运营团队提供稳定、高效、可扩展的管理能力</p>
         <ul class="brand-features">
@@ -95,6 +95,7 @@ import { setStore } from "@/libs/storage";
 import { md5 } from "@/utils/md5.js";
 import { useAppStore } from "@/stores/app";
 import { useSiteSettings } from "@/composables/useSiteSettings";
+import brandLogo from "@/assets/liroam-horizontal-reverse.svg";
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -184,7 +185,7 @@ function verifyChange(con) {
   justify-content: space-between;
   padding: 56px 64px;
   color: #fff;
-  background: linear-gradient(160deg, #1b2a41 0%, #243a5c 52%, #1a2f4d 100%);
+  background: linear-gradient(160deg, #102a43 0%, #183a5a 52%, #0c2236 100%);
   overflow: hidden;
 
   &::before {
@@ -214,12 +215,11 @@ function verifyChange(con) {
     margin-top: 8vh;
   }
 
-  .brand-name {
-    margin: 0 0 18px;
-    font-size: 14px;
-    font-weight: 600;
-    letter-spacing: 4px;
-    color: rgba(255, 255, 255, 0.72);
+  .brand-logo {
+    display: block;
+    height: 56px;
+    width: auto;
+    margin: 0 0 32px;
   }
 
   .brand-title {

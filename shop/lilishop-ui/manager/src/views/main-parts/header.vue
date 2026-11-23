@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-row class="header">
-      <img alt="平台 Logo" v-if="domainLogo" :src="domainLogo" class="logo" width="220px" />
+      <img alt="平台 Logo" :src="domainLogo" class="logo" />
     </el-row>
   </div>
 </template>
@@ -9,8 +9,9 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { loadSiteSettings } from "@/composables/useSiteSettings";
+import defaultLogo from "@/assets/liroam-horizontal-ink.svg";
 
-const domainLogo = ref("");
+const domainLogo = ref(defaultLogo);
 
 function applyFavicon(href) {
   if (!href) return;
@@ -27,7 +28,7 @@ function getSite() {
   loadSiteSettings().then((data) => {
     if (data) {
       const { domainLogo: logo, domainIcon, siteName, website } = data;
-      domainLogo.value = logo || "";
+      domainLogo.value = logo || defaultLogo;
       const expirationTime = new Date().setHours(new Date().getHours() + 1);
       localStorage.setItem("icontitle_expiration_time", expirationTime);
       localStorage.setItem("icon", logo || "");
@@ -55,7 +56,7 @@ onMounted(() => {
   justify-content: center !important;
 }
 .logo {
-  width: 440px;
-  height: 158px;
+  height: 64px;
+  width: auto;
 }
 </style>

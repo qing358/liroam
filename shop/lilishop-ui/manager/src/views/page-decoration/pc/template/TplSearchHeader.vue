@@ -4,12 +4,10 @@
       <!-- 1. 商城 Logo 区域 -->
       <div class="logo-area">
         <img
-          v-if="options.logoUrl"
-          :src="options.logoUrl"
+          :src="options.logoUrl || defaultLogo"
           :alt="options.logoAlt || 'logo'"
           class="logo-img"
         />
-        <span v-else class="text-logo">LiliShop</span>
       </div>
 
       <!-- 2. 搜索核心区（紧凑居中，含商品/店铺 Tab、搜索框和热门推荐词） -->
@@ -75,6 +73,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { Search, ShoppingCart } from '@element-plus/icons-vue';
+import defaultLogo from '@/assets/liroam-horizontal-ink.svg';
 
 const props = defineProps({
   options: {
@@ -166,14 +165,6 @@ const cartBtnStyle = computed(() => {
         max-width: 200px;
         object-fit: contain;
         display: block;
-      }
-
-      .text-logo {
-        font-size: 26px;
-        font-weight: 800;
-        color: #409EFF;
-        letter-spacing: -0.5px;
-        line-height: 1;
       }
     }
 

@@ -35,7 +35,7 @@
       <!-- 3. 版权与备案 -->
       <div class="copyright-row">
         <p class="icp-text" v-if="options.icpText">{{ options.icpText }}</p>
-        <p class="copy-text">{{ options.copyright || 'Copyright © 2026 Lilishop. All Rights Reserved.' }}</p>
+        <p class="copy-text">{{ options.copyright || 'Copyright © 2026 想象智能（济南）有限公司 版权所有' }}</p>
       </div>
     </div>
   </div>

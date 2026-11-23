@@ -210,7 +210,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import defaultLogo from "@/assets/logo1.png";
+import defaultLogo from "@/assets/liroam-mark-ink.svg";
 import { getSellerHomeData, getHomeNotice } from "@/api/index";
 import { getOrderOverView, goodsStatistics } from "@/api/goods";
 import { getAfterSaleNumVO } from "@/api/order";

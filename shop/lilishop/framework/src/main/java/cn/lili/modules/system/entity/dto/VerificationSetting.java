@@ -19,7 +19,7 @@ public class VerificationSetting implements Serializable {
     private Long effectiveTime = 300L;
 
     @Schema(description = "水印文字")
-    private String watermark = "LILI-SHOP";
+    private String watermark = "LIROAM";
 
     @Schema(description = "干扰块数量")
     private Integer interfereNum = 0;

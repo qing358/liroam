@@ -7,7 +7,7 @@
       </el-form-item>
 
       <el-form-item label="水印文字" prop="watermark">
-        <el-input class="label-appkey" v-model="formValidate.watermark" placeholder="例如: LILI-SHOP" />
+        <el-input class="label-appkey" v-model="formValidate.watermark" placeholder="例如: LIROAM" />
         <span class="desc">滑块背景图水印文本</span>
       </el-form-item>
 
@@ -45,7 +45,7 @@ const { proxy } = getCurrentInstance();
 const formValidateRef = ref(null);
 const formValidate = ref({
   effectiveTime: 300,
-  watermark: "LILI-SHOP",
+  watermark: "LIROAM",
   interfereNum: 0,
   faultTolerant: 3,
   loginBypassEnabled: false,
@@ -90,7 +90,7 @@ function init() {
       const parsed = typeof props.res === "string" ? JSON.parse(props.res) : props.res;
       formValidate.value = {
         effectiveTime: Number(parsed.effectiveTime ?? 300),
-        watermark: String(parsed.watermark ?? "LILI-SHOP"),
+        watermark: String(parsed.watermark ?? "LIROAM"),
         interfereNum: Number(parsed.interfereNum ?? 0),
         faultTolerant: Number(parsed.faultTolerant ?? 3),
         loginBypassEnabled: Boolean(parsed.loginBypassEnabled ?? false),

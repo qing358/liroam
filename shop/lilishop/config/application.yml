@@ -209,21 +209,21 @@ ignored:
 # -------------------------------------------------------------------
 swagger:
   # 接口文档标题
-  title: lilishop API接口文档
+  title: 轻游 API接口文档
   # 接口文档描述
-  description: lilishop Api Documentation
+  description: Liroam Api Documentation
   # 接口文档版本号
   version: 4.2.2
   # 服务条款链接
-  termsOfServiceUrl: https://pickmall.cn
+  termsOfServiceUrl: ""
   # 联系人信息
   contact:
     # 联系人名称
-    name: lili
+    name: 轻游
     # 联系人主页
-    url: https://pickmall.cn
+    url: ""
     # 联系邮箱
-    email: admin@pickmall.com
+    email: ""
 
 # -------------------------------------------------------------------
 # SpringDoc 接口文档通用配置

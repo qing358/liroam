@@ -88,7 +88,7 @@ import Cookies from "js-cookie";
 import util from "@/libs/util.js";
 import { getNoticePage, logout } from "@/api/index";
 import config from "@/config/index.js";
-import defaultLogo from "@/assets/logo.png";
+import defaultLogo from "@/assets/liroam-horizontal-ink.svg";
 import { setStore } from "@/libs/storage";
 import { useAppStore } from "@/stores/app";
 import { useUserStore } from "@/stores/user";
@@ -120,10 +120,10 @@ function init() {
     document.querySelector("link[rel*='icon']") ||
     document.createElement("link");
   link.type = "image/x-icon";
-  link.href = localStorage.getItem("domainIcon");
+  link.href = localStorage.getItem("domainIcon") || `${process.env.BASE_URL}logo.ico`;
   link.rel = "shortcut icon";
   document.getElementsByTagName("head")[0].appendChild(link);
-  window.document.title = localStorage.getItem("title") + " - 运营后台";
+  window.document.title = (localStorage.getItem("title") || config.title) + " - 运营后台";
   getNoticePage({}).then((res) => {
     if (res.success) {
       tipsMessage.value = res.result;

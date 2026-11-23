@@ -152,7 +152,7 @@ export const COMPONENT_DEFINITIONS = [
 
     defaultOptions: {
 
-      logoUrl: 'https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/logo/logo.png',
+      logoUrl: '',
 
       placeholder: '请输入商品名称',
       showSearchTypes: true,
@@ -236,7 +236,7 @@ export const COMPONENT_DEFINITIONS = [
 
       icpLink: 'https://beian.miit.gov.cn/',
 
-      copyright: 'Copyright © 2026 Lilishop. All Rights Reserved.',
+      copyright: 'Copyright © 2026 想象智能（济南）有限公司 版权所有',
 
       copyrightLink: ''
 

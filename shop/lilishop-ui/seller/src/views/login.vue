@@ -4,7 +4,7 @@
       <img class="login-bg" :src="loginBg" alt="" />
       <div class="login-panel" @keyup.enter="submitLogin">
         <div class="login-wrap">
-        <img class="login-logo" :src="loginLogo" alt="LILISHOP" />
+        <img class="login-logo" :src="loginLogo" alt="轻游 Liroam" />
         <Header class="login-header-init" />
 
         <el-tabs v-model="loginType" class="login-tabs">
@@ -139,7 +139,7 @@ const router = useRouter();
 const appStore = useAppStore();
 
 const loginBg = require("@/assets/login-bg.jpg");
-const loginLogo = require("@/assets/logo-lilishop.png");
+const loginLogo = require("@/assets/liroam-horizontal-ink.svg");
 const saveLogin = ref(true);
 const sendCodeLoading = ref(false);
 const loading = ref(false);

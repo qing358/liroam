@@ -10,7 +10,7 @@
 import { onMounted, ref } from "vue";
 import { loadSiteSettings } from "@/composables/useSiteSettings";
 
-const storeSideLogo = ref(require("@/assets/logo-lilishop.png"));
+const storeSideLogo = ref(require("@/assets/liroam-horizontal-ink.svg"));
 
 function init() {
   getSite();
@@ -35,7 +35,9 @@ function getSite() {
         localStorage.setItem("seller_expiration_time", expirationTime);
         localStorage.setItem("sellersiteName", data.siteName || "");
         if (logo) localStorage.setItem("sellerlogoImg", logo);
+        else localStorage.removeItem("sellerlogoImg");
         if (icon) localStorage.setItem("sellerIconImg", icon);
+        else localStorage.removeItem("sellerIconImg");
         localStorage.setItem("sellerCompanyName", data.companyName || "");
         localStorage.setItem("sellerCompanyUrl", data.companyUrl || "");
         storeSideLogo.value = logo || storeSideLogo.value;

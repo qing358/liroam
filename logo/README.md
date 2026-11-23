@@ -130,4 +130,4 @@ python3 -m venv /tmp/liroam-logo-venv
 
 中文字形取自 `NotoSansSC-VF.ttf`，默认路径为 WSL 下的 Windows 字体目录，可用环境变量 `LIROAM_FONT_SC` 指向其它位置（[Google Fonts 下载](https://fonts.google.com/noto/specimen/Noto+Sans+SC)）。
 
-本标识目前只作为品牌资产存放，商城前端（`shop/lilishop-ui`）现有 logo / favicon 尚未替换。
+商城前端（`shop/lilishop-ui` 四端）已换用本标识：浅底一律墨色组合标 `liroam-horizontal-ink.svg`（商家端收起侧栏用 `liroam-mark-ink.svg`），管理端登录页深色品牌区用 `liroam-horizontal-reverse.svg`；四端都没有明暗主题切换，按浅色处理。favicon 固定用 `png/favicon.ico`，不随主题或站点设置变化。后台站点设置里的 logo / icon 为空时回落到上述内置标识；运营上传了自定义 logo 则以设置为准。替换范围与合并注意见 `docs/upstream.md` 改动清单「品牌」一行，回归闸为 `node --test scripts/brand.test.mjs`。
