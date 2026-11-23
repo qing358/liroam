@@ -156,7 +156,11 @@ class RefundControllersTest {
                 .andExpect(jsonPath("$.result.records[1].statusText").value("待审核"))
                 .andExpect(jsonPath("$.result.records[1].ownerMemberId").value("m1"))
                 .andExpect(jsonPath("$.result.records[1].cardNo").value(cardNo))
+                .andExpect(jsonPath("$.result.records[1].targetType").value("CARD"))
+                .andExpect(jsonPath("$.result.records[1].targetTypeText").value("整卡"))
                 .andExpect(jsonPath("$.result.records[1].cardStateAtApply").value("DELIVERED"))
+                .andExpect(jsonPath("$.result.records[1].cardStateText").value("待激活"))
+                .andExpect(jsonPath("$.result.records[1].orderSn").value("O-3"))
                 .andExpect(jsonPath("$.result.records[1].cardAction").value("TERMINATE"))
                 .andExpect(jsonPath("$.result.records[1].poolAction").value("VOID"))
                 .andExpect(jsonPath("$.result.records[1].refundBasis").value("NO_SNAPSHOT"));
@@ -174,6 +178,24 @@ class RefundControllersTest {
         actor.operator = null;
         refused(manager.perform(get("/manager/liroam/refunds")), "请先登录");
         refused(manager.perform(post("/manager/liroam/refunds/{id}/approve", id)), "请先登录");
+    }
+
+    @Test
+    void managerListShowsTopUpRefundWithPlanStateAndTopUpOrder() throws Exception {
+        long card = deliveredA("O-5", "m1");
+        long line = h.acceptTopUp("O-T5", "O-T5-1", h.catalog.skuATopUp, "m1", card);
+        h.drain();
+        long plan = h.jdbc.queryForObject("SELECT id FROM lr_card_plan WHERE fulfillment_line_id = ?", Long.class, line);
+        h.jdbc.update("UPDATE lr_card_plan SET status = 'READY' WHERE id = ?", plan);
+        ok(applyRefund(card, "{\"cardPlanId\":" + plan + "}"));
+
+        ok(manager.perform(get("/manager/liroam/refunds")))
+                .andExpect(jsonPath("$.result.records[0].cardPlanId").value(plan))
+                .andExpect(jsonPath("$.result.records[0].targetType").value("PLAN"))
+                .andExpect(jsonPath("$.result.records[0].targetTypeText").value("加包"))
+                .andExpect(jsonPath("$.result.records[0].cardStateAtApply").value("READY"))
+                .andExpect(jsonPath("$.result.records[0].cardStateText").value("未激活"))
+                .andExpect(jsonPath("$.result.records[0].orderSn").value("O-T5"));
     }
 
     @Test

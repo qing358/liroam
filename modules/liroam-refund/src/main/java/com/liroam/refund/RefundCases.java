@@ -68,7 +68,7 @@ public class RefundCases {
     private record CaseRow(long id, TargetType targetType, long cardAssetId, Long cardPlanId, String cardStateAtApply, Decision decision,
             Status status, long refundFen, long paidFen, String refundBasis, String reason, String appliedBy, String decidedBy, CardAction cardAction,
             PoolDisposition poolAction, boolean reverseCommission, StatusRequest statusRequest, int version, LocalDateTime createdAt,
-            String ownerMemberId, String cardNo, String sourceLineRef) {
+            String ownerMemberId, String cardNo, String sourceLineRef, String orderSn) {
     }
 
     private static final String CARD_TARGET = """
@@ -85,7 +85,7 @@ public class RefundCases {
             SELECT rc.id, rc.target_type, rc.card_asset_id, rc.card_plan_id, rc.card_state_at_apply, rc.decision, rc.status, rc.refund_fen,
                    rc.paid_fen, rc.refund_basis, rc.reason, rc.applied_by, rc.decided_by, rc.card_action, rc.pool_action, rc.reverse_commission,
                    rc.status_request, rc.version, rc.created_at, c.owner_member_id, c.card_no,
-                   COALESCE(pl.source_line_ref, cl.source_line_ref) AS source_line_ref
+                   COALESCE(pl.source_line_ref, cl.source_line_ref) AS source_line_ref, COALESCE(pl.source_ref, cl.source_ref) AS order_sn
               FROM lr_refund_case rc
               JOIN lr_card_asset c ON c.id = rc.card_asset_id
               JOIN lr_fulfillment_line cl ON cl.id = c.fulfillment_line_id
@@ -287,6 +287,21 @@ public class RefundCases {
         };
     }
 
+    private static String targetTypeText(TargetType type) {
+        return switch (type) {
+            case CARD -> "整卡";
+            case PLAN -> "加包";
+        };
+    }
+
+    /** 申请时状态：整卡存卡状态，加包存套餐状态。 */
+    private static String stateAtApplyText(TargetType type, String state) {
+        return switch (type) {
+            case CARD -> CardViewProjector.statusText(CardAssetStatus.valueOf(state));
+            case PLAN -> CardViewProjector.planStatusText(CardPlanStatus.valueOf(state));
+        };
+    }
+
     /** 首张卡吸收除不尽的分，行内各卡退款合计 = 行实付。 */
     private static long unitShare(long paidFen, int qty, int unitSeq) {
         if (qty <= 1) {
@@ -362,7 +377,8 @@ public class RefundCases {
     }
 
     private static RefundCaseView.Admin admin(CaseRow c) {
-        return new RefundCaseView.Admin(view(c), c.ownerMemberId(), c.cardNo(), c.cardStateAtApply(), c.cardAction().name(),
+        return new RefundCaseView.Admin(view(c), c.ownerMemberId(), c.cardNo(), c.targetType().name(), targetTypeText(c.targetType()),
+                c.cardStateAtApply(), stateAtApplyText(c.targetType(), c.cardStateAtApply()), c.orderSn(), c.cardAction().name(),
                 c.poolAction() == null ? null : c.poolAction().name(), c.reverseCommission(), c.refundBasis(), c.appliedBy(), c.decidedBy());
     }
 }

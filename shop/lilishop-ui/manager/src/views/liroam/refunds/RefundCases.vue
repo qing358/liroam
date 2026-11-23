@@ -23,7 +23,7 @@
           <template #default="{ row }">{{ pick(row, "targetTypeText", "targetType") }}</template>
         </el-table-column>
         <el-table-column label="退款时卡状态" width="120">
-          <template #default="{ row }">{{ pick(row, "cardStateText", "cardState") }}</template>
+          <template #default="{ row }">{{ pick(row, "cardStateText", "cardStateAtApply") }}</template>
         </el-table-column>
         <el-table-column label="规则结论" width="120">
           <template #default="{ row }">{{ pick(row, "decisionText", "decision") }}</template>
