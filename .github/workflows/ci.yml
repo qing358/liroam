@@ -40,3 +40,5 @@ jobs:
       # 仓根 reactor：上游根 pom 的 lilishop.skipTests=true，只编译（原因见 docs/upstream.md「已知上游问题」）；
       # 自研 modules 不继承该属性，单测、契约套件、集成测试与架构检查全部在此运行
       - run: mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
+      # 上游模块测试（含放在上游模块里的自有测试，如 DemoSiteDefaultTest）；profile 排除已知坏类与整上下文测试，-DskipTests 只跳过上一步已跑过的自研模块
+      - run: mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test

@@ -101,14 +101,14 @@ mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-arch
 
 自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。
 
-上游模块测试默认不跑，`-DskipTests=false` 也打不开（上游根 pom 用 `lilishop.skipTests`）。要跑上游测试用 profile，已排除 v5.0.6 自带坏的 12 个测试类与直连本机 `localhost:6379` 的整上下文测试（清单见 `docs/upstream.md`「已知上游问题」），其余全绿：
+上游模块测试默认 verify 不跑，`-DskipTests=false` 也打不开（上游根 pom 用 `lilishop.skipTests`）。上游模块测试（含放在上游模块里的自有测试，如 `DemoSiteDefaultTest`）由 profile 单独跑，CI 每次都跑；profile 已排除 v5.0.6 自带坏的 12 个测试类与直连本机 `localhost:6379` 的整上下文测试（清单见 `docs/upstream.md`「已知上游问题」），不连任何中间件：
 
 ```bash
-mvn -B -o -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test
+mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test
 ```
 
 `-DskipTests` 只跳过自研模块；不要再加 `-Dtest`，它会覆盖 profile 的排除清单。
 
 运营告警看后台「旅行卡 › 运维 › 运营告警」（`/manager/liroam/ops/alerts`），容量 / 积压 / 数据密钥看「运维概览」；worker 进程每 5 分钟把当前告警逐条写 WARN 日志（`运维告警[级别][编码] ...`）。逐码处置见 [docs/ops-runbook.md](docs/ops-runbook.md)。
 
-CI 同样两步（后端带 MySQL 服务容器，映射到 39306），见 `.github/workflows/ci.yml`。
+CI 同样两步，后端 job 先跑仓根 verify（带 MySQL 服务容器，映射到 39306）、再跑上面的 `-Pupstream-tests`，见 `.github/workflows/ci.yml`。
