@@ -19,6 +19,9 @@ spring:
     password: lilishop
 
 lili:
+  system:
+    # 本机开发不做演示站点拦截（基础 application.yml 为 true，@DemoSite 写接口会返回 4001）
+    isDemoSite: false
   wechat:
     mp:
       # 开发联调阶段：自动匹配微信小程序版本环境
