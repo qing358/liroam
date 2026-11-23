@@ -47,7 +47,7 @@ docker 摘取文件：在上游 docker 仓选不晚于后端 tag 的提交，覆
 | 问题 | 绕开 |
 |------|------|
 | docker 仓整目录挂到 `/docker-entrypoint-initdb.d` 时，`999_apply_patches.sh` 按文件名排在 `lilishop.sql` 之前执行；`patches/` 在空库和新基线上都不幂等（`li_distribution` 不存在、`category_id` 列冲突），初始化中断 | `deploy/compose.yaml` 只挂完整基线 `lilishop.sql`；补丁只用于升级旧库，不摘取 |
-| lilishop-ui v5.0.6 的 `manager/pnpm-lock.yaml` 与 `package.json` 不同步（锁里仍是 vuex），`--frozen-lockfile` 失败；`seller` 用 npm 安装报 ERESOLVE | 跟上游 `dev-env.mjs` 一致用 `npm install`；有上游 `yarn.lock` 的 `seller` 用 `yarn --frozen-lockfile` |
+| lilishop-ui v5.0.6 的 `manager/pnpm-lock.yaml` 与 `package.json` 不同步（锁里仍是 vuex），`--frozen-lockfile` 失败；`seller` 用 npm 安装报 ERESOLVE | manager 锁文件已按当前依赖重建（依赖覆盖在 `manager/pnpm-workspace.yaml`）。`scripts/dev.mjs` 按各前端目录的锁文件冻结安装：有 `pnpm-lock.yaml` 用 `pnpm install --frozen-lockfile`，有 `yarn.lock`（seller）用 `yarn --frozen-lockfile`，都没有才退回 `npm install` |
 | 上游 `dev-env.mjs` 写死 3306/6379 与容器名 `mysql`/`redis`、jar 名 `*-4.3.jar`、强依赖 uniapp | 不直接运行，由 `scripts/dev.mjs` 按本仓端口登记编排 |
 | 基线 `lilishop.sql` 的 `li_verification_source` 为空，三端登录滑块报「服务器繁忙」（`Random.nextInt(0)`）；`loginBypassEnabled` 只跳过服务端校验，前端登录页仍先要滑块 | `deploy/dev-seed.sql` 补 docker 仓 `561997f` 的滑块素材（本机演示数据）；`health` 检查滑块可生成 |
 | 根 `pom.xml` 默认 `skipTests=true`，上游测试无人维护：v5.0.6 打开后 framework 932 个用例 4 失败 41 错误（字段改名、mock 未注入）；manager-api 的 `FullDiscountTest` 等是整上下文测试，Redisson 直连 `localhost:6379`、MySQL 指向上游局域网地址 | CI 与 README 测试命令沿用默认，只编译不跑上游测试；本机不要加 `-DskipTests=false` 跑上游测试（会写入本机其它项目的 Redis）。自研模块不继承该属性，其测试随仓根 `verify` 必跑，只连 `deploy/ports.env` 登记的本项目 MySQL（拒绝 3306） |

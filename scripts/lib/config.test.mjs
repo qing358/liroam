@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, validatePorts,
+  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, validatePorts,
 } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -122,6 +122,21 @@ test('selectFrontends 默认起全部前端；--ui 按需只起列出的；--ui=
   assert.deepEqual(selectFrontends(['up'], UIS).map((f) => f.app), ['manager', 'seller', 'buyer']);
   assert.deepEqual(selectFrontends(['up', '--ui=buyer,manager'], UIS).map((f) => f.app), ['manager', 'buyer']);
   assert.deepEqual(selectFrontends(['up', '--ui=none'], UIS), []);
+});
+
+test('frontendInstallCommand 按锁文件选包管理器并冻结安装：pnpm 优先，其次 yarn，都没有才用 npm', () => {
+  const pnpm = ['pnpm', 'install', '--frozen-lockfile'];
+  const yarn = ['corepack', 'yarn@1.22.22', 'install', '--frozen-lockfile'];
+  assert.deepEqual(frontendInstallCommand(['package.json', 'pnpm-lock.yaml']), pnpm);
+  assert.deepEqual(frontendInstallCommand(['package.json', 'yarn.lock']), yarn);
+  assert.deepEqual(frontendInstallCommand(['package.json', 'pnpm-lock.yaml', 'yarn.lock']), pnpm);
+  assert.deepEqual(frontendInstallCommand(['package.json']), ['npm', 'install', '--no-audit', '--no-fund']);
+});
+
+test('仓内各前端按锁文件选到预期的包管理器', () => {
+  const uiDir = path.join(repoRoot, 'shop/lilishop-ui');
+  assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'manager')))[0], 'pnpm');
+  assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'seller')))[1], 'yarn@1.22.22');
 });
 
 test('selectFrontends 遇到未知前端名或空列表直接报错', () => {

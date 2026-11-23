@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, parseEnv, readSdkmanJava, selectFrontends,
+  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends,
 } from './lib/config.mjs';
 import { backupFileName, compareCounts, latestBackup, parseCounts } from './lib/backup.mjs';
 import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
@@ -99,14 +99,10 @@ function buildBackend(javaHome) {
   if (result.status !== 0) throw new Error('后端构建失败');
 }
 
-// 有上游 yarn.lock（seller）就按锁冻结安装；其余跟上游 docker 仓 dev-env.mjs 一致用 npm install——
-// 上游 pnpm-lock.yaml 与 package.json 不同步（v5.0.6 manager 锁里仍是 vuex），冻结安装不可用
 function installFrontend(app) {
   const cwd = path.join(uiDir, app);
   if (fs.existsSync(path.join(cwd, 'node_modules'))) return;
-  const [cmd, ...args] = fs.existsSync(path.join(cwd, 'yarn.lock'))
-    ? ['corepack', 'yarn@1.22.22', 'install', '--frozen-lockfile']
-    : ['npm', 'install', '--no-audit', '--no-fund'];
+  const [cmd, ...args] = frontendInstallCommand(fs.readdirSync(cwd));
   console.log(`\n$ ${cmd} ${args.join(' ')}（${app}）`);
   const result = spawnSync(cmd, args, { cwd, stdio: 'inherit', env: { ...process.env, COREPACK_ENABLE_DOWNLOAD_PROMPT: '0' } });
   if (result.status !== 0) throw new Error(`${app} 依赖安装失败`);

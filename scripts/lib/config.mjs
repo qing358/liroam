@@ -50,6 +50,13 @@ export function backendBuildArgs(modules) {
   return ['-B', '-q', '-pl', modules.map((m) => `shop/lilishop/${m}`).join(','), '-am', 'package', '-DskipTests'];
 }
 
+// 依赖覆盖与安全修复都锁在各前端的锁文件里，必须按锁冻结安装；只有没锁的前端才退回 npm install
+export function frontendInstallCommand(files) {
+  if (files.includes('pnpm-lock.yaml')) return ['pnpm', 'install', '--frozen-lockfile'];
+  if (files.includes('yarn.lock')) return ['corepack', 'yarn@1.22.22', 'install', '--frozen-lockfile'];
+  return ['npm', 'install', '--no-audit', '--no-fund'];
+}
+
 export function selectFrontends(argv, frontends) {
   const flag = argv.find((a) => a.startsWith('--ui='));
   if (!flag) return frontends;
