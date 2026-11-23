@@ -11,6 +11,7 @@
 | `launch-checklist.md` | 首次上生产前逐项核对（P4 门禁） |
 | `ops-runbook.md` | 值班：告警分级与逐码处置、供应商故障、备份恢复、数据密钥轮换、新渠道接入、演练记录 |
 | `../README.md` | 目录、本机一键启停、端口、演示数据、密钥变量名、测试命令 |
+| `../logo/README.md` | 品牌标识规范：图形标与组合标、色值、字体授权、安全区、禁用示例；源文件与导出在 `logo/` |
 | `../AGENTS.md` | Agent 强制约束 |
 | Cursor Project `preferences.md` | 跨项目开发偏好 |
 
