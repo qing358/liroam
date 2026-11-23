@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * 源码里的厂商/渠道名只允许出现在以其命名的适配器模块（如 {@code modules/liroam-supplier-quadcell}）。
  * 业务代码一律用领域代号（SUP_A…）。新接入一家时在 {@link #VENDOR_TOKENS} 登记其名字。
+ * 面向用户的文案点名售卖渠道不算业务分支，逐文件登记在 {@link #USER_COPY_FILES}。
  */
 class VendorNameScanTest {
 
@@ -26,6 +27,11 @@ class VendorNameScanTest {
             "quadcell", List.of("quadcell"),
             "jd", List.of("jingdong", "京东", "jd.com"),
             "xhs", List.of("xiaohongshu", "小红书"));
+
+    /** 相对 modules/ 的路径 → 放行理由。只放已落库、不能再改内容的文案数据，不放代码。 */
+    static final Map<String, String> USER_COPY_FILES = Map.of(
+            "liroam-schema/src/main/resources/db/migration/liroam/V202611261100__brand_liroam_copy.sql",
+            "关于我们文章正文，与买家端登录/注册页同一句渠道认领文案；已在库执行，改内容会使 Flyway 校验和失配");
 
     static List<String> violations(Path modulesDir) {
         try (Stream<Path> modules = Files.list(modulesDir)) {
@@ -36,12 +42,14 @@ class VendorNameScanTest {
                 }
                 String moduleName = module.getFileName().toString().toLowerCase(Locale.ROOT);
                 try (Stream<Path> files = Files.walk(main)) {
-                    return files.filter(Files::isRegularFile).flatMap(file -> {
+                    return files.filter(Files::isRegularFile)
+                            .filter(file -> !USER_COPY_FILES.containsKey(relative(modulesDir, file)))
+                            .flatMap(file -> {
                         String text = read(file).toLowerCase(Locale.ROOT);
                         return VENDOR_TOKENS.entrySet().stream()
                                 .filter(v -> !moduleName.contains(v.getKey()))
                                 .flatMap(v -> v.getValue().stream().filter(text::contains))
-                                .map(token -> modulesDir.relativize(file) + " 含 " + token);
+                                .map(token -> relative(modulesDir, file) + " 含 " + token);
                     }).toList().stream();
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
@@ -50,6 +58,10 @@ class VendorNameScanTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private static String relative(Path modulesDir, Path file) {
+        return modulesDir.relativize(file).toString().replace('\\', '/');
     }
 
     private static String read(Path file) {
@@ -87,5 +99,28 @@ class VendorNameScanTest {
         Files.writeString(channel, "-- 京东渠道");
 
         assertThat(violations(dir)).hasSize(2).anyMatch(v -> v.contains("quadcell")).anyMatch(v -> v.contains("京东"));
+    }
+
+    @Test
+    void userCopyAllowanceCoversOnlyListedFiles(@TempDir Path dir) throws IOException {
+        String listed = USER_COPY_FILES.keySet().iterator().next();
+        Path copy = dir.resolve(listed);
+        Files.createDirectories(copy.getParent());
+        Files.writeString(copy, "-- 京东、小红书");
+        Path sibling = copy.resolveSibling("V999__other_copy.sql");
+        Files.writeString(sibling, "-- 小红书");
+
+        assertThat(violations(dir)).containsExactly(relative(dir, sibling) + " 含 小红书");
+    }
+
+    @Test
+    void userCopyAllowanceHasNoStaleEntries() {
+        Path modules = modulesDir();
+        assertThat(USER_COPY_FILES).allSatisfy((path, reason) -> {
+            assertThat(reason).isNotBlank();
+            String text = read(modules.resolve(path)).toLowerCase(Locale.ROOT);
+            assertThat(VENDOR_TOKENS.values().stream().flatMap(List::stream).anyMatch(text::contains))
+                    .as("%s 已不含厂商/渠道名，应从放行表删除", path).isTrue();
+        });
     }
 }

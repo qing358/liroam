@@ -103,7 +103,7 @@ worker 没跟上或供应商查询接口慢。看 manager-api 是否存活、wor
 
 ### 新渠道接入
 渠道只经 `ChannelAdapter`（拉单 / 回传 / 日对账单）接入，业务代码不改：
-1. 新模块 `modules/liroam-channel-<名字>`：实现适配器，bean 名 = `lr_channel.adapter_key`；渠道名只许出现在本模块（`VendorNameScanTest` 登记名字）。
+1. 新模块 `modules/liroam-channel-<名字>`：实现适配器，bean 名 = `lr_channel.adapter_key`；渠道名只许出现在本模块（`VendorNameScanTest` 登记名字）；面向用户的文案迁移（如关于我们正文）点名渠道时，逐文件登记在该测试的 `USER_COPY_FILES` 并写理由。
 2. 本机先做模拟实现：继承 `liroam-channel-mock` 的 `SimulatedChannel`，只写该渠道报文形状；后台「渠道订单」的模拟面板自动出现，可造单 / 改对账 / 注入回传失败。
 3. 后台「渠道与 SKU 映射」加渠道与映射；走通 拉单 → 出卡 → 回传 → 买家认领到「我的卡」 → 日对账。
 4. 真适配器拿到资质、密钥、报文样例后替换，`adapter_key` 切过去即可。现有：京东 `mock-jd`、小红书 `mock-xhs`（均只模拟，真实字段【待核实】）。
