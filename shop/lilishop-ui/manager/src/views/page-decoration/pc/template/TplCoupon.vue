@@ -146,7 +146,8 @@ const couponList = computed(() => {
   }
 
   &.skin-ink {
-    .left-val { background: linear-gradient(135deg, var(--lr-ink) 0%, var(--lr-primary-active) 100%); color: var(--lr-sun); }
+    .left-val { background: linear-gradient(135deg, var(--lr-ink) 0%, var(--lr-primary-active) 100%); }
+    .coupon-grid .coupon-item .left-val { color: var(--lr-sun); }
     .btn { color: var(--lr-ink) !important; }
   }
 
