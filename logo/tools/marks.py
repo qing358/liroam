@@ -1,66 +1,56 @@
-"""三个概念方向的图形标几何。A 为定稿方向，B / C 只保留为提案记录。"""
-import math
+"""图形标几何。三个变体共用一套网格：单位 u = 笔宽；只用 90° 与 45°；两端平切。
 
-import pathops
+主笔画像线路图上的一段线：竖向落下，转角，水平前行；留 1u 空白后是站点圆点（目的地）。
+定稿为 V2「折角」，V1 / V3 只为提案图保留。
+"""
+from geometry import Stroke, circle, filleted_polygon, polyline_outline, union
 
-from geometry import Stroke, circle, difference, filleted_polygon, union, _pt
-
-# 定稿 A「启程」：竖笔落地（L / 出发）→ 圆弧转向 → 斜上起飞 → 留白 → 落点（目的地 / 在线信号）。
-MARK_STROKE = 72
-MARK_STEM = 196
-MARK_TURN_R = 84
-MARK_TAKEOFF_ANGLE = 135  # 左转角；落地朝下 90° → 起飞朝 -45°（右上）
-MARK_TAKEOFF = 64
-MARK_DOT_R = 44
-MARK_DOT_GAP = 34  # 起飞线圆头与落点圆之间的净空
-
-
-def mark_a():
-    """返回 (route, dot) 两条路径，配色时分别着色。"""
-    s = Stroke(0, 0, 90).line(MARK_STEM).arc(MARK_TURN_R, -MARK_TAKEOFF_ANGLE).line(MARK_TAKEOFF)
-    route = s.outline(MARK_STROKE)
-    d = MARK_STROKE / 2 + MARK_DOT_GAP + MARK_DOT_R
-    dot = circle(_pt(s.pos, d, s.heading), MARK_DOT_R)
-    return route, dot
+U = 72              # 笔宽
+STEM_TOP = 0
+BASE = 5.5 * U      # 水平段中心线高度（外缘落在 6u）
+STEM_X = 0.5 * U    # 竖笔中心线
+FOOT_END = 3.5 * U  # 水平段平切处
+GAP = 1.0 * U
+DOT_R = 0.53 * U    # 直径 = 笔宽再加 6% 圆形视觉补偿，上下缘与水平段基本齐平
 
 
-def mark_b():
-    """B「卡角地球」：SIM 切角的圆形地球 + 两条纬线，切角处为落点。"""
-    globe = circle((200, 200), 180)
-    cut = pathops.Path()
-    cut.moveTo(160, -10)
-    cut.lineTo(420, -10)
-    cut.lineTo(420, 250)
-    cut.close()
-    globe = difference(globe, cut)
-    lines = union([
-        Stroke(40, 160, 0).line(320).outline(34),
-        Stroke(40, 250, 0).line(320).outline(34),
-        Stroke(200, 30, 90).line(340).outline(34),
-    ])
-    route = difference(globe, lines)
-    dot = circle((338, 62), 28)
-    return route, dot
+def _dot():
+    return circle((FOOT_END + GAP + DOT_R, BASE), DOT_R)
 
 
-def mark_c():
-    """C「轻翼」：一张卡片折成的纸飞机，尾迹虚线。"""
-    wing = filleted_polygon([(20, 220), (400, 40), (250, 380), (190, 260)], [14, 14, 14, 10])
-    fold = filleted_polygon([(190, 260), (400, 40), (220, 300)], [4, 4, 4])
-    route = difference(wing, fold)
-    dot = union([circle((40, 330), 16), circle((92, 360), 16)])
-    return route, dot
+def mark_right_angle():
+    """V1「直角」：竖笔与水平段直角相接。"""
+    route = polyline_outline([(STEM_X, STEM_TOP), (STEM_X, BASE), (FOOT_END, BASE)], U)
+    return route, _dot()
 
 
-CONCEPTS = [
-    ("A", "启程", "竖笔落地，圆弧转向，斜上起飞，留白后是落点", mark_a),
-    ("B", "卡角地球", "SIM 切角的地球，纬线分割，切角处为落点", mark_b),
-    ("C", "轻翼", "卡片折成的纸飞机，尾迹为两点", mark_c),
+def mark_chamfer():
+    """V2「折角」：转角为 45° 折线，切角与 App 图标的 SIM 切角同一角度。"""
+    c = 1.0 * U  # 折线在水平 / 竖直方向各占 1u
+    route = polyline_outline(
+        [(STEM_X, STEM_TOP), (STEM_X, BASE - c), (STEM_X + c, BASE), (FOOT_END, BASE)], U)
+    return route, _dot()
+
+
+def mark_quadrant():
+    """V3「象限」：转角为正四分之一圆，中心线半径 1u。"""
+    r = 1.0 * U
+    s = (Stroke(STEM_X, STEM_TOP, 90).line(BASE - r - STEM_TOP).arc(r, -90)
+         .line(FOOT_END - STEM_X - r))
+    return s.outline(U, cap="butt"), _dot()
+
+
+mark_main = mark_chamfer
+
+VARIANTS = [
+    ("V1", "直角", "直角转折，最硬朗；与通用「L」字母标难以区分", mark_right_angle),
+    ("V2", "折角", "45° 折角，与 SIM 切角同角度；线路图语言，推荐", mark_chamfer),
+    ("V3", "象限", "四分之一圆转角，最柔和；偏通用电信感", mark_quadrant),
 ]
 
 
-def app_tile(size=1024, radius=232, notch=248, notch_r=72):
-    """App 图标底板：圆角方形，右上角 SIM 切角。"""
+def app_tile(size=1024, radius=228, notch=236, notch_r=28):
+    """App 图标底板：圆角方形，右上角 45° SIM 切角。"""
     s = size
     pts = [(0, 0), (s - notch, 0), (s, notch), (s, s), (0, s)]
     return filleted_polygon(pts, [radius, notch_r, notch_r, radius, radius])

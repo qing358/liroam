@@ -17,7 +17,7 @@ from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
 
 from geometry import Stroke, bounds, circle, difference, svg_d, translate, union
-from marks import CONCEPTS, MARK_STROKE, app_tile, mark_a
+from marks import VARIANTS, app_tile, mark_main
 
 ROOT = Path(__file__).resolve().parent.parent
 SVG, PNG, PREVIEW = ROOT / "svg", ROOT / "png", ROOT / "preview"
@@ -26,12 +26,12 @@ FONT_SC_WEIGHT = 620
 
 TEAL = "#0B7A75"      # 漫游青：主色
 INK = "#102A43"       # 夜航墨：中文字标 / 单色
-SUNRISE = "#F0652A"   # 日出橙：浅底上的落点
-SUNLIGHT = "#FFC04D"  # 日光黄：深底上的落点
+SUNRISE = "#E4572E"   # 日出橙：浅底上的站点
+SUNLIGHT = "#FFC04D"  # 日光黄：深底上的站点
 WHITE = "#FFFFFF"
 MIST = "#EEF6F5"      # 雾青：浅色背景
 
-# 每个配色方案给出：图形标线、落点、中文字标、英文字标、英文 i 点
+# 每个配色方案给出：图形标线、站点、中文字标、英文字标、英文 i 点
 SCHEMES = {
     "color": (TEAL, SUNRISE, INK, TEAL, SUNRISE),
     "reverse": (WHITE, SUNLIGHT, WHITE, WHITE, SUNLIGHT),
@@ -39,15 +39,14 @@ SCHEMES = {
     "white": (WHITE, WHITE, WHITE, WHITE, WHITE),
 }
 
-# ---------- 英文字标 liroam：与图形标同为圆头等宽单线 ----------
+# ---------- 英文字标 liroam：与图形标同为平头等宽单线 ----------
 X_HEIGHT = 100
 ASCENDER = 142
 EN_STROKE = 22
 
 
 def _stem(x, top, bottom=0):
-    t = EN_STROKE
-    return Stroke(x, top + t / 2, 90).line(bottom - top - t).outline(t)
+    return Stroke(x, top, 90).line(bottom - top).outline(EN_STROKE, cap="butt")
 
 
 def _ring(cx):
@@ -64,8 +63,8 @@ def wordmark_en():
     glyphs.append((_stem(h, -ASCENDER), t, "s", "s"))
     glyphs.append((_stem(h, -X), t, "s", "s"))
     arm_y = -X + h + r_arm
-    r = union([_stem(h, -X), Stroke(h, arm_y, -90).arc(r_arm, 90).line(8).outline(t)])
-    glyphs.append((r, h + r_arm + 8 + h, "s", "open"))
+    r = union([_stem(h, -X), Stroke(h, arm_y, -90).arc(r_arm, 90).line(10).outline(t, cap="butt")])
+    glyphs.append((r, h + r_arm + 10, "s", "open"))
     glyphs.append((_ring(X / 2 + 1.5), X + 3, "o", "o"))
     cx = X / 2 + 1.5
     a = union([_ring(cx), _stem(cx + r_ring, -X)])
@@ -73,8 +72,8 @@ def wordmark_en():
     arch_y = -X + h + r_arch
     m = union([
         _stem(h, -X),
-        Stroke(h, arch_y, -90).arc(r_arch, 180).line(-h - arch_y).outline(t),
-        Stroke(h + 2 * r_arch, arch_y, -90).arc(r_arch, 180).line(-h - arch_y).outline(t),
+        Stroke(h, arch_y, -90).arc(r_arch, 180).line(-arch_y).outline(t, cap="butt"),
+        Stroke(h + 2 * r_arch, arch_y, -90).arc(r_arch, 180).line(-arch_y).outline(t, cap="butt"),
     ])
     glyphs.append((m, h + 4 * r_arch + h, "s", "s"))
     gaps = {("s", "s"): 28, ("open", "o"): 12, ("o", "o"): 18, ("o", "s"): 24, ("s", "o"): 24}
@@ -123,7 +122,7 @@ def fit(path, box_h, x=0, y=0, ref=None):
 
 
 def layers_mark(h, x=0, y=0):
-    route, dot = mark_a()
+    route, dot = mark_main()
     both = union([route, dot])
     r, s = fit(route, h, x, y, both)
     d, _ = fit(dot, h, x, y, both)
@@ -203,15 +202,15 @@ def normalize(layers):
 
 
 def icon_layers(size, mark_ratio, scheme_route, scheme_dot):
-    route, dot = mark_a()
+    route, dot = mark_main()
     both = union([route, dot])
     b = bounds(both)
     h = size * mark_ratio
     s = h / (b[3] - b[1])
     w = (b[2] - b[0]) * s
-    # 落点在右上，整体向左下偏一点做视觉居中
-    x = (size - w) / 2 - size * 0.015
-    y = (size - h) / 2 + size * 0.02
+    # 右上角留空、重量偏左下，整体向右上偏一点做视觉居中
+    x = (size - w) / 2 + size * 0.015
+    y = (size - h) / 2 - size * 0.01
     r = translate(translate(route, -b[0], -b[1]), x, y, s)
     d = translate(translate(dot, -b[0], -b[1]), x, y, s)
     return [f'<path id="route" fill="{scheme_route}" d="{svg_d(r)}"/>',
@@ -294,7 +293,7 @@ def build_previews(lockups):
     W, H = 2400, 2380
     b = [f'<rect width="{W}" height="{H}" fill="{WHITE}"/>']
     b.append(f'<text x="120" y="140" {LABEL} font-size="44" font-weight="700" fill="{INK}">轻游 Liroam 品牌标识</text>')
-    b.append(f'<text x="120" y="196" {LABEL} font-size="26" fill="{INK}" fill-opacity="0.7">图形标「启程」：一笔落地、转向、起飞，留白后是落点。轻装出发，去哪都连得上。</text>')
+    b.append(f'<text x="120" y="196" {LABEL} font-size="26" fill="{INK}" fill-opacity="0.7">图形标「折角」：一段线路落下、45° 转折、水平前行，留白后是站点。统一笔宽，只用 90° 与 45°。</text>')
     # 横版彩色 / 反白
     b.append(f'<rect x="120" y="250" width="1060" height="420" rx="24" fill="{MIST}"/>')
     b += _place(hl, "color", 120 + (1060 - hw * 160 / hh) / 2, 380, 160, hh)
@@ -335,12 +334,12 @@ def build_previews(lockups):
 
     # 方向提案
     b = [f'<rect width="2400" height="900" fill="{WHITE}"/>',
-         f'<text x="120" y="130" {LABEL} font-size="40" font-weight="700" fill="{INK}">方向提案（定稿 A）</text>']
-    for i, (key, name, desc, fn) in enumerate(CONCEPTS):
+         f'<text x="120" y="130" {LABEL} font-size="40" font-weight="700" fill="{INK}">主笔画精修变体（定稿 V2）</text>']
+    for i, (key, name, desc, fn) in enumerate(VARIANTS):
         route, dot = fn()
         layers, w, h = normalize({"route": route, "dot": dot})
         x0 = 120 + i * 740
-        bg = MIST if key == "A" else "#F5F7F8"
+        bg = MIST if key == "V2" else "#F5F7F8"
         b.append(f'<rect x="{x0}" y="180" width="700" height="560" rx="24" fill="{bg}"/>')
         s = 300 / max(w, h)
         b += layer_paths(layers, "color", x0 + (700 - w * s) / 2, 230 + (300 - h * s) / 2, s, ids=False)
@@ -350,7 +349,7 @@ def build_previews(lockups):
         b.append(f'<text x="{x0 + 40}" y="700" {LABEL} font-size="22" fill="{INK}" fill-opacity="0.6">32px / 16px</text>')
         b.append(f'<text x="{x0}" y="800" {LABEL} font-size="32" font-weight="700" fill="{INK}">{key}「{name}」</text>')
         b.append(f'<text x="{x0}" y="848" {LABEL} font-size="24" fill="{INK}" fill-opacity="0.7">{desc}</text>')
-    write(tmp, svg_doc(2400, 900, b, "方向提案"))
+    write(tmp, svg_doc(2400, 900, b, "主笔画精修变体"))
     rsvg(tmp, PREVIEW / "concepts.png")
 
     # 禁用示例
@@ -363,8 +362,8 @@ def build_previews(lockups):
         ("改用规范外的颜色", g("", [p.replace(TEAL, "#7C3AED").replace(SUNRISE, "#22C55E") for p in base])),
         ("旋转或倾斜", g("rotate(-10) skewX(-8)", base)),
         ("加描边、阴影或渐变", '<defs><filter id="sh"><feDropShadow dx="6" dy="8" stdDeviation="4" flood-color="#000" flood-opacity="0.45"/></filter></defs>'
-         + g("", [p.replace("/>", ' stroke="#F0652A" stroke-width="6"/>') for p in base], ' filter="url(#sh)"')),
-        ("移动或删掉落点", g("", [p for p in base[:1]] + [p.replace("<path", '<path transform="translate(-60 150)"') for p in base[1:2]] + base[2:])),
+         + g("", [p.replace("/>", ' stroke="#E4572E" stroke-width="6"/>') for p in base], ' filter="url(#sh)"')),
+        ("移动或删掉站点", g("", [p for p in base[:1]] + [p.replace("<path", '<path transform="translate(4 -72)"') for p in base[1:2]] + base[2:])),
         ("放在低对比或杂乱背景上", g("", base)),
     ]
     b = [f'<rect width="2400" height="1100" fill="{WHITE}"/>',

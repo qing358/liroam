@@ -1,4 +1,4 @@
-"""几何底层：中心线（直线 + 圆弧，海龟式链接保证相切）→ 等宽圆头描边的填充轮廓。
+"""几何底层：中心线（直线 + 圆弧，海龟式链接保证相切）→ 等宽描边（圆头或平头）的填充轮廓；折线用斜接转角。
 
 圆弧的等距线仍是同心圆弧，所以描边轮廓是精确的，不靠采样；最后用 pathops 并集成干净闭合路径。
 坐标系为 SVG 屏幕坐标（y 向下），角度单位为度，0° 指向 +x，顺时针为正。
@@ -62,7 +62,8 @@ class Stroke:
         self.heading += sweep
         return self
 
-    def outline(self, width):
+    def outline(self, width, cap="round"):
+        """cap="butt" 时两端平切；中间相切接缝补的圆完全落在相邻两段内，不影响外形。"""
         hw = width / 2
         parts = []
         joints = []
@@ -86,8 +87,43 @@ class Stroke:
                 joints += [_pt(c, r, a0), _pt(c, r, a1)]
             p.close()
             parts.append(p)
+        if cap == "butt":
+            joints = joints[1:-1]
         parts += [circle(j, hw) for j in joints]
         return union(parts)
+
+
+def polyline_outline(points, width):
+    """折线等宽描边：斜接转角、两端平切。"""
+    hw = width / 2
+    n = len(points)
+
+    def normal(a, b):
+        d = math.hypot(b[0] - a[0], b[1] - a[1])
+        return (-(b[1] - a[1]) / d, (b[0] - a[0]) / d)
+
+    def side(sign):
+        out = []
+        for i in range(n):
+            if i == 0 or i == n - 1:
+                a, b = (points[0], points[1]) if i == 0 else (points[-2], points[-1])
+                nx, ny = normal(a, b)
+                out.append((points[i][0] + sign * hw * nx, points[i][1] + sign * hw * ny))
+                continue
+            n1 = normal(points[i - 1], points[i])
+            n2 = normal(points[i], points[i + 1])
+            mx, my = n1[0] + n2[0], n1[1] + n2[1]
+            k = hw / (1 + n1[0] * n2[0] + n1[1] * n2[1])
+            out.append((points[i][0] + sign * k * mx, points[i][1] + sign * k * my))
+        return out
+
+    left, right = side(1), side(-1)
+    p = pathops.Path()
+    p.moveTo(*left[0])
+    for q in left[1:] + right[::-1]:
+        p.lineTo(*q)
+    p.close()
+    return union([p])
 
 
 def union(paths):
