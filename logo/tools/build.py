@@ -37,7 +37,15 @@ SCHEMES = {
     "reverse": (WHITE, SUNLIGHT, WHITE, WHITE, SUNLIGHT),
     "mono": (INK, INK, INK, INK, INK),
     "white": (WHITE, WHITE, WHITE, WHITE, WHITE),
+    "ink": (INK, SUNRISE, INK, INK, SUNRISE),
 }
+
+# 自带背景与安全区的横排成品：(配色方案, 背景色)
+PLATES = {
+    "night": ("reverse", INK),
+    "ink": ("ink", WHITE),
+}
+PLATE_PAD_X = 2  # 四周留 2x（x = 图形标高度 ÷ 6）
 
 # ---------- 英文字标 liroam：与图形标同为平头等宽单线 ----------
 X_HEIGHT = 100
@@ -269,6 +277,24 @@ def main():
         rsvg(SVG / "favicon.svg", PNG / f"favicon-{size}.png", size, size)
     subprocess.run(["convert"] + [str(PNG / f"favicon-{s}.png") for s in (16, 32, 48)] + [str(PNG / "favicon.ico")], check=True)
 
+    hl, hw, hh = lockups["horizontal"]
+    pad = PLATE_PAD_X * hh / 6
+    for name, (scheme, bg) in PLATES.items():
+        pw, ph = round(hw + 2 * pad, 2), round(hh + 2 * pad, 2)
+        body = [f'<rect id="plate" width="{pw:g}" height="{ph:g}" fill="{bg}"/>'] + layer_paths(hl, scheme, pad, pad)
+        write(SVG / f"liroam-horizontal-{name}-plate.svg", svg_doc(pw, ph, body))
+        rsvg(SVG / f"liroam-horizontal-{name}-plate.svg", PNG / f"liroam-horizontal-{name}-plate.png", height=480)
+
+    # 浅色 App 图标：夜航墨深底版的前景 / 背景对调
+    light = [f'<path id="tile" fill="{WHITE}" d="{svg_d(tile)}"/>'] + icon_layers(1024, 0.54, INK, SUNRISE)
+    write(SVG / "liroam-app-icon-light.svg", svg_doc(1024, 1024, light))
+    light_full = [f'<rect id="tile" width="1024" height="1024" fill="{WHITE}"/>'] + icon_layers(1024, 0.50, INK, SUNRISE)
+    write(SVG / "liroam-app-icon-light-fullbleed.svg", svg_doc(1024, 1024, light_full))
+    for size in (1024, 512, 192):
+        rsvg(SVG / "liroam-app-icon-light.svg", PNG / f"liroam-app-icon-light-{size}.png", size, size)
+    rsvg(SVG / "liroam-app-icon-light-fullbleed.svg", PNG / "liroam-app-icon-light-fullbleed-1024.png", 1024, 1024)
+    rsvg(SVG / "liroam-app-icon-light-fullbleed.svg", PNG / "apple-touch-icon-light-180.png", 180, 180)
+
     build_previews(lockups)
 
 
@@ -290,7 +316,7 @@ def build_previews(lockups):
     hl, hw, hh = lockups["horizontal"]
     vl, vw, vh = lockups["vertical"]
     ml, mw, mh = lockups["mark"]
-    W, H = 2400, 2380
+    W, H = 2400, 3880
     b = [f'<rect width="{W}" height="{H}" fill="{WHITE}"/>']
     b.append(f'<text x="120" y="140" {LABEL} font-size="44" font-weight="700" fill="{INK}">轻游 Liroam 品牌标识</text>')
     b.append(f'<text x="120" y="196" {LABEL} font-size="26" fill="{INK}" fill-opacity="0.7">图形标「折角」：一段线路落下、45° 转折、水平前行，留白后是站点。统一笔宽，只用 90° 与 45°。</text>')
@@ -329,6 +355,31 @@ def build_previews(lockups):
         x = 120 + i * 440
         b.append(f'<rect x="{x}" y="2220" width="400" height="110" rx="18" fill="{c}" stroke="#D5E2E1" stroke-width="2"/>')
         b.append(f'<text x="{x + 28}" y="2286" {LABEL} font-size="28" font-weight="700" fill="{fg}">{n}  {c}</text>')
+    # 追加套组：夜航星横排成品、墨色套组（右上角大横版的前景 / 背景对调）
+    b.append(f'<line x1="120" y1="2410" x2="2280" y2="2410" stroke="#D5E2E1" stroke-width="2"/>')
+    b.append(f'<text x="120" y="2490" {LABEL} font-size="32" font-weight="700" fill="{INK}">追加套组</text>')
+    b.append(f'<text x="120" y="2540" {LABEL} font-size="24" fill="{INK}" fill-opacity="0.7">左：夜航星横排成品（自带夜航墨底板与 2x 安全区）　右：墨色套组（夜航墨前景、白底、日出橙站点）</text>')
+    pad = PLATE_PAD_X * hh / 6
+    pw, ph = hw + 2 * pad, hh + 2 * pad
+    s = 1060 / pw
+    for i, (name, (scheme, bg)) in enumerate(PLATES.items()):
+        x = 120 + i * 1100
+        border = ' stroke="#D5E2E1" stroke-width="2"' if bg == WHITE else ""
+        b.append(f'<rect x="{x}" y="2580" width="1060" height="{ph * s:.2f}" fill="{bg}"{border}/>')
+        b += layer_paths(hl, scheme, x + pad * s, 2580 + pad * s, s, ids=False)
+    y = 2580 + ph * s + 40
+    b.append(f'<rect x="1220" y="{y}" width="510" height="560" fill="{WHITE}" stroke="#D5E2E1" stroke-width="2" rx="24"/>')
+    b += _place(vl, "ink", 1220 + (510 - vw * 340 / vh) / 2, y + 110, 340, vh)
+    b.append(f'<rect x="1770" y="{y}" width="510" height="260" fill="{WHITE}" stroke="#D5E2E1" stroke-width="2" rx="24"/>')
+    b += _place(ml, "ink", 1770 + (510 - mw * 160 / mh) / 2, y + 50, 160, mh)
+    b.append(f'<rect x="1770" y="{y + 300}" width="510" height="260" fill="{MIST}" rx="24"/>')
+    b.append(_img(PNG / "liroam-app-icon-light-512.png", 1810, y + 330, 200, 200))
+    b.append(_img(PNG / "liroam-app-icon-light-fullbleed-1024.png", 2040, y + 330, 200, 200))
+    b.append(f'<rect x="120" y="{y}" width="1060" height="560" fill="{INK}" rx="24"/>')
+    b += _place(hl, "reverse", 120 + (1060 - hw * 120 / hh) / 2, y + 90, 120, hh)
+    b.append(f'<rect x="200" y="{y + 290}" width="900" height="190" fill="{WHITE}" rx="16"/>')
+    b += _place(hl, "ink", 200 + (900 - hw * 110 / hh) / 2, y + 330, 110, hh)
+    b.append(f'<text x="160" y="{y + 530}" {LABEL} font-size="22" fill="{WHITE}" fill-opacity="0.7">同一画面深浅区块切换示意：深区用夜航星，浅区用墨色</text>')
     write(tmp, svg_doc(W, H, b, "轻游 Liroam 品牌标识总览"))
     rsvg(tmp, PREVIEW / "overview.png")
 

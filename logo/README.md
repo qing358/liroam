@@ -52,7 +52,25 @@
 | App 图标满版 | `liroam-app-icon-fullbleed.svg` | 提交 iOS / 小程序等会自行裁圆角的平台 |
 | favicon | `favicon.svg`、`png/favicon.ico` | 浏览器标签；图形标在底板内放大，16px 可辨 |
 
-配色后缀：`color` 浅底彩色（默认）；`reverse` 深底彩色（白 + 日光黄站点，用于漫游青 / 夜航墨底）；`mono` 单色夜航墨（单色印刷、传真、压印可改为纯黑 `#000000`）；`white` 单色反白（照片或品牌色底）。
+配色后缀：`color` 浅底彩色（默认）；`reverse` 深底彩色（白 + 日光黄站点，用于漫游青 / 夜航墨底）；`mono` 单色夜航墨（单色印刷、传真、压印可改为纯黑 `#000000`）；`white` 单色反白（照片或品牌色底）；`ink` 墨色（见下）。
+
+### 追加套组：夜航星与墨色
+
+两套是一对：「夜航星」= 夜航墨底 + 白色图形与字标 + 日光黄站点（站点像夜航中的一颗星）；「墨色」= 把它的前景与背景对调，夜航墨前景放在白底上，站点按浅底规则换成日出橙（日光黄在白底上对比不足）。
+
+| 套组 | 文件 | 用在哪 |
+|------|------|--------|
+| 夜航星横排成品 | `liroam-horizontal-night-plate.svg` / `.png` | 自带夜航墨底板与四周 2x 安全区，可直接整块放：深色页头、社媒横幅、PPT 封面与尾页、活动背板、邮件签名深色条。透明底的同配色横版仍是 `liroam-horizontal-reverse` |
+| 墨色横排成品 | `liroam-horizontal-ink-plate.svg` / `.png` | 自带白底与 2x 安全区：文档首页、合作方 Logo 墙、媒体投稿等需要「一张带底的图」的场合 |
+| 墨色组合 / 图形标 | `liroam-{mark,horizontal,vertical}-ink.svg` / `.png` | 浅底上的商务正式场景：合同、发票、报价单、名片、浅色卡面与包装、白底演示文稿；比 `color` 更克制，比 `mono` 多一个品牌暖点 |
+| 浅色 App 图标 | `liroam-app-icon-light.svg`（SIM 切角白底板）、`liroam-app-icon-light-fullbleed.svg`；PNG 1024 / 512 / 192、满版 1024、`apple-touch-icon-light-180.png` | 深色背景上需要高亮的图标：深色模式应用商店横幅、深色宣传页里的下载入口、渠道方要求浅色图标时。默认图标仍用漫游青版 |
+
+选用规则：
+
+- `mono` 与 `ink` 的区别：`mono` 只有一个颜色，用于单色印刷、压印、烫印；`ink` 是双色（夜航墨 + 日出橙），用于正常彩色输出。
+- 同一画面里有深浅两种区块时，深区用夜航星，浅区用墨色，不在同一区块里混用。
+- 成品带底板，不要再叠加到别的底色上；需要放在其它背景上时改用透明底文件。
+- 浅色 App 图标白底板放在白色页面上会看不出边界，白底场景继续用漫游青默认图标；favicon 不出浅色版。
 
 ## 4. 字体与授权
 
@@ -70,7 +88,7 @@
 
 - 安全区：任何版本四周至少留 **1x** 空白，不放文字、图形或版面边缘；印刷品建议 2x。
 - 横版：x ≈ 组合高度 × 0.167；竖版：x ≈ 组合高度 × 0.086。
-- SVG 画布即为图形外框（不含安全区），排版时自行留白。
+- SVG 画布即为图形外框（不含安全区），排版时自行留白；例外是两张 `*-plate` 成品，画布已含 2x 安全区与底色。
 
 | 版本 | 屏幕最小 | 印刷最小 |
 |------|----------|----------|
@@ -96,8 +114,8 @@
 ```
 logo/
 ├── README.md            本规范
-├── svg/                 源文件（纯路径）：mark / horizontal / vertical × color / reverse / mono / white，app-icon、app-icon-fullbleed、favicon
-├── png/                 导出：各组合透明底 PNG；app-icon 1024/512/192、fullbleed 1024、apple-touch-icon-180、favicon 16/32/48 与 favicon.ico
+├── svg/                 源文件（纯路径）：mark / horizontal / vertical × color / reverse / mono / white / ink，horizontal-night-plate、horizontal-ink-plate，app-icon、app-icon-fullbleed、app-icon-light、app-icon-light-fullbleed，favicon
+├── png/                 导出：各组合透明底 PNG、两张带底板横排成品；app-icon 与 app-icon-light 各 1024/512/192 与满版 1024、apple-touch-icon(-light)-180、favicon 16/32/48 与 favicon.ico
 ├── preview/             overview.png 总览、concepts.png 方向提案、misuse.png 禁用示例
 └── tools/               构建脚本：geometry.py（中心线 → 等宽描边轮廓）、marks.py（图形标网格、三个变体与底板）、build.py（字标、组合、导出）
 ```

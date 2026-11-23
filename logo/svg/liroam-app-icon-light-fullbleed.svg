@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="轻游 Liroam">
+<title>轻游 Liroam</title>
+<rect id="tile" width="1024" height="1024" fill="#FFFFFF"/>
+<path id="route" fill="#102A43" d="M291.31 245.76H376.22V610.26L436.26 670.3H588.49V755.21H401.09L291.31 645.43Z"/>
+<path id="dot" fill="#E4572E" d="M763.41 712.76C763.41 737.61 743.26 757.76 718.4 757.76C693.55 757.76 673.4 737.61 673.4 712.76C673.4 687.9 693.55 667.76 718.4 667.76C743.26 667.76 763.41 687.9 763.41 712.76Z"/>
+</svg>
