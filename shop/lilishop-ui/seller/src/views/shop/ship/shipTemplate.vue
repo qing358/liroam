@@ -708,7 +708,7 @@ em {
   margin-left: 7px;
   margin-bottom: -8px;
   font-size: 15px;
-  color: #f00;
+  color: var(--el-color-danger);
 }
 
 .action-link:hover {

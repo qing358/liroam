@@ -967,7 +967,7 @@ function talkPanelScrollBottom() {
   }
 
   .price {
-    color: red;
+    color: var(--lr-accent-text);
     margin-top: 20px;
   }
 
@@ -1002,14 +1002,14 @@ function talkPanelScrollBottom() {
   
   font-size: 12px;
   >span{
-    color: red;
+    color: var(--lr-accent-text);
     font-size: 18px;
   }
 }
 .goods-item-price{
   margin-top: 10px;
   font-size: 13px;
-   color: red;
+   color: var(--lr-accent-text);
 }
 
 .main-box {

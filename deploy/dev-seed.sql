@@ -6,32 +6,29 @@ SET setting_value = JSON_SET(setting_value, '$.loginBypassEnabled', true)
 WHERE id = 'VERIFICATION_SETTING';
 
 -- 上游基线 li_verification_source 为空，前端登录滑块无法生成（至少需 1 张 RESOURCE、2 张 SLIDER）。
--- 素材取自上游 docker 仓库 561997f（2023-02-28）的 lilishop.sql，图片在上游公开 OSS。
-INSERT IGNORE INTO `li_verification_source` VALUES (1374925624577097728, 'admin', '2021-03-24 22:26:28.439000', b'0', 'admin', '2021-03-25 04:37:15.833000', 'pic1', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/9bda22fa8bb34033922faeca931f53b9.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1374928342632890368, 'admin', '2021-03-24 22:37:16.474000', b'0', 'admin', '2021-03-25 04:40:15.272000', 'slider1', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/571cc482c3f54d378de12a07f5262934.png', 'SLIDER');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375018973833199616, 'admin', '2021-03-25 04:37:24.630000', b'0', NULL, NULL, 'pic2', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/a77deac53b5c48ff968b9936c8c64477.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019001842761728, 'admin', '2021-03-25 04:37:31.314000', b'0', NULL, NULL, 'pic3', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/87c783a7aae94600b92983f3b5713a94.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019029051211776, 'admin', '2021-03-25 04:37:37.801000', b'0', NULL, NULL, 'pic4', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/9e67a1150f7941e294330940505a8b6e.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019056037363712, 'admin', '2021-03-25 04:37:44.235000', b'0', NULL, NULL, 'pic5', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/c6033185c98a447c9876b8424996e89e.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019091248545792, 'admin', '2021-03-25 04:37:52.630000', b'0', NULL, NULL, 'pic6', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/e339a017f56b441db7d463462f0be918.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019124496793600, 'admin', '2021-03-25 04:38:00.557000', b'0', NULL, NULL, 'pic7', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/5fb387820c484dadbbf5ee116b95e1f7.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019153378770944, 'admin', '2021-03-25 04:38:07.443000', b'0', NULL, NULL, 'pic8', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/4c85191728a84bb5888a1bd1ed6e84e2.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019191098146816, 'admin', '2021-03-25 04:38:16.436000', b'0', NULL, NULL, 'pic9', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/c9cfbc77ce904f49945777fec9330f19.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019231891947520, 'admin', '2021-03-25 04:38:26.162000', b'0', NULL, NULL, 'pic10', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/89e6149e3e094e3685bab50df9f931de.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019260119613440, 'admin', '2021-03-25 04:38:32.892000', b'0', NULL, NULL, 'pic11', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/cd9cb96bfcc2448d98c8b62ba7e6c54a.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019287202234368, 'admin', '2021-03-25 04:38:39.349000', b'0', NULL, NULL, 'pic12', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/ecf765f942074b0bb9fecb07f06ea04a.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019324225355776, 'admin', '2021-03-25 04:38:48.176000', b'0', NULL, NULL, 'pic13', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/876e040152c5417fa210b0e081230081.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019354214629376, 'admin', '2021-03-25 04:38:55.326000', b'0', NULL, NULL, 'pic14', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/22b20912533d424cb792463c65c87086.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019402356850688, 'admin', '2021-03-25 04:39:06.804000', b'0', NULL, NULL, 'pic15', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/63698a4f91884de0b2101f0217c37f21.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019434212589568, 'admin', '2021-03-25 04:39:14.399000', b'0', NULL, NULL, 'pic16', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/2b051d6d62964eff85eb94469af774e4.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019466777165824, 'admin', '2021-03-25 04:39:22.163000', b'0', NULL, NULL, 'pic17', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/f53f1a83e67d4a829b83871b14556a80.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019499257856000, 'admin', '2021-03-25 04:39:29.907000', b'0', 'admin', '2021-06-21 00:32:17.551000', 'pic18', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/f4dba40016384c2ea7ec7e3fe14178e1.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019533244301312, 'admin', '2021-03-25 04:39:38.010000', b'0', NULL, NULL, 'pic19', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/ae1c3a94dd65492da685e8d795142811.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019562025615360, 'admin', '2021-03-25 04:39:44.872000', b'0', NULL, NULL, 'pic20', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/c64d0ca543d64e14a50e12eb4b4a6170.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019589565415424, 'admin', '2021-03-25 04:39:51.438000', b'0', NULL, NULL, 'pic21', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/3f01fd63b7634a7f892b096946ba92b1.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019614437638144, 'admin', '2021-03-25 04:39:57.368000', b'0', NULL, NULL, 'pic22', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/e0f5300053b64bf68c1e5a72da553f79.jpg', 'RESOURCE');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019769773686784, 'admin', '2021-03-25 04:40:34.403000', b'0', 'admin', '2021-07-13 18:48:35.397000', 'slider2', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/af08d2babd2a4573b4d0bfb1a77de9ec.png', 'SLIDER');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019802841579520, 'admin', '2021-03-25 04:40:42.287000', b'0', NULL, NULL, 'slider3', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/d0554cdd219d479593ef5ef8b13f5a35.png', 'SLIDER');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019834093338624, 'admin', '2021-03-25 04:40:49.738000', b'0', NULL, NULL, 'slider4', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/a0e910a6d8af44e0b1180fd61caa6a26.png', 'SLIDER');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019863013064704, 'admin', '2021-03-25 04:40:56.633000', b'0', NULL, NULL, 'slider5', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/5df7b1d5e2924fe9aa7625abeca8ecad.png', 'SLIDER');
-INSERT IGNORE INTO `li_verification_source` VALUES (1375019899201519616, 'admin', '2021-03-25 04:41:05.261000', b'0', NULL, NULL, 'slider6', 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/1107d6be276849118353f8a63d387aea.png', 'SLIDER');
+-- 素材为本仓 deploy/dev-assets/verification/（logo/tools/assets.py 生成），后端按 file:// 读本机文件；正式环境上传到自有 OSS（docs/launch-checklist.md）。
+-- 早期 dev-seed 写入的上游图床素材（docker 仓 561997f 的 28 行）按 id 与图床前缀删掉。
+DELETE FROM `li_verification_source`
+WHERE resource LIKE 'https://lilishop-oss.oss-cn-beijing.aliyuncs.com/%'
+  AND id IN (1374925624577097728, 1374928342632890368, 1375018973833199616, 1375019001842761728, 1375019029051211776, 1375019056037363712, 1375019091248545792, 1375019124496793600, 1375019153378770944, 1375019191098146816, 1375019231891947520, 1375019260119613440, 1375019287202234368, 1375019324225355776, 1375019354214629376, 1375019402356850688, 1375019434212589568, 1375019466777165824, 1375019499257856000, 1375019533244301312, 1375019562025615360, 1375019589565415424, 1375019614437638144, 1375019769773686784, 1375019802841579520, 1375019834093338624, 1375019863013064704, 1375019899201519616);
+INSERT INTO `li_verification_source` (id, create_by, create_time, delete_flag, name, resource, type) VALUES
+  (1999000000000000001, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景1', CONCAT(@liroam_dev_assets, '/verification/bg-1.jpg'), 'RESOURCE'),
+  (1999000000000000002, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景2', CONCAT(@liroam_dev_assets, '/verification/bg-2.jpg'), 'RESOURCE'),
+  (1999000000000000003, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景3', CONCAT(@liroam_dev_assets, '/verification/bg-3.jpg'), 'RESOURCE'),
+  (1999000000000000004, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景4', CONCAT(@liroam_dev_assets, '/verification/bg-4.jpg'), 'RESOURCE'),
+  (1999000000000000005, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景5', CONCAT(@liroam_dev_assets, '/verification/bg-5.jpg'), 'RESOURCE'),
+  (1999000000000000006, 'liroam', '2026-11-26 13:10:00', b'0', '轻游背景6', CONCAT(@liroam_dev_assets, '/verification/bg-6.jpg'), 'RESOURCE'),
+  (1999000000000000007, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块1', CONCAT(@liroam_dev_assets, '/verification/slider-1.png'), 'SLIDER'),
+  (1999000000000000008, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块2', CONCAT(@liroam_dev_assets, '/verification/slider-2.png'), 'SLIDER'),
+  (1999000000000000009, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块3', CONCAT(@liroam_dev_assets, '/verification/slider-3.png'), 'SLIDER'),
+  (1999000000000000010, 'liroam', '2026-11-26 13:10:00', b'0', '轻游拼块4', CONCAT(@liroam_dev_assets, '/verification/slider-4.png'), 'SLIDER')
+ON DUPLICATE KEY UPDATE resource = VALUES(resource), delete_flag = VALUES(delete_flag);
+
+-- 上游演示站 *.pickmall.cn 已由 Flyway 清空（V202611261310）；本机填买家 PC 与 buyer-api 的登记地址，运营在本机改过的不动。
+-- 本机没有 H5 端，wap 地址留空。
+UPDATE li_setting SET setting_value = JSON_SET(setting_value, '$.staticPageAddress', @liroam_buyer_pc)
+WHERE id = 'BASE_SETTING' AND JSON_UNQUOTE(JSON_EXTRACT(setting_value, '$.staticPageAddress')) IN ('', 'https://pc-b2b2c.pickmall.cn');
+UPDATE li_setting SET setting_value = JSON_SET(setting_value, '$.callbackUrl', @liroam_buyer_api)
+WHERE id IN ('CONNECT_SETTING', 'ALIPAY_PAYMENT') AND JSON_UNQUOTE(JSON_EXTRACT(setting_value, '$.callbackUrl')) IN ('', 'https://buyer-api.pickmall.cn');
+UPDATE li_setting SET setting_value = JSON_SET(setting_value, '$.pc', @liroam_buyer_pc)
+WHERE id = 'CONNECT_SETTING' AND JSON_UNQUOTE(JSON_EXTRACT(setting_value, '$.pc')) IN ('', 'https://pc-b2b2c.pickmall.cn');

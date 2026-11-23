@@ -8,7 +8,7 @@
       <div style="margin-left: 13px">
         <a @click="linkToGoods(goodsDetail.goodsId, goodsDetail.id)"> {{ goodsDetail.goodsName }} </a>
         <div>
-          <span style="color: red;">{{ $filters.unitPrice(goodsDetail.price, '￥') }}</span>
+          <span style="color: var(--lr-accent-text);">{{ $filters.unitPrice(goodsDetail.price, '￥') }}</span>
         </div>
         <div v-if="hide">
           <el-button class="store-button" type="danger" v-if="btnHide == 1 && toUser.storeFlag" size="small"

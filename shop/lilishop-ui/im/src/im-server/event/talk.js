@@ -227,13 +227,11 @@ class Talk extends Base {
         el.scrollTop = el.scrollHeight;
       });
     } else {
-      // console.log("%c SET_TLAK_UNREAD_MESSAGE %c", "color:red");
       talkStore.SET_TLAK_UNREAD_MESSAGE({
         content: this.getTalkText(),
         nickname: record.name,
       });
     }
-    // console.log("%c 准备更新...UPDATE_TALK_ITEM ", "color:red");
 
     const nowTime = parseTime(new Date());
     const msgText = this.getTalkText() || record.text;

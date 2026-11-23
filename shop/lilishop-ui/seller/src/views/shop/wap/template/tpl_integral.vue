@@ -73,40 +73,40 @@
 import { computed } from "vue";
 const INTEGRAL_DEMO = [
   {
-    goodsName: "小米小爱音箱 Play 增强版 智能红外遥控",
+    goodsName: "1GB 加油包兑换券",
     points: 1200,
     originalPrice: 149,
-    thumbnail: "/demo/xiaomi-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
   {
-    goodsName: "Apple 20W USB-C 官方原装快充充电器",
+    goodsName: "3GB 加油包兑换券",
     points: 1500,
     originalPrice: 149,
-    thumbnail: "/demo/apple-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
   {
-    goodsName: "米家自动洗手机 套装 抑菌洗手液",
+    goodsName: "续费 3 天兑换券",
     points: 800,
     originalPrice: 79,
-    thumbnail: "/demo/xiaomi-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
   {
-    goodsName: "多功能桌面风扇 超长续航三档风力",
+    goodsName: "eSIM 下单立减券",
     points: 600,
     originalPrice: 59,
-    thumbnail: "/demo/vivo-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
   {
-    goodsName: "精品保温杯 316不锈钢 480ml",
+    goodsName: "实体卡包邮券",
     points: 990,
     originalPrice: 99,
-    thumbnail: "/demo/apple-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
   {
-    goodsName: "无线双模鼠标 2.4G+蓝牙 轻音便携",
+    goodsName: "旅行转换插头",
     points: 750,
     originalPrice: 69,
-    thumbnail: "/demo/vivo-phone.png",
+    thumbnail: "/liroam/goods-placeholder.svg",
   },
 ];
 

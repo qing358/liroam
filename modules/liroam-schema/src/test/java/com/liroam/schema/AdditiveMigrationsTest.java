@@ -27,7 +27,7 @@ class AdditiveMigrationsTest {
             Pattern.CASE_INSENSITIVE);
 
     static List<String> violations(String fileName, String sql) {
-        String code = sql.replaceAll("(?s)/\\*.*?\\*/", " ").replaceAll("(?m)--.*$", " ").replaceAll("'(?:[^'\\\\]|\\\\.)*'", "''");
+        String code = sql.replaceAll("(?s)/\\*.*?\\*/", " ").replaceAll("(?m)--.*$", " ").replaceAll("'[^'\\\\]*+(?:\\\\.[^'\\\\]*+)*+'", "''");
         List<String> found = new ArrayList<>();
         Matcher m = FORBIDDEN.matcher(code);
         while (m.find()) {
@@ -57,5 +57,6 @@ class AdditiveMigrationsTest {
         assertThat(violations("x", "DROP TABLE lr_a;")).isNotEmpty();
         assertThat(violations("x", "TRUNCATE lr_a;")).isNotEmpty();
         assertThat(violations("x", "-- 以后 DROP TABLE lr_a\nALTER TABLE lr_a ADD COLUMN c VARCHAR(8) COMMENT 'MODIFY 前缀';")).isEmpty();
+        assertThat(violations("x", "SET @page := '" + "{\\\"a\\\":\\\"b\\\"},".repeat(2000) + "';")).as("整页装修 JSON 这类长字面量").isEmpty();
     }
 }

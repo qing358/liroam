@@ -37,7 +37,7 @@
             <span v-else-if="file.status == 2" style="color: #67c23a">
               已完成
             </span>
-            <span v-else style="color: red">网络异常</span>
+            <span v-else style="color: var(--el-color-danger)">网络异常</span>
           </div>
         </div>
         <div class="file-mian">

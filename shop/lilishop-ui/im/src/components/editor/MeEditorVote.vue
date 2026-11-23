@@ -205,7 +205,7 @@ function removeOption(index) {
           font-size: 18px;
           cursor: pointer;
           &:hover {
-            color: red;
+            color: var(--el-color-danger);
           }
         }
       }

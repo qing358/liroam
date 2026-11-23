@@ -227,7 +227,7 @@ defineExpose({ setGroupNum })
         font-size: 26px;
         transform: scale(1.3);
         transition: ease 0.5s;
-        color: red;
+        color: var(--lr-primary);
       }
     }
   }

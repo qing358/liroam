@@ -135,7 +135,7 @@ logo/
 ├── svg/                 源文件（纯路径）：mark / horizontal / vertical × color / reverse / mono / white / ink，horizontal-night-plate、horizontal-ink-plate，app-icon、app-icon-fullbleed、app-icon-light、app-icon-light-fullbleed，favicon
 ├── png/                 导出：各组合透明底 PNG、两张带底板横排成品；app-icon 与 app-icon-light 各 1024/512/192 与满版 1024、apple-touch-icon(-light)-180、favicon 16/32/48 与 favicon.ico
 ├── preview/             overview.png 总览、concepts.png 方向提案、misuse.png 禁用示例
-└── tools/               构建脚本：geometry.py（中心线 → 等宽描边轮廓）、marks.py（图形标网格、三个变体与底板）、build.py（字标、组合、导出）
+└── tools/               构建脚本：geometry.py（中心线 → 等宽描边轮廓）、marks.py（图形标网格、三个变体与底板）、build.py（字标、组合、导出）、assets.py（商城站内素材：装修轮播 / 活动卡、会员等级与权益图标、商品与店铺占位图、admin 头像、本机登录滑块素材）
 ```
 
 几何、配色、字距都只在 `tools/` 里改，改完重建，不要手改导出物：
@@ -144,7 +144,10 @@ logo/
 python3 -m venv /tmp/liroam-logo-venv
 /tmp/liroam-logo-venv/bin/pip install -r logo/tools/requirements.txt
 /tmp/liroam-logo-venv/bin/python logo/tools/build.py   # 需要 rsvg-convert 与 ImageMagick convert
+python3 logo/tools/assets.py                            # 只用标准库；滑块 jpg / png 同样需要 rsvg-convert 与 convert
 ```
+
+`assets.py` 的色值从本文件色板表读，图形取 `svg/` 的白色标与反白横排，线路图母题（竖线 → 45° 折角 → 横线 → 站点）只在脚本里改；产物写到 `shop/lilishop-ui/{buyer,seller,manager}/public/liroam/` 与 `deploy/dev-assets/verification/`，库里装修与会员图片按根路径 `/liroam/...` 引用。
 
 中文字形取自 `NotoSansSC-VF.ttf`，默认路径为 WSL 下的 Windows 字体目录，可用环境变量 `LIROAM_FONT_SC` 指向其它位置（[Google Fonts 下载](https://fonts.google.com/noto/specimen/Noto+Sans+SC)）。
 

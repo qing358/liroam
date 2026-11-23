@@ -106,7 +106,7 @@ function mouseUp() {
           verifyText.value = "解锁成功";
           emit("change", { status: true, distance: distance.value });
         } else {
-          bgColor.value = "red";
+          bgColor.value = "var(--el-color-danger)";
           verifyText.value = "解锁失败";
           setTimeout(() => init(), 1000);
           emit("change", { status: false, distance: distance.value });

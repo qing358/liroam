@@ -43,13 +43,13 @@
       :closable="false"
     >
       <template #default>
-        <div style="color: red">
+        <div style="color: var(--lr-accent-text)">
           如果当前装修模块不是最后一项模块且模块内容绑定为分类，则会默认展示绑定分类的100条商品信息。
         </div>
-        <div style="color: red">
+        <div style="color: var(--lr-accent-text)">
           如果当前装修模块是最后一项模块且模块内容绑定为分类，则会默认会根据绑定分类触底加载商品信息。
         </div>
-        <div style="color: red">
+        <div style="color: var(--lr-accent-text)">
           如果当前装修内容不为分类，则会展示当前商品的静态信息。
         </div>
       </template>

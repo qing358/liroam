@@ -261,7 +261,7 @@ function codeChanged(val) {
     }
 
     .code-warning {
-      color: red;
+      color: var(--el-color-danger);
     }
 
     .buttom-group {

@@ -108,33 +108,33 @@ export default {
     previewShops() {
       const DEMO = [
         {
-          name: "Apple",
-          logo: "/demo/apple.png",
-          goodsImage: "/demo/apple-phone.png",
+          name: "轻游自营",
+          logo: "/liroam/store-logo.svg",
+          goodsImage: "/liroam/goods-placeholder.svg",
           goods: [
-            { name: "iPhone 16 Pro", price: 8999, img: "/demo/apple-phone.png" },
-            { name: "iPhone 16", price: 7999, img: "/demo/apple-phone.png" },
-            { name: "iPhone 15", price: 6999, img: "/demo/apple-phone.png" },
+            { name: "日本 5 天 每日 2GB eSIM", price: 49, img: "/liroam/goods-placeholder.svg" },
+            { name: "韩国 7 天 不限量 eSIM", price: 69, img: "/liroam/goods-placeholder.svg" },
+            { name: "泰国 8 天 15GB 流量卡", price: 59, img: "/liroam/goods-placeholder.svg" },
           ],
         },
         {
-          name: "小米",
-          logo: "/demo/xiaomi.png",
-          goodsImage: "/demo/xiaomi-phone.png",
+          name: "轻游日韩专区",
+          logo: "/liroam/store-logo.svg",
+          goodsImage: "/liroam/goods-placeholder.svg",
           goods: [
-            { name: "Xiaomi 15 Pro", price: 5299, img: "/demo/xiaomi-phone.png" },
-            { name: "Xiaomi 15", price: 3999, img: "/demo/xiaomi-phone.png" },
-            { name: "Xiaomi 14", price: 3299, img: "/demo/xiaomi-phone.png" },
+            { name: "欧洲 33 国 10 天 20GB eSIM", price: 39, img: "/liroam/goods-placeholder.svg" },
+            { name: "美国 7 天 每日 3GB 实体卡", price: 99, img: "/liroam/goods-placeholder.svg" },
+            { name: "新马 6 天 10GB eSIM", price: 129, img: "/liroam/goods-placeholder.svg" },
           ],
         },
         {
-          name: "VIVO",
-          logo: "/demo/vivo.png",
-          goodsImage: "/demo/vivo-phone.png",
+          name: "轻游欧美专区",
+          logo: "/liroam/store-logo.svg",
+          goodsImage: "/liroam/goods-placeholder.svg",
           goods: [
-            { name: "vivo X200 Pro", price: 5299, img: "/demo/vivo-phone.png" },
-            { name: "vivo X200", price: 4299, img: "/demo/vivo-phone.png" },
-            { name: "vivo X100 Pro", price: 3999, img: "/demo/vivo-phone.png" },
+            { name: "港澳 5 天 不限量 eSIM", price: 149, img: "/liroam/goods-placeholder.svg" },
+            { name: "澳新 10 天 15GB 流量卡", price: 89, img: "/liroam/goods-placeholder.svg" },
+            { name: "日本 5 天 每日 2GB eSIM", price: 79, img: "/liroam/goods-placeholder.svg" },
           ],
         },
       ];

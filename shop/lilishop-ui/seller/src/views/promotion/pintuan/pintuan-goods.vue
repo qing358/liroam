@@ -374,7 +374,7 @@ h4 {
   color: #333;
   font-size: 14px;
   text-align: left;
-  border-left: 3px solid red;
+  border-left: 3px solid var(--lr-primary);
 }
 
 .operation {

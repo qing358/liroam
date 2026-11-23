@@ -67,7 +67,7 @@ const UPSTREAM_COPY = [
   '品类齐全', '多仓直发', '正品行货', '畅选无忧', '欢迎来到商城', '购物指南', "'品质优选', desc: '放心购物'",
   '品牌故事 · 匠心传承', '甄选美好生活', '官方商城运营部', '100% 官方正品', '7天无理由', '极速顺丰', '>顺丰速运<',
   '商城秋季大促', '商城系统', '品质生活馆', '官方正品', '镇店爆品', '正品严选', '电商之旅',
-  '开源不易', 'vue-antd-pro', "'手机', '数码家电'",
+  '开源不易', 'vue-antd-pro', "'手机', '数码家电'", "'iPhone 16 Pro', '小棕瓶'", '一家很有品的店', '/demo/',
 ];
 
 function copyHits(file) {
@@ -110,11 +110,13 @@ const UPSTREAM_COLORS = new RegExp('#(' + [
   'ff5c58', 'f31947', 'ff3c2a', 'f5222d', 'ef4444', 'e1251b', 'e4393c', 'e23a3a', 'ed3f14', 'ff4d4f', 'ff7875', 'ff6b35', 'ff9f28',
   'e11d48', 'dc2626', 'f5483a', 'e1212b', 'e93323', 'fa2c19', 'ff1e1e', 'e52d27', 'ed4014', 'dd4b39', 'ff2200', 'e31414',
 ].join('|') + ')(?![0-9a-f])|rgba?\\( *(64, *158, *255|255, *92, *88|243, *25, *71|255, *60, *42|239, *68, *68)\\b', 'i');
+// 上游散落的纯红（red / #f00 / #ff0000）：只认样式上下文，皮肤名 'red' 之类的标识符不算；报错等语义色改用 var(--el-color-danger)。
+const UPSTREAM_RED = /#(f00|ff0000)(?![0-9a-f])|\b(color|background(-color)?|border(-[a-z]+)*|fill|stroke|outline(-color)?|bg-?color)(\.value)?\s*[:=]\s*["']?red\b|\b(solid|dashed|dotted)\s+red\b/i;
 const STYLE = /\.(vue|js|scss|less|css|html)$/;
 
 function colorHits(file) {
   return fs.readFileSync(file, 'utf8').split('\n').flatMap((line, i) =>
-    UPSTREAM_COLORS.test(line) ? [`${path.relative(repoRoot, file)}:${i + 1}: ${line.trim().slice(0, 120)}`] : []);
+    UPSTREAM_COLORS.test(line) || UPSTREAM_RED.test(line) ? [`${path.relative(repoRoot, file)}:${i + 1}: ${line.trim().slice(0, 120)}`] : []);
 }
 
 test('前端不再出现上游主题红 / 蓝色值', () => {
@@ -161,6 +163,12 @@ test('闸本身：拦上游主色，放过状态色', () => {
   assert.ok(!UPSTREAM_COLORS.test('color: #f56c6c;'));
   assert.ok(!UPSTREAM_COLORS.test('color: #409eff0;'));
   assert.ok(!UPSTREAM_COLORS.test('color: #0b7a75;'));
+  for (const line of ['color: red;', "style=\"color:red\"", 'border: 1px solid red', 'background:#f00', 'color: #FF0000;', 'color = "red";', "bgColor: 'red'", 'bgColor.value = "red";']) {
+    assert.ok(UPSTREAM_RED.test(line), line);
+  }
+  for (const line of ["skin: 'red'", "value: 'red', label: '红色'", 'color: #f00a12;', 'color: var(--el-color-danger);', 'colored: true']) {
+    assert.ok(!UPSTREAM_RED.test(line), line);
+  }
 });
 
 test('闸本身：能抓到品牌名，放过演示素材与部署地址', () => {

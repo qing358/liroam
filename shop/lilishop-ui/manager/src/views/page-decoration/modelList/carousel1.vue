@@ -31,7 +31,7 @@
         <el-button type="primary" size="small" @click="handleAdd">添加轮播</el-button>
         &nbsp;
         <span class="ml_10">图片尺寸:{{ data.size }}</span>
-        <span style="color: red" class="fz_12 ml_10"
+        <span style="color: var(--lr-accent-text)" class="fz_12 ml_10"
           >点击缩略图替换图片、点击颜色选择器选择背景色</span
         >
         <table cellspacing="0">

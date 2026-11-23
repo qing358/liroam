@@ -83,8 +83,8 @@ defineEmits(["event"]);
         border: 1px solid transparent;
 
         &:hover {
-          color: red;
-          border-color: red;
+          color: var(--lr-primary);
+          border-color: var(--lr-primary);
           background: transparent;
           font-size: 18px;
         }

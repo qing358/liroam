@@ -239,7 +239,7 @@ div.base-info-item {
 
   /** 审核信息-拒绝原因 */
   .auth-info {
-    color: red;
+    color: var(--el-color-danger);
   }
 
   .el-form-item {

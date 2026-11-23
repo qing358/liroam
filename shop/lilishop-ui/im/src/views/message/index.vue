@@ -507,7 +507,7 @@ function talkItemsMenu(item, event) {
         onClick: () => {
           let title = item.talk_type == 1 ? "删除好友" : "退出群聊";
           ElMessageBox.confirm(
-            `此操作将 <span style="color:red;font-size:16px;">${title}</span>, 是否继续?`,
+            `此操作将 <span style="color:var(--el-color-danger);font-size:16px;">${title}</span>, 是否继续?`,
             "提示",
             {
               confirmButtonText: "确定",
@@ -1040,7 +1040,7 @@ onBeforeUnmount(() => {
         }
 
         .draft-color {
-          color: red;
+          color: var(--lr-accent-text);
           font-weight: 300;
         }
       }

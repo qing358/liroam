@@ -102,7 +102,7 @@ defineExpose({ open, close })
 
     .error {
       width: 85%;
-      color: red;
+      color: var(--el-color-danger);
       font-size: 12px;
       height: 50px;
       line-height: 50px;

@@ -33,7 +33,7 @@ export const modelData = [
       tabActiveColor: "#e4572e",
       tabList: [
         { title: "精选", dataType: "category", value: "" },
-        { title: "靓丽美妆", dataType: "category", value: "" }
+        { title: "热门目的地", dataType: "category", value: "" }
       ],
       swiperStyle: "card",
       indicatorStyle: "round",
@@ -597,50 +597,50 @@ export const modelData = [
           groupSuccess: "134人拼团成功",
           data: [
             {
-              goodsName: "iPhone 16 Pro 5G智能手机 256GB 白色钛金属",
+              goodsName: "日本 5 天 每日 2GB eSIM",
               price: 8999,
               originalPrice: 9999,
-              thumbnail: "/demo/apple-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 3
             },
             {
-              goodsName: "Xiaomi 15 5G智能手机 12GB+256GB 白色",
+              goodsName: "韩国 7 天 不限量 eSIM",
               price: 3999,
               originalPrice: 4299,
-              thumbnail: "/demo/xiaomi-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 8
             },
             {
-              goodsName: "vivo X200 5G智能手机 12GB+256GB 宝石蓝",
+              goodsName: "泰国 8 天 15GB 流量卡",
               price: 4199,
               originalPrice: 4599,
-              thumbnail: "/demo/vivo-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 5
             },
             {
-              goodsName: "iPhone 16 5G智能手机 128GB 群青色",
+              goodsName: "欧洲 33 国 10 天 20GB eSIM",
               price: 5999,
               originalPrice: 6499,
-              thumbnail: "/demo/apple-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 12
             },
             {
-              goodsName: "Redmi K80 5G智能手机 12GB+256GB 玄夜黑",
+              goodsName: "美国 7 天 每日 3GB 实体卡",
               price: 2499,
               originalPrice: 2799,
-              thumbnail: "/demo/xiaomi-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 21
             },
             {
-              goodsName: "vivo S20 5G智能手机 8GB+256GB 凤羽金",
+              goodsName: "新马 6 天 10GB eSIM",
               price: 2299,
               originalPrice: 2599,
-              thumbnail: "/demo/vivo-phone.png",
+              thumbnail: "/liroam/goods-placeholder.svg",
               groupNum: 2,
               joined: 16
             }
@@ -677,20 +677,20 @@ export const modelData = [
               title: "直播标题直播标题直播标题直播标题",
               anchorName: "樱桃小丸子",
               status: "LIVE",
-              cover: "/demo/apple-phone.png"
+              cover: "/liroam/goods-placeholder.svg"
             },
             {
               title: "直播标题直播标题直播标题直播标题",
               anchorName: "樱桃小丸子",
               status: "REPLAY",
-              cover: "/demo/xiaomi-phone.png"
+              cover: "/liroam/goods-placeholder.svg"
             },
             {
               title: "直播标题直播标题直播标题直播标题",
               anchorName: "樱桃小丸子",
               status: "PREVIEW",
               startTime: "7/29 10:00",
-              cover: "/demo/vivo-phone.png"
+              cover: "/liroam/goods-placeholder.svg"
             }
           ]
         }
@@ -722,24 +722,24 @@ export const modelData = [
           color1: "#fff",
           data: [
             {
-              goodsName: "一家很有品的店",
+              goodsName: "港澳 5 天 不限量 eSIM",
               price: 234,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "澳新 10 天 15GB 流量卡",
               price: 177,
-              thumbnail: "/demo/xiaomi-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "日本 5 天 每日 2GB eSIM",
               price: 177,
-              thumbnail: "/demo/vivo-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "韩国 7 天 不限量 eSIM",
               price: 234,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             }
           ]
         }
@@ -771,28 +771,28 @@ export const modelData = [
           color1: "#fff",
           data: [
             {
-              goodsName: "一家很有品的店",
+              goodsName: "泰国 8 天 15GB 流量卡",
               price: 234,
               purchasePrice: 99,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "欧洲 33 国 10 天 20GB eSIM",
               price: 177,
               purchasePrice: 77,
-              thumbnail: "/demo/xiaomi-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "美国 7 天 每日 3GB 实体卡",
               price: 177,
               purchasePrice: 77,
-              thumbnail: "/demo/vivo-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "新马 6 天 10GB eSIM",
               price: 234,
               purchasePrice: 99,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             }
           ]
         }
@@ -897,28 +897,28 @@ export const modelData = [
           count: 6,
           data: [
             {
-              goodsName: "一家很有品的店",
+              goodsName: "港澳 5 天 不限量 eSIM",
               points: 200,
               originalPrice: 234,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "澳新 10 天 15GB 流量卡",
               points: 150,
               originalPrice: 177,
-              thumbnail: "/demo/xiaomi-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "日本 5 天 每日 2GB eSIM",
               points: 150,
               originalPrice: 177,
-              thumbnail: "/demo/vivo-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             },
             {
-              goodsName: "一家很有品的店",
+              goodsName: "韩国 7 天 不限量 eSIM",
               points: 200,
               originalPrice: 234,
-              thumbnail: "/demo/apple-phone.png"
+              thumbnail: "/liroam/goods-placeholder.svg"
             }
           ]
         }

@@ -113,7 +113,7 @@ const hotWordsList = computed(() => {
   if (Array.isArray(props.options?.hotWords) && props.options.hotWords.length) {
     return props.options.hotWords;
   }
-  return ['iPhone 16 Pro', '小棕瓶', '戴森吹风机', '华为Mate 70', '五粮液', '跑鞋'];
+  return ['日本', '韩国', '泰国', '欧洲多国', '美国'];
 });
 
 const customStyle = computed(() => {

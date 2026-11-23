@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
 
 .left-tips-count-down {
   font-size: 14px;
-  color: red;
+  color: var(--lr-accent-text);
 }
 
 .wrapper-head {

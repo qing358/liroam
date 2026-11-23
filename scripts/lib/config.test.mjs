@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, validatePorts,
+  backendBuildArgs, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
 } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -142,4 +142,26 @@ test('仓内各前端按锁文件选到预期的包管理器', () => {
 test('selectFrontends 遇到未知前端名或空列表直接报错', () => {
   assert.throws(() => selectFrontends(['up', '--ui=admin'], UIS), /未知前端 admin/);
   assert.throws(() => selectFrontends(['up', '--ui='], UIS), /未知前端/);
+});
+
+test('devSeedVars 给 dev-seed 本机地址与滑块素材目录，地址取自端口登记', () => {
+  const env = parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'));
+  const vars = devSeedVars(buildConfig(env), '/work/liroam');
+  assert.equal(vars.liroam_buyer_pc, `http://localhost:${env.LIROAM_BUYER_UI_PORT}`);
+  assert.equal(vars.liroam_buyer_api, `http://localhost:${env.LIROAM_BUYER_API_PORT}`);
+  assert.equal(vars.liroam_dev_assets, 'file:///work/liroam/deploy/dev-assets');
+});
+
+test('dev-seed 引用的变量都由 devSeedVars 提供，滑块素材文件都在仓里', () => {
+  const sql = fs.readFileSync(path.join(repoRoot, 'deploy/dev-seed.sql'), 'utf8');
+  const vars = devSeedVars(buildConfig(parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'))), repoRoot);
+  const used = new Set([...sql.matchAll(/@(liroam_[a-z_]+)/g)].map((m) => m[1]));
+  assert.deepEqual([...used].sort(), Object.keys(vars).sort());
+  const files = [...sql.matchAll(/@liroam_dev_assets, '([^']+)'/g)].map((m) => m[1]);
+  assert.ok(files.length >= 3, '至少 1 张背景、2 张滑块');
+  for (const f of files) assert.ok(fs.existsSync(path.join(repoRoot, 'deploy/dev-assets', f)), f);
+});
+
+test('sqlSetVars 生成会话变量并转义引号与反斜杠', () => {
+  assert.equal(sqlSetVars({ a: "x'y", b: 'c\\d' }), "SET @a := 'x''y';\nSET @b := 'c\\\\d';\n");
 });

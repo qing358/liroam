@@ -1,7 +1,7 @@
 
 export function promotionsStatusRender(h, params) {
   let text = "未知",
-    color = "red";
+    color = "error";
   if (params.row.promotionStatus == "NEW") {
     text = "未开始";
     color = "geekblue";
@@ -10,10 +10,10 @@ export function promotionsStatusRender(h, params) {
     color = "green";
   } else if (params.row.promotionStatus == "END") {
     text = "已结束";
-    color = "red";
+    color = "error";
   } else if (params.row.promotionStatus == "CLOSE") {
     text = "已关闭";
-    color = "red";
+    color = "error";
   }
   return h("div", [
     h(
@@ -30,7 +30,7 @@ export function promotionsStatusRender(h, params) {
 
 export function promotionsScopeTypeRender(h, params) {
   let text = "未知",
-    color = "red";
+    color = "error";
   if (params.row.scopeType == "ALL") {
     text = "全品类";
     color = "default";
@@ -59,7 +59,7 @@ export function promotionsScopeTypeRender(h, params) {
 
 export function memberPromotionsStatusRender(h, status) {
   let text = "未知",
-    color = "red";
+    color = "error";
   if (status == "NEW") {
     text = "已领取";
     color = "geekblue";
@@ -68,10 +68,10 @@ export function memberPromotionsStatusRender(h, status) {
     color = "green";
   } else if (status == "EXPIRE") {
     text = "已过期";
-    color = "red";
+    color = "error";
   } else if (status == "CLOSED") {
     text = "已作废";
-    color = "red";
+    color = "error";
   }
   return h("div", [
     h(

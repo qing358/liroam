@@ -723,7 +723,7 @@ function getUsageAmountDisplay(row) {
   const txType = row.transactionType || row.bizType;
   let color = config.mainColor;
   if (txType === "ORDER_DEDUCT") {
-    color = "red";
+    color = "var(--el-color-danger)";
   } else if (txType === "ORDER_REFUND") {
     color = "green";
   }

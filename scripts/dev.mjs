@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 import {
-  backendBuildArgs, backendEnv, buildConfig, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends,
+  backendBuildArgs, backendEnv, buildConfig, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
 } from './lib/config.mjs';
 import { backupFileName, compareCounts, latestBackup, parseCounts } from './lib/backup.mjs';
 import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
@@ -68,16 +68,16 @@ function resolveJavaHome() {
   throw new Error(`未找到 JDK 21：按 .sdkmanrc 执行 sdk install java ${version ?? '21.x-tem'}，或设置 LIROAM_JAVA_HOME。`);
 }
 
-function runSql(file) {
-  const sql = fs.readFileSync(path.join(rootDir, file), 'utf8');
+function runSql(file, vars = {}) {
+  const sql = sqlSetVars(vars) + fs.readFileSync(path.join(rootDir, file), 'utf8');
   const result = spawnSync('docker', ['compose', '--env-file', portsPath, '--env-file', secretsPath, '-f', composeFile,
     'exec', '-T', 'mysql', 'sh', '-c', 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --batch lilishop'], { cwd: rootDir, input: sql, encoding: 'utf8' });
   if (result.status !== 0) throw new Error(`${file} 执行失败：${result.stderr}`);
   return result.stdout;
 }
 
-function applyDevSeed() {
-  runSql('deploy/dev-seed.sql');
+function applyDevSeed(config) {
+  runSql('deploy/dev-seed.sql', devSeedVars(config, rootDir));
   compose(['exec', '-T', 'redis', 'redis-cli', 'DEL', '{setting}::VERIFICATION_SETTING', '{VERIFICATION}_'], { capture: true });
   console.log('已应用本机演示配置 deploy/dev-seed.sql');
 }
@@ -203,7 +203,7 @@ async function up() {
 
   console.log('\n$ docker compose up -d --wait（liroam 专用 MySQL / Redis）');
   compose(['up', '-d', '--wait']);
-  applyDevSeed();
+  applyDevSeed(config);
 
   if (process.argv.includes('--build') || BACKENDS.some((b) => !backendJar(b.module))) buildBackend(javaHome);
   for (const fe of frontends) {

@@ -350,7 +350,7 @@ onMounted(() => {
 }
 .sell-point {
   font-size: 12px;
-  color: red;
+  color: var(--lr-accent-text);
   margin-bottom: 5px;
 }
 .item-intro {

@@ -30,3 +30,6 @@
 | 24 | 库容量阈值 | `alert.db_capacity_mb` 改成生产实例实际配额（默认 20480 MB）；「运维概览」占比正常 |
 | 25 | 数据密钥轮换可行 | 生产密钥管理能新增 `LIROAM_DATA_KEY_Vn` 并滚动重启；在预发按手册走一遍 新增 → 重加密 → 下线旧版本，「运维概览」无无法解密行 |
 | 26 | 渠道真适配器 | 每个启用渠道的 `lr_channel.adapter_key` 不含 `mock-`（生产 profile 装到模拟渠道即启动失败）；小红书 / 京东真适配器按真实报文过 拉单 → 回传 → 日对账 |
+| 27 | 部署地址与回调 | 壳「系统设置」`BASE_SETTING` 的 PC / H5 静态页地址、`CONNECT_SETTING` 联合登录回调与 PC / H5 地址、支付宝 `ALIPAY_PAYMENT.callbackUrl`（及微信支付回调）填生产域名；迁移只把上游演示站 `*.pickmall.cn` 清空，空值上线会让分享链接、第三方登录与支付回调失效 |
+| 28 | 登录滑块素材 | `li_verification_source` 至少 1 张背景（`RESOURCE`）、2 张拼块（`SLIDER`）；用 `deploy/dev-assets/verification/` 的轻游素材上传自有 OSS 后在后台「验证码资源」录入（本机用的是 `file://` 本地路径，不能进生产）；三端登录页滑块能出图 |
+| 29 | 上游图床残留 | 库里不再引用 `lilishop-oss` / `lilishop-pc` 上游图床：分销海报 / 邀请卡 / 招募背景（`DISTRIBUTION_*_SETTING`）换自有素材；H5 装修若启用，商品与图片换真实内容 |

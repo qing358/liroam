@@ -123,7 +123,7 @@ h3 {
 }
 .goods-price {
   font-size: 18px;
-  color: red;
+  color: var(--lr-accent-text);
 }
 .goods-item {
   display: flex;
@@ -138,7 +138,7 @@ h3 {
 }
 .flowPrice {
   font-size: 24px;
-  color: red;
+  color: var(--lr-accent-text);
 }
 .goods-title {
   margin: 0 16px;

@@ -97,6 +97,19 @@ export function buildConfig(env, host = 'localhost') {
   };
 }
 
+// dev-seed.sql 里的本机值（部署地址、滑块素材目录）随端口登记与仓位置变，由 dev.mjs 作为会话变量前置注入
+export function devSeedVars(config, rootDir) {
+  return {
+    liroam_buyer_pc: config.buyerPcUrl,
+    liroam_buyer_api: config.buyerApiUrl,
+    liroam_dev_assets: `file://${rootDir}/deploy/dev-assets`,
+  };
+}
+
+export function sqlSetVars(vars) {
+  return Object.entries(vars).map(([k, v]) => `SET @${k} := '${String(v).replace(/\\/g, '\\\\').replace(/'/g, "''")}';\n`).join('');
+}
+
 // worker（补偿扫描等定时任务）只在 manager-api 进程开（domain-design §5 H12）
 export function backendEnv(env, config, { worker = false } = {}) {
   return {

@@ -49,7 +49,7 @@ class BrandSettingsTest {
                 "domainIcon", "buyerSideIcon", "storeSideIcon"}) {
             assertThat(base(jdbc, cleared)).as(cleared + " 清空后前端回落到内置轻游标识").isEmpty();
         }
-        assertThat(base(jdbc, "staticPageAddress")).as("部署地址不是品牌字段").isEqualTo("https://pc-b2b2c.pickmall.cn");
+        assertThat(base(jdbc, "staticPageAddress")).as("上游演示站地址清空，按环境另填").isEmpty();
         assertThat(field(jdbc, "VERIFICATION_SETTING", "watermark")).isEqualTo("LIROAM");
         assertThat(field(jdbc, "VERIFICATION_SETTING", "loginBypassEnabled")).isEqualTo("true");
         assertThat(field(jdbc, "SMS_SETTING", "signName")).isEqualTo("轻游");
