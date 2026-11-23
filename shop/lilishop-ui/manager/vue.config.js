@@ -74,8 +74,9 @@ module.exports = {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
             name(module) {
+              // pnpm 的真实路径是 node_modules/.pnpm/<包@版本>/node_modules/<包>，跳过 .pnpm 取包名
               const match = module.context && module.context.match(
-                /[\\/]node_modules[\\/](.*?)([\\/]|$)/
+                /[\\/]node_modules[\\/](?!\.pnpm[\\/])(.*?)([\\/]|$)/
               );
               const packageName = match ? match[1] : "vendor";
               return `npm.${packageName.replace("@", "")}`;

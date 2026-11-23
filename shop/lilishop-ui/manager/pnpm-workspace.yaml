@@ -1,0 +1,17 @@
+# pnpm 11 不再读取 package.json 的 resolutions / pnpm 字段，依赖覆盖统一写在这里
+overrides:
+  minimatch: ^3.1.2
+  "@achrinza/node-ipc": 9.2.2
+  webpack: 5.108.4
+  # dplayer 1.27 把 axios 锁死在 1.2.3，同大版本升级
+  axios: ^1.21.1
+  # Vue CLI 5 传递依赖的安全修复
+  webpack-dev-server: ^5.2.7
+  serialize-javascript: ^7.0.3
+  postcss: ^8.5.23
+  uuid: ^11.1.1
+
+# core-js 的安装脚本只打印广告；@parcel/watcher 仅 sass 命令行 watch 用，构建不需要
+allowBuilds:
+  "@parcel/watcher": false
+  core-js: false
