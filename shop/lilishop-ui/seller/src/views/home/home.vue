@@ -8,12 +8,12 @@
         <div class="card shop flex">
           <div>
             <h4>Hi,<span style="margin-left: 5px">{{ userData.nickName }}</span></h4>
-            <img
-              class="shop-logo"
-              :class="{ 'shop-logo--default': !userData.storeLogo }"
-              :src="userData.storeLogo || defaultLogo"
-              alt=""
-            />
+            <img v-if="userData.storeLogo" class="shop-logo" :src="userData.storeLogo" alt="" />
+            <div
+              v-else
+              class="shop-logo shop-logo--default"
+              :style="{ backgroundImage: `url(${defaultLogo})` }"
+            ></div>
           </div>
           <div class="shop-box">
             <div class="box-item">
