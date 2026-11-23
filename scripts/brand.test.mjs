@@ -105,6 +105,13 @@ test('三端登录页带各自角色的轻游定位语', () => {
   }
 });
 
+test('管理端登录页版权只在左侧品牌区出现一次', () => {
+  const read = (rel) => fs.readFileSync(path.join(uiRoot, 'manager/src', rel), 'utf8');
+  const page = read('views/login.vue') + read('views/main-parts/footer.vue');
+  assert.equal(page.match(/Copyright ©/g)?.length, 1);
+  assert.match(read('views/login.vue'), /class="brand-copyright">Copyright ©/);
+});
+
 // 上游主题色：管理 / 商家 / 买家的主题红、Element 默认蓝及其派生色、装修模板与面板里的强调红 / 蓝（含 rgb 写法）、装修优惠券的玫红 / 紫粉皮肤色、
 // 上游暖色强调（橙 / 琥珀 / 粉及其浅底与描边，装修组件、编辑器面板、卡券与素材页按钮）。
 // slate 等中性色与 Tailwind 浅蓝 / 浅红底在多处作普通中性色，不全局拦；优惠券皮肤块另由下方用例要求只用令牌。

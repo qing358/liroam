@@ -5,19 +5,13 @@
       <a class="item" :href="website" target="_blank">隐私</a>
       <a class="item" :href="website" target="_blank">条款</a>
     </el-row>
-    <el-row justify="center" class="copyright">
-      Copyright © {{ year }}
-      <a :href="website || undefined" class="href" target="_blank" style="margin: 0 5px">{{ copyrightOwner }}</a>
-    </el-row>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
 import { useSiteSettings } from "@/composables/useSiteSettings";
 
-const year = ref(new Date().getFullYear());
-const { website, copyrightOwner } = useSiteSettings();
+const { website } = useSiteSettings();
 </script>
 
 <style lang="scss" scoped>
