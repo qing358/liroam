@@ -1,0 +1,24 @@
+# pnpm 11 从本文件读 overrides，package.json 的 resolutions 已不生效
+allowBuilds:
+  # 都不需要安装脚本：@parcel/watcher 走预编译的平台包，core-js 的 postinstall 只打印提示
+  '@parcel/watcher': false
+  core-js: false
+overrides:
+  minimatch: ^3.1.2
+  '@achrinza/node-ipc': 9.2.2
+  # 传递依赖的安全下限；带 @大版本 的只抬同大版本，不动其它大版本的使用者
+  dplayer>axios: ^1.20.0
+  follow-redirects@1: ^1.16.2
+  '@vue/cli-service>webpack-dev-server': ^5.2.7
+  sockjs>uuid: ^11.1.1
+  node-forge@1: ^1.4.3
+  body-parser@1: ^1.20.9
+  qs@6: ^6.16.1
+  launch-editor@2: ^2.14.2
+  shell-quote@1: ^1.11.0
+  joi@17: ^17.13.9
+  serialize-javascript: ^7.1.3
+  postcss: ^8.5.23
+  postcss-selector-parser@6: ^6.1.5
+  source-map-js@1: ^1.2.2
+  fast-uri@3: ^3.1.9

@@ -68,7 +68,7 @@ module.exports = {
             name(module) {
               const match =
                 module.context &&
-                module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/);
+                module.context.match(/.*[\\/]node_modules[\\/](.*?)([\\/]|$)/);
               const packageName = match ? match[1] : "vendor";
               return `npm.${packageName.replace("@", "")}`;
             },
