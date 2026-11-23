@@ -207,7 +207,7 @@ lili:
   # 演示站及脱敏规则配置
   system:
     # 是否演示站点
-    isDemoSite: true
+    isDemoSite: false
 
   # 在线会员人数统计设置
   statistics:
