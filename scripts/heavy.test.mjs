@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-import { heavyEnv, itDbPrefix } from './lib/heavy.mjs';
+import { heavyEnv, slotEnv } from './lib/heavy.mjs';
 
 const heavy = path.join(path.dirname(fileURLToPath(import.meta.url)), 'heavy.mjs');
 
@@ -68,25 +68,27 @@ test('可用内存低于门槛时不开跑，等待并提示', async () => {
   assert.match(out, /可用内存/);
 });
 
-test('itDbPrefix 由 worktree 目录名推出合法的集成测试库前缀', () => {
-  assert.equal(itDbPrefix('ws8-design'), 'liroam_it_ws8_design_');
-  assert.equal(itDbPrefix('WS10'), 'liroam_it_ws10_');
+test('heavyEnv：补主检出口令与 JDK；已设的口令不覆盖；不设库前缀（库前缀按槽位设，见 slotEnv）', () => {
+  const base = { PATH: '/usr/bin' };
+  const env = heavyEnv(base, { mainSecrets: { LIROAM_MYSQL_ROOT_PASSWORD: 'pw' }, javaHome: '/jdk21' });
+  assert.equal(env.LIROAM_MYSQL_ROOT_PASSWORD, 'pw');
+  assert.equal(env.JAVA_HOME, '/jdk21');
+  assert.equal(env.PATH, '/jdk21/bin:/usr/bin');
+  assert.ok(!('LIROAM_IT_DB_PREFIX' in env));
+  assert.ok(!('JAVA_HOME' in heavyEnv(base, { mainSecrets: {}, javaHome: null })));
+  assert.equal(heavyEnv({ ...base, LIROAM_MYSQL_ROOT_PASSWORD: 'mine' }, { mainSecrets: { LIROAM_MYSQL_ROOT_PASSWORD: 'pw' }, javaHome: null }).LIROAM_MYSQL_ROOT_PASSWORD, 'mine');
 });
 
-test('heavyEnv：worktree 里补口令、库前缀与 JDK；主检出不改库前缀；已设的变量不覆盖', () => {
-  const base = { PATH: '/usr/bin' };
-  const wt = heavyEnv(base, { checkout: '/w/ws4', mainCheckout: '/m', mainSecrets: { LIROAM_MYSQL_ROOT_PASSWORD: 'pw' }, javaHome: '/jdk21' });
-  assert.equal(wt.LIROAM_MYSQL_ROOT_PASSWORD, 'pw');
-  assert.equal(wt.LIROAM_IT_DB_PREFIX, 'liroam_it_ws4_');
-  assert.equal(wt.JAVA_HOME, '/jdk21');
-  assert.equal(wt.PATH, '/jdk21/bin:/usr/bin');
+test('slotEnv：未手设库前缀时按槽位设前缀，不同槽位互不共库；手设的优先', () => {
+  assert.equal(slotEnv({}, 1).LIROAM_IT_DB_PREFIX, 'liroam_it_slot1_');
+  assert.equal(slotEnv({}, 2).LIROAM_IT_DB_PREFIX, 'liroam_it_slot2_');
+  assert.equal(slotEnv({ LIROAM_IT_DB_PREFIX: 'liroam_it_mine_' }, 1).LIROAM_IT_DB_PREFIX, 'liroam_it_mine_');
+});
 
-  const main = heavyEnv(base, { checkout: '/m', mainCheckout: '/m', mainSecrets: { LIROAM_MYSQL_ROOT_PASSWORD: 'pw' }, javaHome: null });
-  assert.ok(!('LIROAM_IT_DB_PREFIX' in main));
-  assert.ok(!('JAVA_HOME' in main));
-
-  const preset = heavyEnv({ ...base, LIROAM_MYSQL_ROOT_PASSWORD: 'mine', LIROAM_IT_DB_PREFIX: 'liroam_it_x_' },
-    { checkout: '/w/ws4', mainCheckout: '/m', mainSecrets: { LIROAM_MYSQL_ROOT_PASSWORD: 'pw' }, javaHome: null });
-  assert.equal(preset.LIROAM_MYSQL_ROOT_PASSWORD, 'mine');
-  assert.equal(preset.LIROAM_IT_DB_PREFIX, 'liroam_it_x_');
+test('经 heavy 跑的命令拿到槽位库前缀', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
+  const out = path.join(dir, 'prefix');
+  const r = await run(['sh', '-c', `printf %s "$LIROAM_IT_DB_PREFIX" > ${out}`], queueEnv(dir, { LIROAM_IT_DB_PREFIX: '' }));
+  assert.equal(r.code, 0);
+  assert.match(fs.readFileSync(out, 'utf8'), /^liroam_it_slot[12]_$/);
 });

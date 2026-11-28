@@ -1,19 +1,16 @@
 import fs from 'node:fs';
-import path from 'node:path';
 
-// 集成测试库前缀须形如 liroam_it_xxx_（ItDatabase.prefix 校验）
-export function itDbPrefix(dirName) {
-  return `liroam_it_${dirName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')}_`;
+// 集成测试库按槽位分开：同一槽位的重活串行、不同槽位的并发，所以任意时刻不会有两个 verify 共用同名库互删（含主检出）。
+// 前缀须形如 liroam_it_xxx_（ItDatabase.prefix 校验）；调用方手设的前缀优先。
+export function slotEnv(env, slot) {
+  return env.LIROAM_IT_DB_PREFIX ? env : { ...env, LIROAM_IT_DB_PREFIX: `liroam_it_slot${slot}_` };
 }
 
-// worktree 里没有 .env：口令取主检出那份；库前缀按 worktree 目录名分开，避免同名测试类互删库
-export function heavyEnv(base, { checkout, mainCheckout, mainSecrets, javaHome }) {
+// worktree 里没有 .env：口令取主检出那份
+export function heavyEnv(base, { mainSecrets, javaHome }) {
   const env = { ...base };
   if (!env.LIROAM_MYSQL_ROOT_PASSWORD && mainSecrets.LIROAM_MYSQL_ROOT_PASSWORD) {
     env.LIROAM_MYSQL_ROOT_PASSWORD = mainSecrets.LIROAM_MYSQL_ROOT_PASSWORD;
-  }
-  if (!env.LIROAM_IT_DB_PREFIX && path.resolve(checkout) !== path.resolve(mainCheckout)) {
-    env.LIROAM_IT_DB_PREFIX = itDbPrefix(path.basename(checkout));
   }
   if (javaHome) {
     env.JAVA_HOME = javaHome;

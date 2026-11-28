@@ -56,6 +56,7 @@ class QuadcellAdapterTest {
         UPSTREAM.properties().setDefaultMode(1);
         UPSTREAM.properties().setBytesPerMb(1024L * 1024L);
         UPSTREAM.properties().setThrottleRetryAfter(Duration.ofSeconds(30));
+        UPSTREAM.properties().setReadTimeout(QuadcellStubUpstream.READ_TIMEOUT);
         adapter = new QuadcellAdapter(UPSTREAM.properties());
     }
 
@@ -222,6 +223,7 @@ class QuadcellAdapterTest {
 
     @Test
     void timeoutAfterSendIsUnknownForWritesAndRetryableForReads() {
+        UPSTREAM.properties().setReadTimeout(QuadcellStubUpstream.TIMEOUT_PROBE_READ_TIMEOUT);
         UPSTREAM.failNext(Failure.TIMEOUT_AFTER_SEND);
         assertThat(provision(UPSTREAM.idleIccid(), null)).isInstanceOf(Outcome.Unknown.class);
 

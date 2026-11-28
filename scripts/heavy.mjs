@@ -11,7 +11,7 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 
 import { parseEnv, readSdkmanJava } from './lib/config.mjs';
-import { availableMemGb, heavyEnv } from './lib/heavy.mjs';
+import { availableMemGb, heavyEnv, slotEnv } from './lib/heavy.mjs';
 
 // flock 拿不到锁时的退出码，与被包命令的退出码区分开
 const BUSY = 199;
@@ -36,8 +36,6 @@ const secretsPath = path.join(mainCheckout, '.env');
 const sdkJava = readSdkmanJava(checkout);
 const sdkHome = sdkJava && path.join(os.homedir(), '.sdkman/candidates/java', sdkJava);
 const env = heavyEnv(process.env, {
-  checkout,
-  mainCheckout,
   mainSecrets: fs.existsSync(secretsPath) ? parseEnv(fs.readFileSync(secretsPath, 'utf8')) : {},
   javaHome: process.env.LIROAM_JAVA_HOME || (sdkHome && fs.existsSync(sdkHome) ? sdkHome : null),
 });
@@ -46,7 +44,7 @@ fs.mkdirSync(lockDir, { recursive: true });
 
 function runInSlot(slot) {
   return new Promise((resolve, reject) => {
-    const child = spawn('flock', ['-n', '-E', String(BUSY), path.join(lockDir, `slot-${slot}.lock`), ...command], { stdio: 'inherit', env, cwd: process.cwd() });
+    const child = spawn('flock', ['-n', '-E', String(BUSY), path.join(lockDir, `slot-${slot}.lock`), ...command], { stdio: 'inherit', env: slotEnv(env, slot), cwd: process.cwd() });
     child.on('error', reject);
     child.on('close', (code, signal) => resolve(code ?? (signal ? 128 + (os.constants.signals[signal] ?? 0) : 1)));
   });

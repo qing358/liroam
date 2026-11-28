@@ -38,7 +38,10 @@ public final class QuadcellStubUpstream implements UpstreamFixture, AutoCloseabl
     public static final String PREFIX = "/open-api/1.0";
     public static final String BASE_PACK = "DATAPKG01";
     public static final String TOPUP_PACK = "DATAPKG02";
-    static final Duration READ_TIMEOUT = Duration.ofMillis(400);
+    /** 桩的读超时放宽到秒级：本机满载时桩线程调度也会慢过几百毫秒，超时语义由 {@link #TIMEOUT_PROBE_READ_TIMEOUT} 单独验证。 */
+    static final Duration READ_TIMEOUT = Duration.ofSeconds(5);
+    static final Duration TIMEOUT_PROBE_READ_TIMEOUT = Duration.ofMillis(300);
+    private static final Duration TIMEOUT_PROBE_REPLY_DELAY = Duration.ofSeconds(2);
 
     private static final JsonMapper JSON = JsonMapper.builder().build();
     private static final Map<String, Double> PACK_QUOTA_MB = Map.of(BASE_PACK, 3072.0, TOPUP_PACK, 1024.0);
@@ -242,7 +245,7 @@ public final class QuadcellStubUpstream implements UpstreamFixture, AutoCloseabl
         }
         Reply reply = route(ex.getRequestMethod(), path, body);
         if (failure == Failure.TIMEOUT_AFTER_SEND) {
-            sleep(READ_TIMEOUT.multipliedBy(4));
+            sleep(TIMEOUT_PROBE_REPLY_DELAY);
         }
         ex.getResponseHeaders().add("requestId", "req-" + seq.incrementAndGet());
         send(ex, reply.status(), reply.body());
