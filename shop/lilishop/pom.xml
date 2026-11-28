@@ -25,7 +25,7 @@
         <lilishop.skipTests>true</lilishop.skipTests>
         <docker-registry>registry.cn-beijing.aliyuncs.com/lili-images</docker-registry>
         <images-version>1</images-version>
-        <alipay-sdk-version>4.22.32.ALL</alipay-sdk-version>
+        <alipay-sdk-version>4.40.1097.ALL</alipay-sdk-version>
         <mybatis-plus-version>3.5.15</mybatis-plus-version>
         <Hutool-version>5.8.41</Hutool-version>
         <jasypt-version>3.0.4</jasypt-version>

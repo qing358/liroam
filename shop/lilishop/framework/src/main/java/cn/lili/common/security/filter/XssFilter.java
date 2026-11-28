@@ -29,6 +29,15 @@ public class XssFilter implements Filter {
             "/buyer/payment/cashier/transfer/notify/WECHAT"
     );
 
+    /**
+     * 管理端保存支付配置：私钥、证书内容含 Base64 与换行，清洗会写坏密钥（且实体化后的请求体比 Content-Length 长而被截断）。
+     * 该接口仍受管理员鉴权，配置值不在页面渲染。
+     */
+    private static final Set<String> PAYMENT_SETTING_PATHS = Set.of(
+            "/manager/setting/setting/put/ALIPAY_PAYMENT",
+            "/manager/setting/setting/put/WECHAT_PAYMENT"
+    );
+
     /** WebSocket 握手路径前缀，需保留原始 Sec-WebSocket-Key 等握手头，避免 Base64 中的 =/+ 被转义导致 400。 */
     private static final String WEBSOCKET_PATH_PREFIX = "/lili/webSocket/";
 
@@ -40,7 +49,7 @@ public class XssFilter implements Filter {
     }
 
     /**
-     * 普通请求执行 XSS 清洗；微信 POST 通知与 IM WebSocket 握手原样放行。
+     * 普通请求执行 XSS 清洗；微信 POST 通知、管理端支付配置保存与 IM WebSocket 握手原样放行。
      * 签名或 WebSocket 握手头（如 Sec-WebSocket-Key）包含 Base64 字符，不能做 HTML 转义或重新序列化请求体；
      * 此处仅按精确路径保留报文，不依据可伪造的请求头放行其他业务接口。
      *
@@ -56,6 +65,7 @@ public class XssFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         String path = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         if (("POST".equals(httpRequest.getMethod()) && WECHAT_NOTIFICATION_PATHS.contains(path))
+                || ("PUT".equals(httpRequest.getMethod()) && PAYMENT_SETTING_PATHS.contains(path))
                 || ("GET".equals(httpRequest.getMethod()) && path.startsWith(WEBSOCKET_PATH_PREFIX))) {
             chain.doFilter(request, response);
             return;
