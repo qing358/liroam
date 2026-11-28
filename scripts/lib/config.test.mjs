@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 import {
-  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, buyerWebEnv, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, generateSecrets, parseEnv, SECRET_KEYS, selectFrontends, sqlSetVars, validatePorts,
 } from './config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -139,6 +139,24 @@ test('selectFrontends 默认起全部前端；--ui 按需只起列出的；--ui=
   assert.deepEqual(selectFrontends(['up', '--ui=none'], UIS), []);
 });
 
+test('selectFrontends 默认不起按需前端（新买家站切换前），--ui 点名才起', () => {
+  const withNew = [...UIS, { name: 'buyer-web', app: 'buyer-web', optIn: true }];
+  assert.deepEqual(selectFrontends(['up'], withNew).map((f) => f.app), ['manager', 'seller', 'buyer']);
+  assert.deepEqual(selectFrontends(['up', '--ui=buyer-web'], withNew).map((f) => f.app), ['buyer-web']);
+});
+
+test('buildConfig 给出新买家站地址（端口取 LIROAM_BUYER_WEB_PORT）', () => {
+  const config = buildConfig({
+    LIROAM_MYSQL_PORT: '39306', LIROAM_REDIS_PORT: '39379', LIROAM_MANAGER_API_PORT: '39887', LIROAM_BUYER_API_PORT: '39888',
+    LIROAM_BUYER_UI_PORT: '39000', LIROAM_SELLER_UI_PORT: '39002', LIROAM_MANAGER_UI_PORT: '39003', LIROAM_BUYER_WEB_PORT: '39010',
+  });
+  assert.equal(config.buyerWebUrl, 'http://localhost:39010');
+});
+
+test('buyerWebEnv 把 buyer-api 地址作为 Nuxt 运行时配置注入，不写进仓内文件', () => {
+  assert.deepEqual(buyerWebEnv({ buyerApiUrl: 'http://localhost:39888' }), { NUXT_PUBLIC_BUYER_API_URL: 'http://localhost:39888' });
+});
+
 test('frontendInstallCommand 按锁文件选包管理器并冻结安装：pnpm 优先，其次 yarn，都没有才用 npm', () => {
   const pnpm = ['pnpm', 'install', '--frozen-lockfile'];
   const yarn = ['corepack', 'yarn@1.22.22', 'install', '--frozen-lockfile'];
@@ -146,12 +164,14 @@ test('frontendInstallCommand 按锁文件选包管理器并冻结安装：pnpm �
   assert.deepEqual(frontendInstallCommand(['package.json', 'yarn.lock']), yarn);
   assert.deepEqual(frontendInstallCommand(['package.json', 'pnpm-lock.yaml', 'yarn.lock']), pnpm);
   assert.deepEqual(frontendInstallCommand(['package.json']), ['npm', 'install', '--no-audit', '--no-fund']);
+  assert.deepEqual(frontendInstallCommand(['package.json', 'package-lock.json']), ['npm', 'ci', '--no-audit', '--no-fund']);
 });
 
 test('仓内各前端按锁文件选到预期的包管理器', () => {
   const uiDir = path.join(repoRoot, 'shop/lilishop-ui');
   assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'manager')))[0], 'pnpm');
   assert.equal(frontendInstallCommand(fs.readdirSync(path.join(uiDir, 'seller')))[1], 'yarn@1.22.22');
+  assert.deepEqual(frontendInstallCommand(fs.readdirSync(path.join(repoRoot, 'apps/buyer-web'))).slice(0, 2), ['npm', 'ci']);
 });
 
 test('backendCheckout 默认用本仓；--backend-from 指向另一份 checkout（回滚演练起上一版 jar）', () => {

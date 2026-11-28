@@ -68,6 +68,7 @@ export function backendBuildArgs(modules) {
 export function frontendInstallCommand(files) {
   if (files.includes('pnpm-lock.yaml')) return ['pnpm', 'install', '--frozen-lockfile'];
   if (files.includes('yarn.lock')) return ['corepack', 'yarn@1.22.22', 'install', '--frozen-lockfile'];
+  if (files.includes('package-lock.json')) return ['npm', 'ci', '--no-audit', '--no-fund'];
   return ['npm', 'install', '--no-audit', '--no-fund'];
 }
 
@@ -83,7 +84,7 @@ export function backendCheckout(argv, rootDir) {
 
 export function selectFrontends(argv, frontends) {
   const flag = argv.find((a) => a.startsWith('--ui='));
-  if (!flag) return frontends;
+  if (!flag) return frontends.filter((f) => !f.optIn);
   const value = flag.slice('--ui='.length);
   if (value === 'none') return [];
   const wanted = value.split(',');
@@ -118,7 +119,13 @@ export function buildConfig(env, host = 'localhost') {
     buyerPcUrl: url('LIROAM_BUYER_UI_PORT'),
     sellerUrl: url('LIROAM_SELLER_UI_PORT'),
     managerUrl: url('LIROAM_MANAGER_UI_PORT'),
+    buyerWebUrl: url('LIROAM_BUYER_WEB_PORT'),
   };
+}
+
+// 新买家站（apps/buyer-web）的 API 地址走 Nuxt 运行时配置（runtimeConfig.public.buyerApiUrl），不生成仓内配置文件
+export function buyerWebEnv(config) {
+  return { NUXT_PUBLIC_BUYER_API_URL: config.buyerApiUrl };
 }
 
 // 本机滑块素材由 manager-api 以静态目录对外：浏览器（后台「验证码资源」）与后端生成滑块都按 http 下载；

@@ -20,7 +20,8 @@
 ```bash
 node scripts/dev.mjs up          # 起中间件 → 首次构建后端/安装前端依赖 → 起 2 个后端 + 3 个前端，全部就绪才返回
 node scripts/dev.mjs up --build  # 后端代码有改动时强制重新构建
-node scripts/dev.mjs up --ui=manager,buyer  # 按需只起列出的前端（manager / seller / buyer）；--ui=none 只起后端
+node scripts/dev.mjs up --ui=manager,buyer  # 按需只起列出的前端（manager / seller / buyer / buyer-web）；--ui=none 只起后端
+node scripts/dev.mjs up --ui=buyer-web      # 新买家站（切换前默认不起，点名才起；说明见 apps/buyer-web/README.md）
 node scripts/dev.mjs health      # 健康检查（前端只查本次 up 起过的），全部通过退出码 0，否则 1
 node scripts/dev.mjs status      # 地址与进程
 node scripts/dev.mjs down        # 停进程与容器，保留数据卷

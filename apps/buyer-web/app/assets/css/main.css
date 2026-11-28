@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: "PingFang SC", "Noto Sans SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* 颜色唯一来源是 brand/theme.css 的 --lr-* 令牌；选择器与 theme.css 同权重并在其后加载，压过 Nuxt UI 默认值 */
+html:root {
+  --ui-primary: var(--lr-primary);
+  --ui-text: var(--lr-ink);
+  --ui-text-highlighted: var(--lr-ink);
+  --ui-bg-accented: var(--lr-mist);
+  --ui-bg-inverted: var(--lr-ink);
+  --ui-radius: 0.5rem;
+}

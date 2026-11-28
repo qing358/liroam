@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端。
-// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>
+// liroam 本机一键编排：专用中间件（deploy/compose.yaml）+ Lilishop 后端 + 管理端/商家端/买家 PC 前端；新买家站 buyer-web 只在 --ui 点名时起。
+// 用法：node scripts/dev.mjs up [--build] [--ui=manager,seller,buyer,buyer-web|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 
 import {
-  backendBuildArgs, backendCheckout, backendEnv, buildConfig, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
+  backendBuildArgs, backendCheckout, backendEnv, buildConfig, buyerWebEnv, devAssetsEnv, devSeedVars, ensureSecretsFile, frontendInstallCommand, parseEnv, readSdkmanJava, selectFrontends, sqlSetVars,
 } from './lib/config.mjs';
 import { backupFileName, compareCounts, latestBackup, parseCounts, restoreArgs } from './lib/backup.mjs';
 import { DATA_KEY_PREFIX, dataKeyVersions, nextDataKey, removeEnvLine, retireBlockers } from './lib/data-keys.mjs';
@@ -31,10 +31,12 @@ const BACKENDS = [
   { name: 'manager-api', module: 'manager-api', urlKey: 'managerApiUrl', worker: true, devAssets: true },
   { name: 'buyer-api', module: 'buyer-api', urlKey: 'buyerApiUrl', worker: false, devAssets: false },
 ];
+// kind：vue-cli = 上游四端（API 地址写 public/config.local.js）；nuxt = 新买家站（API 地址经运行时配置环境变量注入）
 const FRONTENDS = [
-  { name: 'manager-ui', app: 'manager', urlKey: 'managerUrl', prefix: '/manager' },
-  { name: 'seller-ui', app: 'seller', urlKey: 'sellerUrl', prefix: '/store' },
-  { name: 'buyer-ui', app: 'buyer', urlKey: 'buyerPcUrl', prefix: '' },
+  { name: 'manager-ui', app: 'manager', dir: path.join(uiDir, 'manager'), kind: 'vue-cli', urlKey: 'managerUrl', apiKey: 'managerApiUrl', prefix: '/manager' },
+  { name: 'seller-ui', app: 'seller', dir: path.join(uiDir, 'seller'), kind: 'vue-cli', urlKey: 'sellerUrl', apiKey: 'managerApiUrl', prefix: '/store' },
+  { name: 'buyer-ui', app: 'buyer', dir: path.join(uiDir, 'buyer'), kind: 'vue-cli', urlKey: 'buyerPcUrl', apiKey: 'buyerApiUrl', prefix: '' },
+  { name: 'buyer-web', app: 'buyer-web', dir: path.join(rootDir, 'apps/buyer-web'), kind: 'nuxt', urlKey: 'buyerWebUrl', apiKey: 'buyerApiUrl', optIn: true },
 ];
 
 function loadEnv() {
@@ -98,19 +100,28 @@ function buildBackend(javaHome) {
   if (result.status !== 0) throw new Error('后端构建失败');
 }
 
-function installFrontend(app) {
-  const cwd = path.join(uiDir, app);
+function installFrontend(fe) {
+  const cwd = fe.dir;
   if (fs.existsSync(path.join(cwd, 'node_modules'))) return;
   const [cmd, ...args] = frontendInstallCommand(fs.readdirSync(cwd));
-  console.log(`\n$ ${cmd} ${args.join(' ')}（${app}）`);
+  console.log(`\n$ ${cmd} ${args.join(' ')}（${fe.app}）`);
   const result = spawnSync(cmd, args, { cwd, stdio: 'inherit', env: { ...process.env, COREPACK_ENABLE_DOWNLOAD_PROMPT: '0' } });
-  if (result.status !== 0) throw new Error(`${app} 依赖安装失败`);
+  if (result.status !== 0) throw new Error(`${fe.app} 依赖安装失败`);
 }
 
-function writeFrontendConfig(app, prefix, config) {
+function writeFrontendConfig(fe, config) {
+  if (fe.kind !== 'vue-cli') return;
   // 上游 index.html 在开发模式加载 public/config.local.js 覆盖 config.js（挂接点见 docs/upstream.md）
-  const content = renderPcConfig({ ...config, uniappH5Url: '', prefix });
-  fs.writeFileSync(path.join(uiDir, app, 'public', 'config.local.js'), content);
+  const content = renderPcConfig({ ...config, uniappH5Url: '', prefix: fe.prefix });
+  fs.writeFileSync(path.join(fe.dir, 'public', 'config.local.js'), content);
+}
+
+function frontendCommand(fe, config) {
+  const port = String(portOf(config[fe.urlKey]));
+  if (fe.kind === 'nuxt') {
+    return [path.join(fe.dir, 'node_modules/.bin/nuxt'), ['dev', '--host', '0.0.0.0', '--port', port], { ...buyerWebEnv(config), NUXT_TELEMETRY_DISABLED: '1' }];
+  }
+  return [path.join(fe.dir, 'node_modules/.bin/vue-cli-service'), ['serve', '--host', '0.0.0.0', '--port', port], { BROWSER: 'none' }];
 }
 
 function readPids() {
@@ -176,9 +187,13 @@ async function backendUp(url) {
   return status === 200 && JSON.parse(body).status === 'UP';
 }
 
-async function frontendUp(url, apiUrl) {
+// Nuxt 把 runtimeConfig.public 序列化进页面，页面里有 API 地址即说明注入生效
+async function frontendUp(fe, config) {
+  const url = config[fe.urlKey];
+  const apiUrl = config[fe.apiKey];
   const page = await httpGet(url);
   if (page.status !== 200) return false;
+  if (fe.kind === 'nuxt') return page.body.includes(apiUrl);
   const local = await httpGet(`${url}/config.local.js`);
   return local.status === 200 && local.body.includes(apiUrl);
 }
@@ -211,8 +226,8 @@ async function up() {
     console.log(`后端用 ${checkout} 的 jar（回滚演练 / 上一版）`);
   } else if (process.argv.includes('--build') || BACKENDS.some((b) => !backendJar(b.module))) buildBackend(javaHome);
   for (const fe of frontends) {
-    installFrontend(fe.app);
-    writeFrontendConfig(fe.app, fe.prefix, config);
+    installFrontend(fe);
+    writeFrontendConfig(fe, config);
   }
 
   const pids = readPids();
@@ -225,15 +240,12 @@ async function up() {
       { cwd: workDir, env: javaEnv, port: portOf(config[be.urlKey]) }, pids);
   }
   for (const fe of frontends) {
-    startProcess(fe.name, path.join(uiDir, fe.app, 'node_modules/.bin/vue-cli-service'), ['serve', '--host', '0.0.0.0', '--port', String(portOf(config[fe.urlKey]))],
-      { cwd: path.join(uiDir, fe.app), env: { BROWSER: 'none' }, port: portOf(config[fe.urlKey]) }, pids);
+    const [cmd, args, feEnv] = frontendCommand(fe, config);
+    startProcess(fe.name, cmd, args, { cwd: fe.dir, env: feEnv, port: portOf(config[fe.urlKey]) }, pids);
   }
 
   for (const be of BACKENDS) await waitFor(be.name, () => backendUp(config[be.urlKey]), 300000);
-  for (const fe of frontends) {
-    const apiUrl = fe.app === 'buyer' ? config.buyerApiUrl : config.managerApiUrl;
-    await waitFor(fe.name, () => frontendUp(config[fe.urlKey], apiUrl), 300000);
-  }
+  for (const fe of frontends) await waitFor(fe.name, () => frontendUp(fe, config), 300000);
   printUrls(config);
 }
 
@@ -269,6 +281,7 @@ function printUrls(config) {
   console.log(`- 平台管理端  ${config.managerUrl}`);
   console.log(`- 商家端      ${config.sellerUrl}`);
   console.log(`- 买家 PC 端  ${config.buyerPcUrl}`);
+  console.log(`- 新买家站    ${config.buyerWebUrl}（--ui=buyer-web 时启动）`);
   console.log(`- manager-api ${config.managerApiUrl}`);
   console.log(`- buyer-api   ${config.buyerApiUrl}`);
   console.log(`- MySQL       127.0.0.1:${config.mysqlPort}（库 lilishop，口令见 .env）`);
@@ -313,8 +326,8 @@ async function health() {
   // 只检查 up 实际启动过的前端（--ui 按需启动）；启动后又挂掉的仍在 pids 里，照样判失败
   const pids = readPids();
   for (const fe of FRONTENDS.filter((f) => pids[f.name])) {
-    const apiUrl = fe.app === 'buyer' ? config.buyerApiUrl : config.managerApiUrl;
-    await check(fe.name, async () => expect(await frontendUp(config[fe.urlKey], apiUrl), `${config[fe.urlKey]} 200，API 指向 ${apiUrl}`, `${config[fe.urlKey]} 未就绪或未指向 ${apiUrl}`));
+    const apiUrl = config[fe.apiKey];
+    await check(fe.name, async () => expect(await frontendUp(fe, config), `${config[fe.urlKey]} 200，API 指向 ${apiUrl}`, `${config[fe.urlKey]} 未就绪或未指向 ${apiUrl}`));
   }
   await check('登录滑块', async () => {
     const res = await fetch(`${config.managerApiUrl}/manager/common/slider/LOGIN`, { headers: { uuid: `health-${Date.now()}` } });
@@ -583,7 +596,7 @@ async function retireDataKey() {
 const command = process.argv[2] || 'status';
 const handlers = { up, 'stop-backends': stopBackends, down, status, health, demo, backup, 'restore-drill': () => restoreDrill(), restore, 'rotate-data-key': rotateDataKey, 'retire-data-key': retireDataKey };
 if (!handlers[command]) {
-  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>`);
+  console.error(`未知命令 ${command}；可用：up [--build] [--ui=manager,seller,buyer,buyer-web|none] [--backend-from=<checkout>] | stop-backends | down | status | health | demo | backup | restore-drill [文件] | restore <文件> --yes | rotate-data-key | retire-data-key <版本号>`);
   process.exit(2);
 }
 try {

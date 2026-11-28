@@ -17,6 +17,8 @@ const ALLOWED = [
   /lilishop\/docs\/requirements/g,
   /lilishop\.buyer\.handledRequestError/g,
   /(https?|wss?):\/\/(admin-api|buyer-api|im-api|pc-b2b2c|m-b2b2c|store-b2b2c)\.pickmall\.cn/g,
+  // 新买家站引用仓内品牌令牌的相对路径（nuxt.config 的 css、设计稿 styles.css 的 @import）
+  /(\.\.\/)+shop\/lilishop-ui\/brand\//g,
 ];
 const BRAND_IMAGES = ['logo-lilishop.png', 'lili.png'];
 
@@ -37,9 +39,17 @@ function brandHits(file) {
   });
 }
 
+// 新买家站 apps/buyer-web（Nuxt）：源码 app/、静态资源 public/、设计稿 design/，另加根目录的 nuxt.config.ts
+const buyerWebRoot = path.join(repoRoot, 'apps/buyer-web');
+const buyerWebFiles = [
+  ...['app', 'public', 'design'].flatMap((d) => walk(path.join(buyerWebRoot, d))),
+  path.join(buyerWebRoot, 'nuxt.config.ts'),
+];
+
 const appFiles = [
   ...APPS.flatMap((app) => ['src', 'public'].flatMap((d) => walk(path.join(uiRoot, app, d)))),
   ...walk(path.join(uiRoot, 'brand')),
+  ...buyerWebFiles,
 ];
 
 test('前端源码与静态资源不出现上游品牌名、公司名与官网', () => {
@@ -189,6 +199,45 @@ test('四端都加载轻游主题', () => {
   }
 });
 
+// 新买家站颜色只有一个来源：brand/theme.css 的 --lr-* 令牌（Nuxt UI 的 --ui-* 变量指向它们），源码里不写任何色值，
+// 也不用 Tailwind 自带色板类（bg-blue-500 之类）与任意色值类（text-[#xxx]）。
+const ANY_COLOR = /#[0-9a-f]{3,8}\b|\b(rgba?|hsla?|oklch|oklab|lab|lch)\(/i;
+const TAILWIND_PALETTE = /\b(bg|text|border|ring|ring-offset|from|via|to|fill|stroke|outline|divide|shadow|accent|caret|decoration|placeholder)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b|-\[#[0-9a-f]+\]/i;
+const buyerWebSource = buyerWebFiles.filter((f) => /\.(vue|ts|js|css|html)$/.test(f));
+
+test('新买家站源码不写色值、不用 Tailwind 自带色板', () => {
+  assert.ok(buyerWebSource.length > 0, 'apps/buyer-web 没有源码');
+  const hits = buyerWebSource.flatMap((file) => fs.readFileSync(file, 'utf8').split('\n').flatMap((line, i) =>
+    ANY_COLOR.test(line) || TAILWIND_PALETTE.test(line) ? [`${path.relative(repoRoot, file)}:${i + 1}: ${line.trim().slice(0, 120)}`] : []));
+  assert.deepEqual(hits, []);
+});
+
+test('新买家站加载轻游主题，Nuxt UI 主色与正文色指向品牌令牌', () => {
+  const nuxtConfig = fs.readFileSync(path.join(buyerWebRoot, 'nuxt.config.ts'), 'utf8');
+  assert.match(nuxtConfig, /['"][^'"]*shop\/lilishop-ui\/brand\/theme\.css['"]/);
+  const css = fs.readFileSync(path.join(buyerWebRoot, 'app/assets/css/main.css'), 'utf8');
+  assert.match(css, /--ui-primary:\s*var\(--lr-primary\);/);
+  assert.match(css, /--ui-text:\s*var\(--lr-ink\);/);
+});
+
+test('新买家站 favicon 是轻游 favicon，页面描述写轻游出境旅行通信卡', () => {
+  const favicon = fs.readFileSync(path.join(repoRoot, 'logo/png/favicon.ico'));
+  assert.ok(fs.readFileSync(path.join(buyerWebRoot, 'public/favicon.ico')).equals(favicon));
+  const nuxtConfig = fs.readFileSync(path.join(buyerWebRoot, 'nuxt.config.ts'), 'utf8');
+  const description = nuxtConfig.match(/name: 'description', content: '([^']*)'/)?.[1] ?? '';
+  assert.match(description, /轻游/);
+  assert.match(description, /旅行通信卡/);
+});
+
+test('闸本身：新买家站色值闸拦写死色值与 Tailwind 色板类，放过令牌类', () => {
+  for (const line of ['color: #0b7a75;', "class=\"bg-blue-500\"", 'text-[#ff0000]', 'background: rgb(1, 2, 3)', 'oklch(0.7 0.1 200)']) {
+    assert.ok(ANY_COLOR.test(line) || TAILWIND_PALETTE.test(line), line);
+  }
+  for (const line of ['class="text-primary bg-elevated"', 'color: var(--lr-ink);', "to: '/esim/jp'", 'border-default']) {
+    assert.ok(!ANY_COLOR.test(line) && !TAILWIND_PALETTE.test(line), line);
+  }
+});
+
 test('闸本身：拦上游主色，放过状态色', () => {
   assert.ok(UPSTREAM_COLORS.test('color: #409EFF;'));
   assert.ok(UPSTREAM_COLORS.test('background: rgba(64, 158, 255, 0.1)'));
@@ -238,6 +287,8 @@ test('闸本身：能抓到品牌名与上游图床，放过部署地址', () =>
   assert.ok(probe('Copyright © 2026 Lilishop.'));
   assert.ok(probe('https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/logo/logo.png'));
   assert.ok(probe('<a href="https://pickmall.cn">'));
+  assert.ok(!probe("css: ['../../shop/lilishop-ui/brand/theme.css']"));
+  assert.ok(probe("import x from 'shop/lilishop-ui/buyer/src/x'"));
   assert.ok(probe('https://lilishop-pc.oss-cn-beijing.aliyuncs.com/static/goods/goods_1.png'));
   assert.ok(probe('img: "https://lilishop-wechat.oss-cn-beijing.aliyuncs.com/tpl-1.png"'));
   assert.ok(!probe('API_PROD: { buyer: "https://buyer-api.pickmall.cn" }'));
