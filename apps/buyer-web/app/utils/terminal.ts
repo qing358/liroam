@@ -58,9 +58,24 @@ const OPTIONS: Record<Terminal, PaymentOption[]> = {
   ],
 }
 
+/** 确认订单页（交易还没建、拿不到壳 support）按终端列出的支付方式 */
+export function paymentChoices(terminal: Terminal, flags: PaymentFlags): PaymentOption[] {
+  return OPTIONS[terminal].filter((o) => o.client !== 'JSAPI' || flags.wechatJsapiEnabled)
+}
+
 /** 收银台可用支付方式：终端支持且壳后台对该终端开启（tradeDetail.support） */
 export function paymentOptions(terminal: Terminal, support: readonly string[], flags: PaymentFlags): PaymentOption[] {
-  return OPTIONS[terminal].filter((o) => support.includes(o.method) && (o.client !== 'JSAPI' || flags.wechatJsapiEnabled))
+  return paymentChoices(terminal, flags).filter((o) => support.includes(o.method))
+}
+
+/** 确认订单页预选的方式在收银台可用时直接调起，否则让买家重选 */
+export function preferredOption(options: readonly PaymentOption[], method: string | undefined): PaymentOption | null {
+  return options.find((o) => o.method === method) ?? null
+}
+
+export function paymentHint(terminal: Terminal, method: PaymentMethod): string | undefined {
+  if (method !== 'WECHAT') return undefined
+  return terminal === 'PC' ? '扫码支付' : '在微信内打开可直接支付'
 }
 
 export const PAYMENT_METHOD_LABEL: Record<PaymentMethod, string> = {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectTerminal, paymentOptions, shellClientType } from '../../app/utils/terminal'
+import { detectTerminal, paymentChoices, paymentHint, paymentOptions, preferredOption, shellClientType } from '../../app/utils/terminal'
 
 const UA = {
   pc: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36',
@@ -54,5 +54,26 @@ describe('收银台支付方式', () => {
   it('只列壳后台对该终端开启的方式', () => {
     expect(paymentOptions('PC', ['ALIPAY'], off).map((o) => o.method)).toEqual(['ALIPAY'])
     expect(paymentOptions('H5', [], off)).toEqual([])
+  })
+})
+
+describe('确认订单页预选支付方式', () => {
+  it('建交易前按终端列出（不需要壳 support）', () => {
+    expect(paymentChoices('PC', off).map((o) => o.method)).toEqual(['WECHAT', 'ALIPAY', 'WALLET'])
+    expect(paymentChoices('WECHAT', off).map((o) => o.method)).toEqual(['WALLET'])
+  })
+
+  it('收银台按预选方式直接调起；预选不可用时不调起', () => {
+    const options = paymentOptions('PC', ['ALIPAY', 'WALLET'], off)
+    expect(preferredOption(options, 'WALLET')).toEqual({ method: 'WALLET', client: 'NATIVE', action: 'direct' })
+    expect(preferredOption(options, 'WECHAT')).toBeNull()
+    expect(preferredOption(options, 'BOGUS')).toBeNull()
+    expect(preferredOption(options, undefined)).toBeNull()
+  })
+
+  it('微信支付提示：手机写微信内直接支付，PC 写扫码', () => {
+    expect(paymentHint('H5', 'WECHAT')).toBe('在微信内打开可直接支付')
+    expect(paymentHint('PC', 'WECHAT')).toBe('扫码支付')
+    expect(paymentHint('PC', 'ALIPAY')).toBeUndefined()
   })
 })

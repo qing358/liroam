@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "typecheck": "nuxt typecheck",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:ssr": "vitest run --config vitest.ssr.config.ts"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.161",

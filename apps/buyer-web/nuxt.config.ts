@@ -36,11 +36,14 @@ export default defineNuxtConfig({
       buyerApiUrl: 'http://localhost:39888',
       /** 微信内 JSAPI 支付（需公众号网页授权），材料到位前关闭：NUXT_PUBLIC_WECHAT_JSAPI_ENABLED */
       wechatJsapiEnabled: false,
+      /** 支付结果页逐张显示开卡进度，依赖 K4（/buyer/liroam/cards?orderSn=）；K4 合入前关闭，只按订单状态显示：NUXT_PUBLIC_CARDS_BY_ORDER */
+      cardsByOrder: false,
     },
   },
 
   routeRules: {
     '/': { swr: 60 },
+    '/esim': { swr: 300 },
     '/esim/**': { swr: 300 },
     '/help/**': { swr: 300 },
     '/login': { ssr: false },

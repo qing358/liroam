@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
 
-// 导航按设计稿：PC 顶栏 + 深色页脚；手机底部四个标签（下单与详情页由页面自带返回栏，WS11 / WS12 落地）
+// 导航按设计稿：PC 顶栏 + 深色页脚；手机底部四个标签。下单与详情页设 definePageMeta({ hideTabs: true })，自带 BackBar 与底部操作条
 const { member, load, signedIn } = useMember()
 const route = useRoute()
 
@@ -52,7 +52,7 @@ onMounted(() => {
       </UContainer>
     </footer>
 
-    <nav class="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-default bg-default pb-[env(safe-area-inset-bottom)]">
+    <nav v-if="!route.meta.hideTabs" class="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-default bg-default pb-[env(safe-area-inset-bottom)]">
       <ul class="grid grid-cols-4">
         <li v-for="t in tabs" :key="t.to">
           <NuxtLink :to="t.to" class="flex flex-col items-center gap-0.5 py-2 text-xs" :class="t.match(route.path) ? 'text-primary' : 'text-muted'">
