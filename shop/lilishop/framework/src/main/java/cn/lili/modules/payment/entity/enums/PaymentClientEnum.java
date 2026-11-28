@@ -27,5 +27,9 @@ public enum PaymentClientEnum {
     /**
      *  小程序，通常指微信小程序
      */
-    MP
+    MP,
+    /**
+     * 电脑网站支付：跳转支付渠道的网页收银台
+     */
+    PC
 }

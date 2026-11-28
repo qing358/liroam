@@ -76,6 +76,18 @@ public interface Payment {
         throw new ServiceException(ResultCode.PAY_ERROR);
     }
 
+    /**
+     * 电脑网站支付
+     *
+     * @param request  HttpServletRequest
+     * @param response HttpServletResponse
+     * @param payParam 支付参数
+     * @return 跳转支付渠道网页收银台的地址
+     */
+    default ResultMessage<Object> pcPay(HttpServletRequest request, HttpServletResponse response, PayParam payParam) {
+        throw new ServiceException(ResultCode.PAY_NOT_SUPPORT);
+    }
+
 
     /**
      * 退款

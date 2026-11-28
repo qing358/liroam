@@ -24,6 +24,7 @@ import cn.lili.modules.payment.kit.params.dto.CashierParam;
 import cn.lili.modules.payment.service.PaymentService;
 import cn.lili.modules.payment.service.RefundLogService;
 import cn.lili.modules.system.entity.dos.Setting;
+import cn.lili.modules.system.entity.dto.BaseSetting;
 import cn.lili.modules.system.entity.dto.connect.ConnectSetting;
 import cn.lili.modules.system.entity.dto.payment.AlipayPaymentSetting;
 import cn.lili.modules.system.entity.enums.SettingEnum;
@@ -35,6 +36,7 @@ import com.alipay.api.AlipayApiException;
 import com.alipay.api.domain.AlipayFundTransUniTransferModel;
 import com.alipay.api.domain.AlipayTradeAppPayModel;
 import com.alipay.api.domain.AlipayTradeCloseModel;
+import com.alipay.api.domain.AlipayTradePagePayModel;
 import com.alipay.api.domain.AlipayTradePrecreateModel;
 import com.alipay.api.domain.AlipayTradeQueryModel;
 import com.alipay.api.domain.AlipayTradeRefundModel;
@@ -196,6 +198,50 @@ public class AliPayPlugin implements Payment {
             log.error("支付业务异常：", e);
             throw new ServiceException(ResultCode.PAY_ERROR);
         }
+    }
+
+    @Override
+    public ResultMessage<Object> pcPay(HttpServletRequest request, HttpServletResponse response, PayParam payParam) {
+        CashierParam cashierParam = cashierSupport.cashierParam(payParam);
+        AlipayPaymentSetting alipayPaymentSetting = alipayPaymentSetting();
+        String outTradeNo = SnowFlake.getIdStr();
+        AlipayTradePagePayModel payModel = new AlipayTradePagePayModel();
+        payModel.setBody(cashierParam.getTitle());
+        payModel.setSubject(cashierParam.getDetail());
+        payModel.setTotalAmount(cashierParam.getPrice() + "");
+        payModel.setTimeoutExpress("3m");
+        payModel.setOutTradeNo(outTradeNo);
+        payModel.setProductCode("FAST_INSTANT_TRADE_PAY");
+        payModel.setPassbackParams(java.net.URLEncoder.encode(BeanUtil.formatKeyValuePair(payParam), java.nio.charset.StandardCharsets.UTF_8));
+        try {
+            log.info("支付宝电脑网站支付：{}", JSONUtil.toJsonStr(payModel));
+            String url = pagePayUrl(payModel,
+                    notifyUrl(alipayPaymentSetting.getCallbackUrl(), PaymentMethodEnum.ALIPAY),
+                    pcReturnUrl(alipayPaymentSetting, payParam));
+            updateOrderPayNo(payParam, outTradeNo);
+            return ResultUtil.data(url);
+        } catch (Exception e) {
+            log.error("支付宝电脑网站支付异常", e);
+            throw new ServiceException(ResultCode.PAY_ERROR);
+        }
+    }
+
+    String pagePayUrl(AlipayTradePagePayModel model, String notifyUrl, String returnUrl) throws AlipayApiException {
+        return AliPayRequest.tradePageUrl(model, notifyUrl, returnUrl);
+    }
+
+    /**
+     * 付款后浏览器回到买家 PC 站的支付完成页；未配置买家站地址时退回收银台同步回调接口
+     */
+    private String pcReturnUrl(AlipayPaymentSetting alipayPaymentSetting, PayParam payParam) {
+        Setting setting = settingService.get(SettingEnum.BASE_SETTING.name());
+        String buyerSite = setting == null ? null
+                : JSONUtil.toBean(setting.getSettingValue(), BaseSetting.class).getStaticPageAddress();
+        if (CharSequenceUtil.isBlank(buyerSite)) {
+            return callbackUrl(alipayPaymentSetting.getCallbackUrl(), PaymentMethodEnum.ALIPAY);
+        }
+        return CharSequenceUtil.removeSuffix(buyerSite.trim(), "/") + "/payDone?orderType="
+                + java.net.URLEncoder.encode(String.valueOf(payParam.getOrderType()), java.nio.charset.StandardCharsets.UTF_8);
     }
 
 

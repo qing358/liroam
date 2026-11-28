@@ -14,11 +14,21 @@
       <div class="pay-way">{{ payWayName }}支付</div>
       <div class="qrcode">
         <div class="qrcode-box">
-          <div v-if="payLoading" class="qrcode-status">正在生成支付二维码...</div>
+          <div v-if="payLoading" class="qrcode-status">{{ isPagePay ? '正在生成支付链接...' : '正在生成支付二维码...' }}</div>
           <div v-else-if="payError" class="qrcode-status qrcode-status--error">
             <p>{{ payError }}</p>
             <p class="qrcode-status-tip">您可点击「重新支付」重试，或返回选择其他支付方式</p>
           </div>
+          <el-button
+            v-else-if="isPagePay"
+            tag="a"
+            type="primary"
+            size="large"
+            :href="qrcode"
+            target="_blank"
+            rel="noopener"
+            @click="startPayPoll"
+          >前往{{ payWayName }}付款</el-button>
           <vue-qr
             v-else
             :text="qrcode"
@@ -29,7 +39,8 @@
           />
         </div>
         <div v-if="!payError" class="intro">
-          <el-icon><Iphone /></el-icon> 请使用{{ payWayName }}扫码付款
+          <template v-if="isPagePay">将在新窗口打开{{ payWayName }}收银台</template>
+          <template v-else><el-icon><Iphone /></el-icon> 请使用{{ payWayName }}扫码付款</template>
         </div>
       </div>
       <div class="btn-div">
@@ -65,6 +76,7 @@ let interval = null;
 const payWayName = computed(() => {
   return params.value.paymentMethod === 'ALIPAY' ? '支付宝' : '微信';
 });
+const isPagePay = computed(() => params.value.paymentClient === 'PC');
 
 function formatPayError (rawMessage) {
   const message = (rawMessage || '').trim();
@@ -92,8 +104,7 @@ function handlePay () {
       payLoading.value = false;
       if (res.success && res.result) {
         qrcode.value = res.result;
-        num.value = 0;
-        interval = setInterval(callback, 5000);
+        startPayPoll();
         return;
       }
       payError.value = formatPayError(res.message);
@@ -104,6 +115,13 @@ function handlePay () {
       payError.value = formatPayError(err?.message || err?.data?.message);
       Message.error(payError.value);
     });
+}
+
+// 网页收银台在新窗口付款，点击跳转时重新计轮询次数
+function startPayPoll () {
+  clearPayPoll();
+  num.value = 0;
+  interval = setInterval(callback, 5000);
 }
 
 function callback () {

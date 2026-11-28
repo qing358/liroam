@@ -110,6 +110,8 @@ public class CashierSupport {
                 return payment.nativePay(request, payParam);
             case MP:
                 return payment.mpPay(request, payParam);
+            case PC:
+                return payment.pcPay(request, response, payParam);
             default:
                 return null;
         }

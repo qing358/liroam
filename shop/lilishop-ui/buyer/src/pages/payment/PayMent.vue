@@ -98,7 +98,8 @@ function handlePay(way) {
   }
   const params = route.query;
   params.paymentMethod = way;
-  params.paymentClient = 'NATIVE';
+  // 支付宝 PC 走电脑网站支付（跳转网页收银台），不依赖当面付扫码
+  params.paymentClient = way === 'ALIPAY' ? 'PC' : 'NATIVE';
   params.price = payDetail.value.price;
   if (way === 'WALLET') {
     Modal.confirm({

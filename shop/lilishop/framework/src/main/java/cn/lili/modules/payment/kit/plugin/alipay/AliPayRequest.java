@@ -87,6 +87,23 @@ public class AliPayRequest {
     }
 
     /**
+     * 电脑网站支付：生成跳转支付宝网页收银台的 GET 地址
+     *
+     * @param model     {@link AlipayTradePagePayModel}
+     * @param notifyUrl 异步通知URL
+     * @param returnUrl 同步通知URL
+     * @return 已签名的收银台地址
+     * @throws AlipayApiException 支付宝 Api 异常
+     */
+    public static String tradePageUrl(AlipayTradePagePayModel model, String notifyUrl, String returnUrl) throws AlipayApiException {
+        AlipayTradePagePayRequest request = new AlipayTradePagePayRequest();
+        request.setBizModel(model);
+        request.setNotifyUrl(notifyUrl);
+        request.setReturnUrl(returnUrl);
+        return AliPayApiConfigKit.getAliPayApiConfig().pageExecute(request, "GET").getBody();
+    }
+
+    /**
      * 统一收单线下交易预创建 <br>
      * 适用于：扫码支付等 <br>
      *
