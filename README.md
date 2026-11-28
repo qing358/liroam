@@ -110,6 +110,13 @@ node scripts/heavy.mjs mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-
 # 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 5）、LIROAM_HEAVY_POLL_MS（默认 5000）
 ```
 
+**批量合入（本机多 worktree 并行时的合入流程，2026-11-28 起）**：各流不再各自跑整仓 verify。流程：
+
+1. 各流合入前只跑**受影响模块**的测试 + `node --test 'scripts/**/*.test.mjs'`（mvn 经 `heavy.mjs`），改了上游再加对应模块的 `-Pupstream-tests`；前端改动跑对应端 build / 单测。
+2. 绿了就 `git rebase integration`，再 `git -C ~/project/liroam.worktrees/integration merge --ff-only <本流分支>`（FF 失败说明 integration 又前进了，重新 rebase 再合）。Flyway：新增的 `V*` 迁移改名为**合入 integration 当刻**的时间戳。
+3. 集成负责人在 `integration` 上定时、或攒够 2～3 个流时，经 heavy 跑一次整仓 verify + `-Pupstream-tests`（在 `integration` worktree 内执行）。绿了把 main FF 到 `integration`（`git -C ~/project/liroam merge --ff-only integration`），并按需 `dev.mjs up --build` + `health`；红了定位到具体流，打回该流，并把它的提交从 `integration` 退掉（`git revert` 或重置回上一个绿点，其它流 rebase 后继续）。
+4. main 只由集成负责人从 `integration` FF 前进；各流分支从最新 `integration`（无积压时即 main）拉出。
+
 自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。
 
 上游模块测试默认 verify 不跑，`-DskipTests=false` 也打不开（上游根 pom 用 `lilishop.skipTests`）。上游模块测试（含放在上游模块里的自有测试，如 `DemoSiteDefaultTest`）由 profile 单独跑，CI 每次都跑；profile 已排除 v5.0.6 自带坏的 12 个测试类与直连本机 `localhost:6379` 的整上下文测试（清单见 `docs/upstream.md`「已知上游问题」），不连任何中间件：
