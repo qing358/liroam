@@ -1,55 +1,13 @@
 // 服务端渲染：首页、全部目的地、目的地页、套餐详情的内容直接出现在 HTML 源码里（关 JS 可见）。
-// 跑构建产物 .output（先 npm run build），K3 接口用假 buyer-api；端口取 deploy/ports.env 的 worktree 临时段 39100-39199
-import { spawn, type ChildProcess } from 'node:child_process'
-import { existsSync } from 'node:fs'
-import { createServer, type Server } from 'node:net'
-import { fileURLToPath } from 'node:url'
+// 跑构建产物 .output（先 npm run build），K3 接口用假 buyer-api（test/ssr/server.ts）
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { startFakeBuyerApi } from './fake-buyer-api'
+import { startSsrServer, type SsrServer } from './server'
 
-const root = fileURLToPath(new URL('../..', import.meta.url))
-const entry = `${root}.output/server/index.mjs`
+let ssr: SsrServer
+beforeAll(async () => { ssr = await startSsrServer() }, 30_000)
+afterAll(() => ssr?.stop())
 
-async function freePort(from = 39100, to = 39199): Promise<number> {
-  for (let port = from + Math.floor(Math.random() * 50); port <= to; port++) {
-    const free = await new Promise<boolean>((resolve) => {
-      const probe: Server = createServer().once('error', () => resolve(false)).listen(port, '127.0.0.1', () => probe.close(() => resolve(true)))
-    })
-    if (free) return port
-  }
-  throw new Error('39100-39199 没有空闲端口')
-}
-
-let nuxt: ChildProcess
-let base = ''
-let api: Awaited<ReturnType<typeof startFakeBuyerApi>>
-
-beforeAll(async () => {
-  if (!existsSync(entry)) throw new Error('没有构建产物，先 npm run build')
-  const apiPort = await freePort()
-  api = await startFakeBuyerApi(apiPort)
-  const port = await freePort(apiPort + 1)
-  base = `http://127.0.0.1:${port}`
-  nuxt = spawn(process.execPath, [entry], {
-    env: { ...process.env, PORT: String(port), HOST: '127.0.0.1', NUXT_PUBLIC_BUYER_API_URL: `http://127.0.0.1:${apiPort}` },
-    stdio: 'ignore',
-  })
-  for (let i = 0; i < 100; i++) {
-    if (await fetch(base).then(() => true, () => false)) return
-    await new Promise((r) => setTimeout(r, 200))
-  }
-  throw new Error('Nuxt 服务没有起来')
-}, 30_000)
-
-afterAll(() => {
-  nuxt?.kill()
-  api?.server.close()
-})
-
-const html = async (path: string) => {
-  const res = await fetch(base + path)
-  return { status: res.status, text: await res.text() }
-}
+const html = (path: string) => ssr.html(path)
 
 describe('选卡页服务端渲染', () => {
   it('首页：热门目的地、多国与全球（有成员数写覆盖数）直接在源码里', async () => {
@@ -103,7 +61,7 @@ describe('选卡页服务端渲染', () => {
   })
 
   it('服务端取目的地数据不带登录态', () => {
-    const k3 = api.requests.filter((r) => r.url.startsWith('/buyer/liroam/destinations'))
+    const k3 = ssr.api.requests.filter((r) => r.url.startsWith('/buyer/liroam/destinations'))
     expect(k3.length).toBeGreaterThan(0)
     expect(k3.every((r) => !r.headers.accesstoken)).toBe(true)
   })

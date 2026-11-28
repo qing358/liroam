@@ -1,7 +1,9 @@
+import { SITE } from './app/utils/site'
+
 // 轻游新买家站。约定见 docs/BRIEF.md「新买家站」与计划 K7：
 // 目的地页服务端渲染并短时缓存；结算、支付、我的卡、订单、账户只在浏览器渲染（依赖本地会话）。
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxt/test-utils/module'],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxt/test-utils/module', '@nuxtjs/sitemap'],
 
   devtools: { enabled: false },
 
@@ -9,11 +11,8 @@ export default defineNuxtConfig({
     head: {
       htmlAttrs: { lang: 'zh-CN' },
       title: '轻游 Liroam',
-      titleTemplate: '%s · 轻游',
-      meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-        { name: 'description', content: '轻游 Liroam：出境旅行通信卡，按目的地选 eSIM 与实体卡，下单即可安装，用量与到期随时可查。' },
-      ],
+      titleTemplate: SITE.titleTemplate,
+      meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' }],
       link: [{ rel: 'icon', href: '/favicon.ico' }],
     },
   },
@@ -30,6 +29,12 @@ export default defineNuxtConfig({
   // 不加载任何远程字体，走 main.css 的系统字体栈
   fonts: { providers: { google: false, googleicons: false, bunny: false, fontshare: false, fontsource: false, adobe: false } },
 
+  // 站点对外地址：canonical、分享卡片、站点地图、robots 的绝对地址都从这里来；部署时用 NUXT_SITE_URL 设置，未设置时按请求 Host
+  site: { name: SITE.name },
+
+  // 动态页（目的地、套餐、帮助文章）由 server/api/__sitemap__/urls.ts 列出；账户与下单页见下方 routeRules 的 sitemap: false
+  sitemap: { sources: ['/api/__sitemap__/urls'] },
+
   runtimeConfig: {
     public: {
       /** buyer-api 基址；本机由 scripts/dev.mjs 按 deploy/ports.env 注入 NUXT_PUBLIC_BUYER_API_URL */
@@ -38,6 +43,10 @@ export default defineNuxtConfig({
       wechatJsapiEnabled: false,
       /** 支付结果页逐张显示开卡进度，依赖 K4（/buyer/liroam/cards?orderSn=）；K4 合入前关闭，只按订单状态显示：NUXT_PUBLIC_CARDS_BY_ORDER */
       cardsByOrder: false,
+      /** 帮助中心客服方式（运营配置，空则不显示该项）：NUXT_PUBLIC_SUPPORT_HOURS / NUXT_PUBLIC_SUPPORT_PHONE / NUXT_PUBLIC_SUPPORT_CHAT_URL */
+      supportHours: '',
+      supportPhone: '',
+      supportChatUrl: '',
     },
   },
 
@@ -45,14 +54,16 @@ export default defineNuxtConfig({
     '/': { swr: 60 },
     '/esim': { swr: 300 },
     '/esim/**': { swr: 300 },
+    '/help': { swr: 300 },
     '/help/**': { swr: 300 },
-    '/login': { ssr: false },
-    '/checkout/**': { ssr: false },
-    '/pay/**': { ssr: false },
-    '/payDone': { ssr: false },
-    '/cards/**': { ssr: false },
-    '/orders/**': { ssr: false },
-    '/account/**': { ssr: false },
+    '/login': { ssr: false, sitemap: false },
+    '/checkout/**': { ssr: false, sitemap: false },
+    '/pay/**': { ssr: false, sitemap: false },
+    '/payDone': { ssr: false, sitemap: false },
+    '/cards/**': { ssr: false, sitemap: false },
+    '/orders/**': { ssr: false, sitemap: false },
+    '/account/**': { ssr: false, sitemap: false },
+    '/robots.txt': { swr: 3600 },
   },
 
   compatibilityDate: '2025-07-15',

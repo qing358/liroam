@@ -9,6 +9,8 @@ import {
   filterPlans,
   type PlanChip,
 } from '~/services/destinations'
+import { absoluteUrl, destinationJsonLd, destinationPath } from '~/utils/seo'
+import { SITE } from '~/utils/site'
 
 // 目的地页：服务端渲染 + swr，套餐卡片与价格在页面源码里（关 JS 可见）；天数与筛选在浏览器里切换
 definePageMeta({ hideTabs: true })
@@ -17,10 +19,9 @@ const { $buyerApi } = useNuxtApp()
 const route = useRoute()
 const code = computed(() => String(route.params.code))
 
-const { data, error } = await useAsyncData(() => `plans:${code.value.toUpperCase()}`, () => destinationPlans($buyerApi, code.value))
-if (error.value || !data.value) {
-  throw createError({ statusCode: 404, statusMessage: error.value?.message || '这个目的地暂时没有在售套餐', fatal: true })
-}
+const { data, error } = await useAsyncData(() => `plans:${code.value.toUpperCase()}`, withPageError(() => destinationPlans($buyerApi, code.value)))
+if (error.value) throw error.value
+if (!data.value) throw createError({ statusCode: 404, statusMessage: '这个目的地暂时没有在售套餐', fatal: true })
 
 const destination = computed(() => data.value!.destination)
 const plans = computed(() => data.value!.plans)
@@ -35,9 +36,17 @@ function toggle(chip: PlanChip) {
 }
 
 const title = computed(() => destinationTitle(destination.value))
-useSeoMeta({
+const site = useSiteConfig()
+usePageSeo({
   title,
-  description: '轻游 Liroam 出境旅行通信卡：按目的地选购 eSIM 与实体卡，付款后在线发码，随时查询用量、续费加包。',
+  path: () => destinationPath(destination.value.code),
+  jsonLd: () => destinationJsonLd({
+    name: title.value,
+    description: destinationSubtitle(destination.value, networks.value),
+    url: absoluteUrl(site.url, destinationPath(destination.value.code)),
+    image: absoluteUrl(site.url, SITE.shareImage),
+    plans: plans.value,
+  }),
 })
 
 const faq = ['什么时候安装最合适？', '流量用完了怎么办？', '可以和国内手机号同时使用吗？']

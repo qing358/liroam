@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import { SITE } from '~/utils/site'
 
 // 导航按设计稿：PC 顶栏 + 深色页脚；手机底部四个标签。下单与详情页设 definePageMeta({ hideTabs: true })，自带 BackBar 与底部操作条
 const { member, load, signedIn } = useMember()
@@ -48,7 +49,7 @@ onMounted(() => {
     <footer class="bg-inverted text-inverted max-md:hidden">
       <UContainer class="py-8 flex items-center justify-between gap-4 text-sm">
         <img src="/brand/liroam-horizontal-reverse.svg" alt="轻游 Liroam" class="h-6 w-auto">
-        <p>© {{ new Date().getFullYear() }} 想象智能（济南）有限公司 · 轻游 Liroam</p>
+        <p>© {{ new Date().getFullYear() }} {{ SITE.company }} · 轻游 Liroam</p>
       </UContainer>
     </footer>
 

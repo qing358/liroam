@@ -2,7 +2,7 @@
 import { destinationFrom, destinationLine, hotDestinations, listDestinations, multiDestinations } from '~/services/destinations'
 
 // 首页：服务端渲染 + swr（nuxt.config routeRules），数据只来自 K3 目的地列表
-useHead({ title: '出境旅行通信卡' })
+usePageSeo({ title: '出境旅行通信卡', path: '/' })
 
 const { $buyerApi } = useNuxtApp()
 const { data: destinations } = await useAsyncData('destinations', () => listDestinations($buyerApi), { default: () => [] })

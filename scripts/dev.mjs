@@ -83,6 +83,11 @@ function applyDevSeed(config) {
   console.log('已应用本机演示配置 deploy/dev-seed.sql');
 }
 
+// 文章分类树缓存在 Redis 且不过期；迁移或演示 SQL 直接写库后要删掉，帮助中心才看得到新分类
+function clearArticleCategoryCache() {
+  compose(['exec', '-T', 'redis', 'redis-cli', 'DEL', '{ARTICLE_CATEGORY}_'], { capture: true });
+}
+
 function backendJar(module, checkout = rootDir) {
   const targetDir = path.join(checkout, 'shop/lilishop', module, 'target');
   if (!fs.existsSync(targetDir)) return null;
@@ -245,6 +250,7 @@ async function up() {
   }
 
   for (const be of BACKENDS) await waitFor(be.name, () => backendUp(config[be.urlKey]), 300000);
+  clearArticleCategoryCache();
   for (const fe of frontends) await waitFor(fe.name, () => frontendUp(fe, config), 300000);
   printUrls(config);
 }
@@ -407,6 +413,9 @@ async function demo() {
     await api.post('/manager/liroam/commission/policies', DEMO_COMMISSION_POLICY);
     console.log('- 佣金策略 DEFAULT：实付 10%，一级 80% / 二级 20%，交码当时可提现（演示值，正式比例向客户要）');
   }
+  const help = parseTsv(runSql('deploy/dev-demo-help.sql'));
+  clearArticleCategoryCache();
+  console.log(`- 帮助中心演示文章 ${help.length} 篇（设备兼容为演示品牌/机型，正式清单由运营发布）`);
   compose(['exec', '-T', 'redis', 'sh', '-c', 'redis-cli --scan --pattern "*GOODS*" | xargs -r redis-cli DEL'], { capture: true });
   console.log('\n演示目录就绪。买家端商品页：');
   for (const [label, n] of [['纯流量 eSIM', 1], ['语音短信 eSIM', 6], ['实名后交付 eSIM', 7], ['实体卡（寄送）', 8], ['纯软卡', 9]]) {

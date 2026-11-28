@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { destinationPlans, planDataText, planDetailBadges, usageRegion } from '~/services/destinations'
 import { formatPrice } from '~/utils/money'
+import { absoluteUrl, planJsonLd, planPath } from '~/utils/seo'
+import { SITE } from '~/utils/site'
 
 // 套餐详情：服务端渲染；套餐字段取目的地页同一份 K3 数据，使用区域说明取商品详情同一接口的原文
 definePageMeta({ hideTabs: true })
@@ -10,14 +12,15 @@ const route = useRoute()
 const code = String(route.params.code)
 const skuId = String(route.params.skuId)
 
-const { data } = await useAsyncData(`plan:${code.toUpperCase()}:${skuId}`, async () => {
+const { data, error } = await useAsyncData(`plan:${code.toUpperCase()}:${skuId}`, withPageError(async () => {
   const [{ destination, plans }, usage] = await Promise.all([
     destinationPlans($buyerApi, code),
     usageRegion($buyerApi, skuId).catch(() => null),
   ])
   const plan = plans.find((p) => p.skuId === skuId)
   return plan ? { destination, plan, usage } : null
-})
+}))
+if (error.value) throw error.value
 if (!data.value) throw createError({ statusCode: 404, statusMessage: '这款套餐已下架或不存在', fatal: true })
 
 const destination = computed(() => data.value!.destination)
@@ -30,7 +33,21 @@ const num = ref(1)
 const total = computed(() => formatPrice(plan.value.priceFen * num.value))
 const buy = computed(() => ({ path: '/checkout', query: { skuId, num: String(num.value), code: destination.value.code } }))
 
-useSeoMeta({ title: name, description: () => `${name.value}，${formatPrice(plan.value.priceFen)}。${plan.value.usageRegionNote}` })
+const description = computed(() => `${name.value}，${formatPrice(plan.value.priceFen)}。${plan.value.usageRegionNote}`)
+const site = useSiteConfig()
+const path = computed(() => planPath(destination.value.code, skuId))
+usePageSeo({
+  title: name,
+  description,
+  path,
+  jsonLd: () => planJsonLd({
+    name: name.value,
+    description: description.value,
+    url: absoluteUrl(site.url, path.value),
+    image: absoluteUrl(site.url, SITE.shareImage),
+    plan: plan.value,
+  }),
+})
 
 const install = [
   { title: '付款后获取激活码', text: '在支付结果页或「我的卡」查看二维码' },

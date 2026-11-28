@@ -223,8 +223,8 @@ test('新买家站加载轻游主题，Nuxt UI 主色与正文色指向品牌令
 test('新买家站 favicon 是轻游 favicon，页面描述写轻游出境旅行通信卡', () => {
   const favicon = fs.readFileSync(path.join(repoRoot, 'logo/png/favicon.ico'));
   assert.ok(fs.readFileSync(path.join(buyerWebRoot, 'public/favicon.ico')).equals(favicon));
-  const nuxtConfig = fs.readFileSync(path.join(buyerWebRoot, 'nuxt.config.ts'), 'utf8');
-  const description = nuxtConfig.match(/name: 'description', content: '([^']*)'/)?.[1] ?? '';
+  const site = fs.readFileSync(path.join(buyerWebRoot, 'app/utils/site.ts'), 'utf8');
+  const description = site.match(/description: '([^']*)'/)?.[1] ?? '';
   assert.match(description, /轻游/);
   assert.match(description, /旅行通信卡/);
 });

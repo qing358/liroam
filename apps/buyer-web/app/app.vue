@@ -1,3 +1,7 @@
+<script setup lang="ts">
+useSiteSeoDefaults()
+</script>
+
 <template>
   <UApp :toaster="{ position: 'top-center' }">
     <NuxtRouteAnnouncer />

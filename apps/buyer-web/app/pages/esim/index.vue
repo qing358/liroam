@@ -2,7 +2,7 @@
 import { continentGroups, coverHint, destinationFrom, destinationLine, listDestinations, type DestinationKind } from '~/services/destinations'
 
 // 全部目的地与搜索：服务端渲染；关键词、分段与洲都在查询串里，刷新与分享保持同一视图
-useHead({ title: '选择目的地' })
+usePageSeo({ title: '选择目的地', path: '/esim' })
 
 const { $buyerApi } = useNuxtApp()
 const route = useRoute()

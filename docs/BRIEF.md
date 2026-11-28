@@ -80,7 +80,8 @@
 | 组件库 | Nuxt UI（底层 Reka UI 2.12、Tailwind CSS 4.3、tailwind-variants、vaul-vue 抽屉） | 4.13.1 | 均 MIT（vaul-vue 包内缺许可证文件，读仓库 LICENSE 原文为 MIT） |
 | 图标 | `@nuxt/icon` + 本地 `@iconify-json/lucide` | 2.6.3 / 1.2.x | MIT / ISC |
 | 字体模块 | `@nuxt/fonts`（Nuxt UI 自带） | 1.2.1 | MIT |
-| 站点地图 | `@nuxtjs/sitemap` | 9.2.0 | MIT |
+| 站点地图 | `@nuxtjs/sitemap`（带 `nuxt-site-config` 5） | 9.2.0 | MIT |
+| 帮助文章 HTML 解析与清洗 | `ultrahtml` | 1.7.0 | MIT |
 | 测试 / lint / 表单校验 | `@nuxt/test-utils` + vitest、`@nuxt/eslint`、zod | 4.4.0 / 5.1.2、1.17.0、4.x | MIT（npm 声明） |
 
 - 落选：Element Plus 2.14（MIT，四端在用，但以 PC 为主、缺手机交互）；Vant 4.10（MIT，只适合手机）；PrimeVue 5.0（LICENSE 改为 PrimeUI 商业许可，有营收 / 人数门槛并需许可证密钥，不并入）。
@@ -88,6 +89,7 @@
 - 渲染：首页、`/esim/**`、`/help/**` 服务端渲染 + 短时缓存（`routeRules` swr）；结算、支付、我的卡、订单、账户关 SSR 纯客户端。退路：目的地页构建时预渲染，整站静态部署。
 - 骨架（WS9，计划 K7）：会话键只在 `app/utils/session.ts`（localStorage，服务端渲染不带登录态）；终端类型 PC / H5 / 微信内与壳 `clientType`（微信内按 `H5`）、每种支付方式的 `paymentClient` 只在 `app/utils/terminal.ts`：PC 微信 `NATIVE` 扫码、支付宝 `PC` 电脑网站支付跳转；手机浏览器支付宝 `H5`（壳直接回渠道表单 HTML，页面提交）、微信 `H5` 跳转；微信内只有 `JSAPI`（开关 `NUXT_PUBLIC_WECHAT_JSAPI_ENABLED`，默认关，需公众号网页授权）；余额 PC 用 `NATIVE`、手机用 `H5`。可用方式再与收银台 `tradeDetail.support` 取交集。下单只走立即购买 `BUY_NOW`（`/checkout?skuId=&num=[&code=目的地]` → `/pay/<交易单号>?method=预选方式` → `/pay/result?sn=<交易单号>`）。登录前的拼图滑块与短信验证码同壳 `LOGIN` 场景、按 `uuid` 头关联。API 基址只经运行时配置 `NUXT_PUBLIC_BUYER_API_URL`，本机由 `dev.mjs --ui=buyer-web` 按 `ports.env` 注入。支付宝电脑网站支付付款后回跳 `BASE_SETTING.staticPageAddress` + `/payDone`：新站有同名路由，但本机该地址仍指老买家 PC 端，切到新站在 WS14。
 - 选卡与下单（WS11）：首页、`/esim`（搜索与按洲分组，关键词 / 分段 / 洲在查询串）、`/esim/[code]`、`/esim/[code]/[skuId]` 服务端渲染 + swr，数据只来自 K3（`app/services/destinations.ts` 是接口与展示口径的唯一出处：流量与天数文案、标签、天数分段、筛选、洲分组）；套餐详情的使用区域说明取 `/buyer/goods/liroam/usage-region` 原文。确认订单页按终端预选支付方式（建交易前拿不到壳 `support`），收银台对预选方式只自动调起一次（标签页 `sessionStorage`），从支付应用返回显示等待态。支付结果页先确认已付款，再按壳订单状态显示进度；逐张开卡进度依赖 K4（`cards?orderSn=` 与卡投影的 `orderSn`，WS12），开关 `NUXT_PUBLIC_CARDS_BY_ORDER` 默认关，WS12 合入后打开。订单详情只经 `services/orders.ts`、按订单取卡只经 `services/cards.ts`。`npm run test:ssr` 断言选卡页内容在 HTML 源码里（关 JS 可见）。
+- 帮助中心与 SEO（WS13）：内容只来自壳文章（`/buyer/other/article`），迁移 `*__help_article_categories.sql` 建固定 id 的「帮助中心」分类及子分类（设备兼容 / 安装与开卡 / 用量与加包 / 退款与售后 / 渠道订单认领 / 境外上网设置 / 常见问题），运营在后台「文章管理」发布正文；分类 id、话题图标、正文清洗与纯文本、设备清单解析只在 `app/services/help.ts`。`/help`（首页、`?category=` 分类列表、`?q=` 标题搜索）、`/help/devices`、`/help/[id]` 服务端渲染 + swr；未发布或不在帮助中心的文章 404。设备兼容一篇文章 = 一个品牌，每行「机型 | 支持情况 | 说明」，没有发布就只显示确认方法，不编机型。客服时间 / 电话 / 在线客服链接壳里没有设置项，走运行时配置 `NUXT_PUBLIC_SUPPORT_HOURS` / `_PHONE` / `_CHAT_URL`，未配不显示。SEO 只经 `app/composables/usePageSeo.ts`（标题、描述、canonical、Open Graph、JSON-LD：目的地页 Product + AggregateOffer、套餐页 Product + Offer、帮助页 FAQPage），站点名与描述在 `app/utils/site.ts`，对外地址只来自 `NUXT_SITE_URL`。`sitemap.xml` 由 `@nuxtjs/sitemap` 出，动态页来源 `server/api/__sitemap__/urls.ts`；`robots.txt` 由 `server/routes/robots.txt.ts` 出，拦 `routeRules` 里 `sitemap: false` 的账户与下单页。错误页 `app/error.vue`：404「页面不存在」、K1 关闭功能「该功能暂未开放」、其余（含 buyer-api 不可用时页面回 503）「网络不太稳定」可重试。壳文章分类树缓存在 Redis `{ARTICLE_CATEGORY}_` 且不过期，迁移后要删（`dev.mjs up` / `demo` 自动删）。
 - 主题：只用浅色（关闭 color mode）；颜色只引 `shop/lilishop-ui/brand/theme.css` 的 `--lr-*`，`--ui-primary` → `--lr-primary`、`--ui-text` → `--lr-ink`，Tailwind 不另写色值；品牌闸 `scripts/brand.test.mjs` 扫描范围须含 `apps/buyer-web`（WS9 落地）。
 - 国内可达性：图标本地打包，不走 Iconify 在线接口；`@nuxt/fonts` 关闭远程字体源，用系统字体栈（PingFang SC / Noto Sans SC 优先）。
 

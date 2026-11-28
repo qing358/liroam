@@ -36,3 +36,5 @@
 | 29 | 上游图床残留 | 库里不再引用 `lilishop-oss` / `lilishop-pc` 上游图床：分销海报 / 邀请卡 / 招募背景（`DISTRIBUTION_*_SETTING`）换自有素材；H5 装修若启用，商品与图片换真实内容；代码未读的旧表 `li_paid_member_setting`（付费会员实际读 `li_setting.PAID_MEMBER_SETTING`）仍存上游图标，生产库不导入或清空 |
 | 30 | 文件存储 | 壳「系统设置」`OSS_SETTING` 换自有 OSS 的桶、地域与账号（基线里是上游 `lilishop-oss` 桶及其凭证，凭证只进生产配置）；后台上传一张图能在三端打开 |
 | 31 | 站内素材可访问 | 库里装修、会员图标、等级卡等按根路径 `/liroam/...` 引用：PC 三端打包自带（`public/liroam/`）；H5（uni-app，不在本仓）所在域名也要能访问同一路径（同域反代到买家 PC 静态资源或拷一份），否则 H5 首页横幅与商品占位图是破图 |
+| 32 | 新买家站对外地址与客服 | 部署环境设 `NUXT_SITE_URL=https://<生产域名>`（canonical、分享卡片、`sitemap.xml` 用它）；`NUXT_PUBLIC_SUPPORT_HOURS` / `NUXT_PUBLIC_SUPPORT_PHONE` / `NUXT_PUBLIC_SUPPORT_CHAT_URL` 填客户确认的客服时间与方式（未配不显示）；打开 `/robots.txt`、`/sitemap.xml` 地址是生产域名 |
+| 33 | 帮助中心内容 | 迁移后删 Redis `{ARTICLE_CATEGORY}_`（文章分类树缓存不过期）；运营在「文章管理」的帮助中心各分类发布正文并打开「展示」；「设备兼容」按品牌各发一篇（每行「机型 \| 支持情况 \| 说明」），机型清单来自客户 / 供应商确认，不用演示品牌；生产库无 `li_article.id` 落在 `9100000000000003100–9100000000000003199`（`deploy/dev-demo-help.sql` 演示文章） |
