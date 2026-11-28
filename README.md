@@ -101,12 +101,12 @@ node --test 'scripts/**/*.test.mjs'    # 编排脚本单测
 mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
 ```
 
-本机多个 worktree 并行时，`mvn verify`、`dev.mjs up --build` 等重活一律经排队命令跑：所有 worktree 共用 git 公共目录下的 `flock` 槽位，同时最多 2 个，其余排队；可用内存低于 8G 时不开新活，等待并提示。它还会自动用 `.sdkmanrc` 的 JDK 21；在 worktree 里没设口令时取主检出 `.env` 的 `LIROAM_MYSQL_ROOT_PASSWORD`，没设 `LIROAM_IT_DB_PREFIX` 时按 worktree 目录名设为 `liroam_it_<目录名>_`（主检出不改）。退出码与被包命令一致。
+本机多个 worktree 并行时，`mvn verify`、`dev.mjs up --build` 等重活一律经排队命令跑：所有 worktree 共用 git 公共目录下的 `flock` 槽位，同时最多 2 个，其余排队；可用内存（`/proc/meminfo` 的 MemAvailable）低于 5G 时不开新活，等待并提示：本机其它项目常驻占用大，两个 verify 同跑时可用约 7G、一个 verify 峰值约 2.5G，5G 留出余量又不至于常态卡死。它还会自动用 `.sdkmanrc` 的 JDK 21；在 worktree 里没设口令时取主检出 `.env` 的 `LIROAM_MYSQL_ROOT_PASSWORD`，没设 `LIROAM_IT_DB_PREFIX` 时按 worktree 目录名设为 `liroam_it_<目录名>_`（主检出不改）。退出码与被包命令一致。
 
 ```bash
 node scripts/heavy.mjs mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
 node scripts/heavy.mjs mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test
-# 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 8）、LIROAM_HEAVY_POLL_MS（默认 5000）
+# 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 5）、LIROAM_HEAVY_POLL_MS（默认 5000）
 ```
 
 自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。

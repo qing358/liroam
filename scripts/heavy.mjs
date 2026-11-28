@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // 重活排队：mvn verify、dev.mjs up --build 等吃内存的命令经这里跑。所有 worktree 共用 git 公共目录下同一组 flock 槽位，
-// 默认同时最多 2 个；可用内存低于门槛时不开新活，等内存回来再排。
+// 默认同时最多 2 个；可用内存低于门槛（默认 5G，一个 verify 峰值约 2.5G）时不开新活，等内存回来再排。
 // 用法：node scripts/heavy.mjs [--] <命令> [参数...]
-// 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 8）、LIROAM_HEAVY_POLL_MS（默认 5000）、LIROAM_HEAVY_LOCK_DIR
+// 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 5）、LIROAM_HEAVY_POLL_MS（默认 5000）、LIROAM_HEAVY_LOCK_DIR
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -29,7 +29,7 @@ if (!commonDir) throw new Error(`${checkout} 不在 git 仓库里`);
 const mainCheckout = path.dirname(commonDir);
 const lockDir = process.env.LIROAM_HEAVY_LOCK_DIR || path.join(commonDir, 'liroam-heavy');
 const slots = Number(process.env.LIROAM_HEAVY_SLOTS || 2);
-const minMemGb = Number(process.env.LIROAM_HEAVY_MIN_MEM_GB ?? 8);
+const minMemGb = Number(process.env.LIROAM_HEAVY_MIN_MEM_GB ?? 5);
 const pollMs = Number(process.env.LIROAM_HEAVY_POLL_MS || 5000);
 
 const secretsPath = path.join(mainCheckout, '.env');
