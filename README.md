@@ -102,12 +102,12 @@ node --test 'scripts/**/*.test.mjs'    # 编排脚本单测
 mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
 ```
 
-本机多个 worktree 并行时，`mvn verify`、`dev.mjs up --build` 等重活一律经排队命令跑：所有 worktree 共用 git 公共目录下的 `flock` 槽位，同时最多 2 个，其余排队；可用内存（`/proc/meminfo` 的 MemAvailable）低于 5G 时不开新活，等待并提示：本机其它项目常驻占用大，两个 verify 同跑时可用约 7G、一个 verify 峰值约 2.5G，5G 留出余量又不至于常态卡死。它还会自动用 `.sdkmanrc` 的 JDK 21；在 worktree 里没设口令时取主检出 `.env` 的 `LIROAM_MYSQL_ROOT_PASSWORD`，没设 `LIROAM_IT_DB_PREFIX` 时按槽位设为 `liroam_it_slot<1|2>_`（同槽位串行、不同槽位并发，任意时刻不共库；主检出也一样）。退出码与被包命令一致。
+本机多个 worktree 并行时，`mvn verify`、`dev.mjs up --build` 等重活一律经排队命令跑：所有 worktree 共用 git 公共目录下的 `flock` 槽位，同时最多 4 个（2026-11-28 停掉 qianba-dev 四个容器后由 2 调到 4），其余排队；可用内存（`/proc/meminfo` 的 MemAvailable）低于 5G 时不开新活，等待并提示：本机其它项目常驻占用大，两个 verify 同跑时可用约 7G、一个 verify 峰值约 2.5G，5G 留出余量又不至于常态卡死。它还会自动用 `.sdkmanrc` 的 JDK 21；在 worktree 里没设口令时取主检出 `.env` 的 `LIROAM_MYSQL_ROOT_PASSWORD`，没设 `LIROAM_IT_DB_PREFIX` 时按槽位设为 `liroam_it_slot<n>_`（同槽位串行、不同槽位并发，任意时刻不共库；主检出也一样）。退出码与被包命令一致。
 
 ```bash
 node scripts/heavy.mjs mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
 node scripts/heavy.mjs mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test
-# 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 5）、LIROAM_HEAVY_POLL_MS（默认 5000）
+# 可调：LIROAM_HEAVY_SLOTS（默认 4）、LIROAM_HEAVY_MIN_MEM_GB（默认 5）、LIROAM_HEAVY_POLL_MS（默认 5000）
 ```
 
 **批量合入（本机多 worktree 并行时的合入流程，2026-11-28 起）**：各流不再各自跑整仓 verify。流程：

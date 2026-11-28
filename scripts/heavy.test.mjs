@@ -24,11 +24,11 @@ function queueEnv(dir, extra = {}) {
   return { LIROAM_HEAVY_LOCK_DIR: dir, LIROAM_HEAVY_POLL_MS: '50', LIROAM_HEAVY_MIN_MEM_GB: '0', ...extra };
 }
 
-test('同时最多 2 个重活在跑，第 3 个排队等槽位，全部最终完成', async () => {
+test('LIROAM_HEAVY_SLOTS=2 时同时最多 2 个重活在跑，第 3 个排队等槽位，全部最终完成', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
   const log = path.join(dir, 'events.log');
   const job = `echo start >> ${log}; sleep 0.6; echo end >> ${log}`;
-  const results = await Promise.all([1, 2, 3, 4].map(() => run(['sh', '-c', job], queueEnv(dir))));
+  const results = await Promise.all([1, 2, 3, 4].map(() => run(['sh', '-c', job], queueEnv(dir, { LIROAM_HEAVY_SLOTS: '2' }))));
   assert.deepEqual(results.map((r) => r.code), [0, 0, 0, 0]);
   let running = 0;
   let peak = 0;
@@ -38,6 +38,21 @@ test('同时最多 2 个重活在跑，第 3 个排队等槽位，全部最终�
   }
   assert.equal(peak, 2);
   assert.ok(results.some((r) => r.out.includes('排队')));
+});
+
+test('默认同时最多 4 个重活（本机停掉 qianba-dev 四个容器后内存充裕），第 5 个排队', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
+  const log = path.join(dir, 'events.log');
+  const job = `echo start >> ${log}; sleep 0.8; echo end >> ${log}`;
+  const results = await Promise.all([1, 2, 3, 4, 5, 6].map(() => run(['sh', '-c', job], queueEnv(dir))));
+  assert.deepEqual(results.map((r) => r.code), [0, 0, 0, 0, 0, 0]);
+  let running = 0;
+  let peak = 0;
+  for (const event of fs.readFileSync(log, 'utf8').trim().split('\n')) {
+    running += event === 'start' ? 1 : -1;
+    peak = Math.max(peak, running);
+  }
+  assert.equal(peak, 4);
 });
 
 test('槽位数可配；命令退出码原样透传', async () => {
