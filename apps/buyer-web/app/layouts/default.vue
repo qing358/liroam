@@ -14,7 +14,7 @@ const desktopNav: NavigationMenuItem[] = [
 
 const tabs = [
   { label: '选卡', to: '/', icon: 'i-lucide-globe', match: (p: string) => p === '/' || p.startsWith('/esim') },
-  { label: '我的卡', to: '/cards', icon: 'i-lucide-sim-card', match: (p: string) => p.startsWith('/cards') },
+  { label: '我的卡', to: '/cards', icon: 'i-lucide-card-sim', match: (p: string) => p.startsWith('/cards') },
   { label: '帮助', to: '/help', icon: 'i-lucide-circle-help', match: (p: string) => p.startsWith('/help') },
   { label: '我的', to: '/account', icon: 'i-lucide-user-round', match: (p: string) => p.startsWith('/account') || p.startsWith('/orders') },
 ]
