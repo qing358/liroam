@@ -1,11 +1,6 @@
-// 支付结果页的交付进度：壳订单状态 +（K4 合入后）按订单号取的卡投影
-import type { BuyerApi } from '~/utils/buyer-api'
-
-/** 壳 OrderDetailVO 里本页用到的部分 */
-export interface ShellOrderDetail {
-  order: { sn: string, orderType: string, orderStatus: string, deliverStatus?: string, paymentTime?: string }
-  orderItems: { goodsName: string, num: number }[]
-}
+// 支付结果页的交付进度：壳订单状态 +（K4 合入后）按订单号取的卡投影；接口出口在 services/orders.ts、services/cards.ts
+import type { CardView } from '~/services/cards'
+import type { OrderDetail } from '~/services/orders'
 
 export interface OrderBrief {
   sn: string
@@ -17,12 +12,7 @@ export interface OrderBrief {
   items: { goodsName: string, num: number }[]
 }
 
-/** 卡投影（/buyer/liroam/cards）里本页用到的部分 */
-export interface CardBrief {
-  id: number
-  productName: string
-  status: string
-}
+export type CardBrief = Pick<CardView, 'id' | 'productName' | 'status'>
 
 export type StepState = 'done' | 'now' | 'todo'
 
@@ -52,14 +42,7 @@ export interface DeliveryProgress {
 const READY = new Set(['DELIVERED', 'IN_USE', 'SUSPENDED', 'EXPIRED'])
 const SHIPPED = new Set(['DELIVERED', 'COMPLETED'])
 
-export const orderDetail = (api: BuyerApi, orderSn: string) =>
-  api.get<ShellOrderDetail>(`/buyer/order/order/${encodeURIComponent(orderSn)}`, { auth: 'required' })
-
-/** K4：卡列表按订单号过滤 */
-export const cardsOfOrder = (api: BuyerApi, orderSn: string) =>
-  api.get<CardBrief[]>('/buyer/liroam/cards', { query: { orderSn }, auth: 'required' })
-
-export const toOrderBrief = ({ order, orderItems }: ShellOrderDetail): OrderBrief => ({
+export const toOrderBrief = ({ order, orderItems }: OrderDetail): OrderBrief => ({
   sn: order.sn,
   orderType: order.orderType,
   orderStatus: order.orderStatus,

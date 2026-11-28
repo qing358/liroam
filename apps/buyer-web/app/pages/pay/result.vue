@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { cashierDetail, orderSnList, paid } from '~/services/cashier'
-import { cardsOfOrder, deliveryProgress, orderDetail, toOrderBrief, type DeliveryProgress } from '~/services/delivery'
+import { cardsOfOrder } from '~/services/cards'
+import { deliveryProgress, toOrderBrief, type DeliveryProgress } from '~/services/delivery'
+import { orderDetail } from '~/services/orders'
 import { shellClientType } from '~/utils/terminal'
 
 // 支付结果：/pay/result?sn=<交易单号>。先确认已付款，再轮询交付进度：壳订单状态，开关 cardsByOrder 打开后加按订单号取的卡（K4）逐张显示。
