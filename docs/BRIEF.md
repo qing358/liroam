@@ -48,13 +48,13 @@
 
 ## 渠道（P5 已落地，mock 渠道）
 
-- `liroam-channel`：渠道只经 `ChannelAdapter`（拉单 / 回传 / 日对账单）接入，`lr_channel.adapter_key` 选实现；渠道单走唯一履约入口（CHANNEL 行，不建壳订单），交码后回传渠道，`CHANNEL_DAILY` 日对账；买家凭订单号 + 绑定手机号认领到「我的卡」。后台「渠道」菜单（`li_menu` id 170–172）。
+- `liroam-channel`：渠道只经 `ChannelAdapter`（拉单 / 回传 / 日对账单）接入，`lr_channel.adapter_key` 选实现；渠道单走唯一履约入口（CHANNEL 行，不建壳订单），交码后回传渠道，`CHANNEL_DAILY` 日对账；买家凭订单号 + 绑定手机号认领到「我的卡」。后台「订单 › 外部渠道」。
 - `liroam-channel-jd`：现只有模拟适配器 `mock-jd`（dev/test）；`node scripts/dev.mjs demo` 建渠道 `JD` 与一条 SKU 映射。真开放平台适配器待资质、AppKey/Secret 与 SKU 映射表。渠道退款 / 取消（§9.4）未做；买家不能在本站对渠道卡整卡申请退款（「我的卡」不出按钮、接口拒绝），在本站买的加包照常可退。
 
 ## 运营闭环（P5 已落地，mock 渠道 / 假支付对账单）
 
-- `liroam-commission`：佣金策略版本化（`PAID_RATE` 实付抽成 / `FLOOR_DIFF` 底价差价 / `NONE`；SKU > 代理等级 > 全局；两级分成、T+N 结算、提现是否审批），比例只在后台配置。自建台账 `lr_commission_entry`（不用壳分销商品），分销员与订单归属只读壳 `li_distribution` / `li_order.distribution_id`（H9）。交码后计提（按交付时刻生效的策略版本；交付时还没有生效策略的行不回补），到期转可提现；退款按比例冲回（已结算可为负，后续抵扣）；提现 = 申请 → 审批 → 线下打款登记凭证。买家「我的佣金」、后台「佣金」菜单（`li_menu` 160–162）。
-- `liroam-ops`：卡到期站内提醒（阈值 `notify.expiry_remind_before`，买家「我的卡」顶部提示；短信端口 `MemberSms` 未接，开关默认关）；日对账共用 `lr_recon_run` / `lr_recon_diff`（支付日对账 = 上传支付渠道 CSV 对壳已支付订单，供应商日对账 = 上传账单对成功开卡/加包成本，渠道日对账见下节），差异可标已处理/忽略；按日经营报表；后台「报表与对账」菜单（`li_menu` 180–182）。真实对账单格式【待核实】。
+- `liroam-commission`：佣金策略版本化（`PAID_RATE` 实付抽成 / `FLOOR_DIFF` 底价差价 / `NONE`；SKU > 代理等级 > 全局；两级分成、T+N 结算、提现是否审批），比例只在后台配置。自建台账 `lr_commission_entry`（不用壳分销商品），分销员与订单归属只读壳 `li_distribution` / `li_order.distribution_id`（H9）。交码后计提（按交付时刻生效的策略版本；交付时还没有生效策略的行不回补），到期转可提现；退款按比例冲回（已结算可为负，后续抵扣）；提现 = 申请 → 审批 → 线下打款登记凭证。买家「我的佣金」、后台「运营 › 分销管理 › 佣金策略 / 佣金与提现」。
+- `liroam-ops`：卡到期站内提醒（阈值 `notify.expiry_remind_before`，买家「我的卡」顶部提示；短信端口 `MemberSms` 未接，开关默认关）；日对账共用 `lr_recon_run` / `lr_recon_diff`（支付日对账 = 上传支付渠道 CSV 对壳已支付订单，供应商日对账 = 上传账单对成功开卡/加包成本，渠道日对账见下节），差异可标已处理/忽略；按日经营报表；后台「统计 › 经营毛利」「财务 › 日对账」。真实对账单格式【待核实】。
 
 ## 卡型与履约扩展（P6 已落地，mock 上游 / mock 快递）
 
@@ -66,7 +66,7 @@
 ## 渠道放大与运维稳态（P7 已落地，mock 渠道）
 
 - 新渠道 = 适配器模块 + `lr_channel` 行 + SKU 映射，渠道核心与履约零改动：`liroam-channel-mock` 提供模拟渠道基类与通用 dev 控制台，`liroam-channel-xhs`（`mock-xhs`，小红书报文形状【待核实】）按此接入，`demo` 建渠道 `XHS` 与映射 `XHS-SKU-1001`；真适配器待资质、密钥与报文样例。
-- 运维：后台「运维 › 运维概览」（`li_menu` 152）看库容量（`alert.db_capacity_mb`，`DB_CAPACITY`）、各类积压、数据密钥版本分布并分批重加密；旧密钥版本数据清零后可下线（`DATA_KEY_STALE` / `DATA_KEY_UNREADABLE`）。值班与逐码处置见 `ops-runbook.md`，告警码缺条目构建失败（`RunbookCoverageTest`）。
+- 运维：后台「运维 › 运维概览」看库容量（`alert.db_capacity_mb`，`DB_CAPACITY`）、各类积压、数据密钥版本分布并分批重加密；旧密钥版本数据清零后可下线（`DATA_KEY_STALE` / `DATA_KEY_UNREADABLE`）。值班与逐码处置见 `ops-runbook.md`，告警码缺条目构建失败（`RunbookCoverageTest`）。
 - 演练（本机 dev 栈）：供应商故障（mock 故障注入接口）、`backup` / `restore-drill`、`rotate-data-key` / `retire-data-key`（只动本机 `.env` 假密钥）；记录在 `ops-runbook.md`。
 
 ## 新买家站（P9，设计与选型已定，骨架已落地）
