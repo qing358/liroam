@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录 · 轻游</title><link rel="stylesheet" href="../styles.css">
+<style>
+  .login { display: grid; gap: 24px; }
+  .login .brand { display: none; }
+  @media (min-width: 1024px) {
+    .login { grid-template-columns: 1fr 420px; gap: 64px; align-items: center; min-height: 560px; }
+    .login .brand { display: block; background: var(--lr-ink); color: white; border-radius: 16px; padding: 48px; height: 100%; }
+    .login .brand p { color: color-mix(in srgb, white 75%, var(--lr-ink)); }
+  }
+</style></head>
+<body data-back="01-home.html" data-title="登录" data-login="no" data-footer="no">
+<main><div class="container login">
+  <div class="brand stack-lg">
+    <img src="../../../../logo/svg/liroam-horizontal-reverse.svg" alt="轻游" style="height:40px">
+    <h1 style="font-size:32px">出境上网，出发前备好</h1>
+    <p>按目的地选购旅行通信卡，开卡、用量、续费都在这里办理</p>
+    <div class="stack" style="font-size:15px">
+      <div class="row"><i data-i="check"></i>按目的地和天数选套餐，eSIM 与实体卡可选</div>
+      <div class="row"><i data-i="check"></i>一人多卡，每张卡单独查看用量与到期时间</div>
+      <div class="row"><i data-i="check"></i>流量不够可续费加包，京东、小红书订单也能认领</div>
+    </div>
+  </div>
+  <div class="card stack-lg">
+    <div><h1>登录轻游</h1><p class="muted">未注册的手机号验证后自动创建账号</p></div>
+    <div class="tabs"><a class="on">验证码登录</a><a>密码登录</a></div>
+    <div class="field"><label>手机号</label><div class="input focus"><span>+86</span><span style="color:var(--text)">138 0000 5678</span></div></div>
+    <div class="field"><label>验证码</label><div class="input"><span class="ph">6 位短信验证码</span><a style="font-size:14px">获取验证码</a></div></div>
+    <a class="btn btn-primary btn-lg btn-block">登录</a>
+    <p class="check">我已阅读并同意 <a>用户协议</a> 与 <a>隐私政策</a></p>
+    <div class="anno-note">微信内打开时增加「微信快捷登录」（公众号授权，材料到位后由开关打开）；登录后回到来源页</div>
+  </div>
+</div></main>
+<script src="../kit.js"></script>
+</body></html>

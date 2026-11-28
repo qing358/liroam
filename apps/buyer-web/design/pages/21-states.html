@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>空态与异常 · 轻游</title><link rel="stylesheet" href="../styles.css">
+<style>.empty { text-align: center; padding: 32px 16px; } .empty .code { margin: 0 auto 12px; }</style></head>
+<body data-nav="cards" data-tab="cards">
+<main><div class="container">
+  <div class="grid grid-2 grid-1m">
+    <div class="card empty stack"><span class="code code-lg"><i data-i="sim"></i></span><h3>还没有卡</h3><p class="muted">选好目的地，付款后卡会出现在这里</p><div class="row" style="justify-content:center"><a class="btn btn-primary" href="01-home.html">去选卡</a><a class="btn btn-outline" href="19-claim.html">认领渠道订单</a></div></div>
+    <div class="card empty stack"><span class="code code-lg"><i data-i="search"></i></span><h3>没有找到「火星」</h3><p class="muted">换个名称试试，或看看覆盖更广的全球通用套餐</p><a class="btn btn-soft" style="margin:0 auto">查看全球通用</a></div>
+    <div class="card empty stack"><span class="code code-lg"><i data-i="info"></i></span><h3>页面不存在</h3><p class="muted">链接可能已失效</p><a class="btn btn-primary" style="margin:0 auto" href="01-home.html">回到首页</a></div>
+    <div class="card empty stack"><span class="code code-lg"><i data-i="lock"></i></span><h3>该功能暂未开放</h3><p class="muted">可以先看看其它服务</p><a class="btn btn-primary" style="margin:0 auto" href="01-home.html">回到首页</a></div>
+    <div class="card empty stack"><span class="code code-lg"><i data-i="globe"></i></span><h3>网络不太稳定</h3><p class="muted">请检查网络后重试</p><a class="btn btn-outline" style="margin:0 auto">重试</a></div>
+    <div class="card stack"><div class="row"><span class="code" style="background:var(--line-soft)"></span><div class="grow stack" style="gap:8px"><div class="skel" style="width:60%"></div><div class="skel" style="width:35%"></div></div></div><div class="skel" style="height:8px"></div><div class="skel" style="width:80%"></div><p class="anno-note">加载骨架：列表与卡片首屏统一用骨架，不用整页转圈</p></div>
+  </div>
+
+  <div class="sheet-mask" style="position:relative;margin-top:24px;border-radius:12px;min-height:360px">
+    <div class="sheet stack">
+      <div class="between"><h3>筛选套餐</h3><i data-i="x"></i></div>
+      <div><p class="muted" style="margin-bottom:8px">形态</p><div class="chips"><span class="chip on">eSIM</span><span class="chip">实体卡</span></div></div>
+      <div><p class="muted" style="margin-bottom:8px">能力</p><div class="chips wrap"><span class="chip">含通话短信</span><span class="chip on">免实名</span><span class="chip">不限流量</span></div></div>
+      <div class="row"><a class="btn btn-outline grow">重置</a><a class="btn btn-primary grow">查看 8 款套餐</a></div>
+      <p class="anno-note">手机为底部抽屉，PC 为弹窗（Nuxt UI Drawer / Modal 同一组件按断点切换）</p>
+    </div>
+  </div>
+</div></main>
+<script src="../kit.js"></script>
+</body></html>

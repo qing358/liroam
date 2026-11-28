@@ -37,8 +37,8 @@ h3 { font-size: 16px; font-weight: 600; }
 .between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .wrap { flex-wrap: wrap; }
 .grow { flex: 1; min-width: 0; }
-.hide-m { display: none; }
-@media (min-width: 1024px) { .hide-m { display: initial; } .hide-pc { display: none !important; } }
+@media (max-width: 1023px) { .hide-m { display: none !important; } }
+@media (min-width: 1024px) { .hide-pc { display: none !important; } }
 
 .icon { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 .icon-sm { width: 16px; height: 16px; }
@@ -138,13 +138,13 @@ main { padding: 16px 0 96px; }
 .hero .hot { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; color: color-mix(in srgb, white 70%, var(--lr-ink)); }
 .hero .hot a { color: white; background: color-mix(in srgb, white 12%, var(--lr-ink)); border-radius: 999px; padding: 2px 12px; }
 /* 线路图母题：竖线 → 45° 折角 → 横线 → 站点，与标识同一笔几何 */
-.hero .route { position: absolute; right: -120px; bottom: -60px; width: 300px; height: 190px; opacity: .12; }
+.hero .route { display: none; position: absolute; }
 @media (min-width: 1024px) {
   .hero { padding: 72px 0 80px; }
   .hero h1 { font-size: 44px; }
   .hero .sub { font-size: 18px; margin: 12px 0 32px; }
   .hero .inner { max-width: 680px; }
-  .hero .route { width: 620px; height: 380px; right: 0; opacity: .35; }
+  .hero .route { display: block; width: 520px; height: 320px; right: 0; bottom: -40px; }
 }
 
 /* 宫格 */

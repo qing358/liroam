@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的卡 · 轻游</title><link rel="stylesheet" href="../styles.css">
+<style>
+  .sim { display: flex; flex-direction: column; gap: 12px; }
+  .sim .head { display: flex; gap: 12px; align-items: center; }
+</style></head>
+<body data-nav="cards" data-tab="cards">
+<main><div class="container stack">
+  <div class="between"><h1>我的卡</h1><a class="btn btn-outline btn-sm" href="19-claim.html"><i data-i="link" class="icon-sm"></i>认领渠道订单</a></div>
+  <div class="notice notice-accent"><i data-i="bell"></i><span class="grow">日本 eSIM 7 天 5GB 将于 12月2日 23:59 到期，可加包延续使用</span><a href="11-topup.html" style="white-space:nowrap">去加包</a></div>
+  <div class="tabs"><a class="on">使用中 2</a><a>待安装 1</a><a>配送中 1</a><a>已结束</a></div>
+
+  <div class="grid grid-2 grid-1m" style="margin-top:4px">
+    <div class="card sim">
+      <div class="head"><span class="code">JP</span><div class="grow"><b>日本 eSIM 7 天 5GB</b><p class="muted">卡号尾号 3821</p></div><span class="badge badge-primary">使用中</span></div>
+      <div><div class="between" style="font-size:14px"><span>剩余 <b class="num" style="font-size:18px">3.2 GB</b> / 5 GB</span><span class="muted">还剩 4 天</span></div><div class="meter" style="margin-top:6px"><i style="width:64%"></i></div></div>
+      <div class="between"><span class="muted">更新于 10 分钟前 · 12月2日 23:59 到期</span></div>
+      <div class="row"><a class="btn btn-soft btn-sm grow" href="11-topup.html">加包</a><a class="btn btn-outline btn-sm grow" href="10-card.html">详情</a></div>
+    </div>
+    <div class="card sim">
+      <div class="head"><span class="code code-region">EU</span><div class="grow"><b>欧洲多国 15 天 10GB</b><p class="muted">来自京东订单 · 尾号 0917</p></div><span class="badge badge-primary">使用中</span></div>
+      <div><div class="between" style="font-size:14px"><span>剩余 <b class="num" style="font-size:18px">0.6 GB</b> / 10 GB</span><span class="muted">还剩 9 天</span></div><div class="meter low" style="margin-top:6px"><i style="width:6%"></i></div></div>
+      <div class="between"><span class="muted">更新于 25 分钟前 · 12月7日 23:59 到期</span></div>
+      <div class="row"><a class="btn btn-primary btn-sm grow" href="11-topup.html">流量不多了，去加包</a><a class="btn btn-outline btn-sm grow" href="10-card.html">详情</a></div>
+    </div>
+    <div class="card sim">
+      <div class="head"><span class="code">KR</span><div class="grow"><b>韩国 eSIM 5 天 3GB</b><p class="muted">卡号尾号 5530</p></div><span class="badge badge-accent">待安装</span></div>
+      <p class="sub" style="font-size:14px">出发前连上 Wi-Fi 扫码安装，到达后开启数据漫游</p>
+      <div class="row"><a class="btn btn-primary btn-sm grow" href="10-card.html">安装</a></div>
+    </div>
+    <div class="card sim">
+      <div class="head"><span class="code">TH</span><div class="grow"><b>泰国 实体卡 8 天 15GB</b><p class="muted">卡号尾号 7702</p></div><span class="badge">配送中</span></div>
+      <div class="row muted"><i data-i="truck" class="icon-sm"></i>已到达济南转运中心 · 11月28日 18:20</div>
+      <div class="row"><a class="btn btn-outline btn-sm grow" href="10-card.html">查看物流</a></div>
+    </div>
+  </div>
+  <p class="anno-note">状态文案、剩余、到期、可否加包 / 退款全部取卡投影（与管理端台账同一出口）。空态见 21 号稿</p>
+</div></main>
+<script src="../kit.js"></script>
+</body></html>

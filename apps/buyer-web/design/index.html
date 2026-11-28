@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>轻游新买家站设计稿</title><link rel="stylesheet" href="styles.css">
+<style>
+  body { background: var(--line-soft); }
+  .wrapx { padding: 24px; }
+  .pg { margin-bottom: 48px; }
+  .frames { display: flex; gap: 24px; align-items: flex-start; overflow-x: auto; margin-top: 12px; }
+  .frame { flex: none; background: white; border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+  .frame p { margin: 0; padding: 6px 10px; font-size: 12px; color: var(--text-3); border-bottom: 1px solid var(--line-soft); }
+  .m iframe { width: 390px; height: 844px; border: 0; display: block; }
+  .pc { width: 960px; height: 709px; }
+  .pc iframe { width: 1280px; height: 900px; border: 0; transform: scale(.75); transform-origin: 0 0; display: block; }
+</style></head>
+<body>
+<div class="wrapx">
+  <h1>轻游新买家站设计稿</h1>
+  <p class="sub">每页左为手机（390 宽），右为 PC（1280 宽，缩放 75%）。同一份响应式页面，断点 768 / 1024。说明见 README.md。</p>
+  <div id="list"></div>
+</div>
+<script>
+  const pages = [
+    ['01-home', '首页'], ['02-destinations', '全部目的地与搜索'], ['03-destination', '目的地页'], ['04-plan', '套餐详情'],
+    ['05-login', '登录'], ['06-checkout', '确认订单'], ['07-pay', '支付'], ['08-pay-result', '支付结果'],
+    ['09-cards', '我的卡'], ['10-card', '卡详情与安装'], ['11-topup', '加包'], ['12-refund', '申请退款与进度'],
+    ['13-orders', '我的订单'], ['14-order', '订单详情'], ['15-help', '帮助中心'], ['16-devices', '设备兼容'],
+    ['17-article', '帮助文章'], ['18-account', '我的'], ['19-claim', '认领渠道订单'], ['20-commission', '我的佣金'], ['21-states', '空态、异常与抽屉'],
+  ];
+  document.getElementById('list').innerHTML = pages.map(([f, t]) => `
+    <section class="pg" id="${f}"><h2>${f.slice(0, 2)} ${t}</h2>
+      <div class="frames">
+        <div class="frame m"><p>手机</p><iframe loading="lazy" src="pages/${f}.html"></iframe></div>
+        <div class="frame pc"><p>PC</p><iframe loading="lazy" src="pages/${f}.html"></iframe></div>
+      </div></section>`).join('');
+</script>
+</body></html>

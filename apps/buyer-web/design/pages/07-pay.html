@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>扫码支付 · 轻游</title><link rel="stylesheet" href="../styles.css"></head>
+<body data-back="06-checkout.html" data-title="支付" data-footer="no">
+<main><div class="container" style="max-width:560px">
+  <div class="card stack-lg" style="text-align:center">
+    <div><p class="muted">订单 2026112812345678 · 请在 29:41 内完成支付</p><div class="price" style="font-size:34px;margin-top:6px"><small>¥</small>78.00</div></div>
+    <div class="hide-m stack" style="align-items:center;display:flex;flex-direction:column">
+      <div class="qr"></div>
+      <p class="sub">打开微信扫一扫，扫码完成支付</p>
+      <p class="muted">支付完成后页面自动跳转</p>
+    </div>
+    <div class="hide-pc stack">
+      <div class="notice"><i data-i="clock"></i><span>正在等待支付结果，已在支付应用完成付款的请稍候</span></div>
+      <a class="btn btn-primary btn-lg btn-block">重新打开支付</a>
+      <a class="btn btn-outline btn-block" href="08-pay-result.html">我已完成支付</a>
+    </div>
+    <a class="muted" href="06-checkout.html">更换支付方式</a>
+  </div>
+  <p class="anno-note" style="margin-top:12px">PC 微信为扫码；PC 支付宝直接跳转支付宝页面，回跳到支付结果页。手机浏览器从支付应用返回后落在本页等待态；轮询订单支付状态</p>
+</div></main>
+<script src="../kit.js"></script>
+</body></html>
