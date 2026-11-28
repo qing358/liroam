@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
-import { heavyEnv, slotEnv } from './lib/heavy.mjs';
+import { admits, heavyEnv, reserveGb, slotEnv } from './lib/heavy.mjs';
 
 const heavy = path.join(path.dirname(fileURLToPath(import.meta.url)), 'heavy.mjs');
 
@@ -21,7 +21,7 @@ function run(args, env) {
 }
 
 function queueEnv(dir, extra = {}) {
-  return { LIROAM_HEAVY_LOCK_DIR: dir, LIROAM_HEAVY_POLL_MS: '50', LIROAM_HEAVY_MIN_MEM_GB: '0', ...extra };
+  return { LIROAM_HEAVY_LOCK_DIR: dir, LIROAM_HEAVY_POLL_MS: '50', LIROAM_HEAVY_MIN_MEM_GB: '0', LIROAM_HEAVY_RESERVE_GB: '0', LIROAM_HEAVY_RAMP_MS: '0', ...extra };
 }
 
 test('LIROAM_HEAVY_SLOTS=2 时同时最多 2 个重活在跑，第 3 个排队等槽位，全部最终完成', async () => {
@@ -40,19 +40,53 @@ test('LIROAM_HEAVY_SLOTS=2 时同时最多 2 个重活在跑，第 3 个排队�
   assert.ok(results.some((r) => r.out.includes('排队')));
 });
 
-test('默认同时最多 4 个重活（本机停掉 qianba-dev 四个容器后内存充裕），第 5 个排队', async () => {
+test('默认上限 8 个槽位，内存充裕时不被固定 4 个卡住', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
   const log = path.join(dir, 'events.log');
-  const job = `echo start >> ${log}; sleep 0.8; echo end >> ${log}`;
-  const results = await Promise.all([1, 2, 3, 4, 5, 6].map(() => run(['sh', '-c', job], queueEnv(dir))));
-  assert.deepEqual(results.map((r) => r.code), [0, 0, 0, 0, 0, 0]);
+  const job = `echo start >> ${log}; sleep 1.2; echo end >> ${log}`;
+  const results = await Promise.all(Array.from({ length: 10 }, () => run(['sh', '-c', job], queueEnv(dir))));
+  assert.deepEqual(results.map((r) => r.code), Array(10).fill(0));
   let running = 0;
   let peak = 0;
   for (const event of fs.readFileSync(log, 'utf8').trim().split('\n')) {
     running += event === 'start' ? 1 : -1;
     peak = Math.max(peak, running);
   }
-  assert.equal(peak, 4);
+  assert.ok(peak > 4 && peak <= 8, `峰值并发 ${peak}`);
+});
+
+test('按内存放行：可用内存不够「余量 + 本任务预估」就等，整仓 verify 比受影响模块测试预留更多', () => {
+  assert.equal(admits(10, 5, 2.5), true);
+  assert.equal(admits(7.4, 5, 2.5), false);
+  assert.equal(admits(7.5, 5, 2.5), true);
+  assert.ok(reserveGb(['mvn', '-B', '-pl', 'a', '-am', 'verify'], {}) > reserveGb(['mvn', '-B', '-pl', 'a', '-am', 'test', '-Dtest=X'], {}));
+  assert.ok(reserveGb(['mvn', 'test'], {}) > 0);
+  assert.equal(reserveGb(['mvn', 'verify'], { LIROAM_HEAVY_RESERVE_GB: '1.5' }), 1.5);
+});
+
+test('预留内存不够时不开跑，等待并提示', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
+  const child = spawn(process.execPath, [heavy, 'sh', '-c', `touch ${dir}/ran`], {
+    env: { ...process.env, ...queueEnv(dir, { LIROAM_HEAVY_RESERVE_GB: '100000' }) }, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let out = '';
+  child.stdout.on('data', (d) => { out += d; });
+  child.stderr.on('data', (d) => { out += d; });
+  await new Promise((r) => setTimeout(r, 400));
+  child.kill('SIGTERM');
+  await new Promise((r) => child.on('close', r));
+  assert.ok(!fs.existsSync(path.join(dir, 'ran')));
+  assert.match(out, /可用内存/);
+});
+
+test('放行间隔：爬坡窗口内后到的任务等前一个放行满窗口再开', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'heavy-'));
+  const log = path.join(dir, 'starts.log');
+  const job = `date +%s%3N >> ${log}; sleep 0.3`;
+  await Promise.all([1, 2, 3].map(() => run(['sh', '-c', job], queueEnv(dir, { LIROAM_HEAVY_RAMP_MS: '600' }))));
+  const starts = fs.readFileSync(log, 'utf8').trim().split('\n').map(Number).sort((a, b) => a - b);
+  assert.equal(starts.length, 3);
+  assert.ok(starts[1] - starts[0] >= 500 && starts[2] - starts[1] >= 500, `启动间隔 ${starts.map((s) => s - starts[0])}`);
 });
 
 test('槽位数可配；命令退出码原样透传', async () => {
@@ -105,5 +139,5 @@ test('经 heavy 跑的命令拿到槽位库前缀', async () => {
   const out = path.join(dir, 'prefix');
   const r = await run(['sh', '-c', `printf %s "$LIROAM_IT_DB_PREFIX" > ${out}`], queueEnv(dir, { LIROAM_IT_DB_PREFIX: '' }));
   assert.equal(r.code, 0);
-  assert.match(fs.readFileSync(out, 'utf8'), /^liroam_it_slot[12]_$/);
+  assert.match(fs.readFileSync(out, 'utf8'), /^liroam_it_slot[1-8]_$/);
 });

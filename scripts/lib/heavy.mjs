@@ -23,3 +23,14 @@ export function availableMemGb(meminfo = fs.readFileSync('/proc/meminfo', 'utf8'
   const kb = Number(/^MemAvailable:\s+(\d+)/m.exec(meminfo)?.[1]);
   return Number.isFinite(kb) ? kb / 1024 / 1024 : Infinity;
 }
+
+// 按命令估一个任务的内存预留（GB）：整仓 verify 进程树峰值实测约 4.4G（mvn + 多个测试 fork），受影响模块测试约 0.8G 起、按 1.5G 留（2026-11-28 实测，见 project-context §6）
+export function reserveGb(command, env = process.env) {
+  if (env.LIROAM_HEAVY_RESERVE_GB !== undefined && env.LIROAM_HEAVY_RESERVE_GB !== '') return Number(env.LIROAM_HEAVY_RESERVE_GB);
+  return command.includes('verify') || command.includes('-Pupstream-tests') || command.includes('package') ? 4.5 : 1.5;
+}
+
+// 可用内存扣掉本任务预留后仍须保留余量，才放行
+export function admits(availGb, minGb, reserve) {
+  return availGb >= minGb + reserve;
+}
