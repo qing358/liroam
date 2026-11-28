@@ -69,6 +69,26 @@
 - 运维：后台「运维 › 运维概览」（`li_menu` 152）看库容量（`alert.db_capacity_mb`，`DB_CAPACITY`）、各类积压、数据密钥版本分布并分批重加密；旧密钥版本数据清零后可下线（`DATA_KEY_STALE` / `DATA_KEY_UNREADABLE`）。值班与逐码处置见 `ops-runbook.md`，告警码缺条目构建失败（`RunbookCoverageTest`）。
 - 演练（本机 dev 栈）：供应商故障（mock 故障注入接口）、`backup` / `restore-drill`、`rotate-data-key` / `retire-data-key`（只动本机 `.env` 假密钥）；记录在 `ops-runbook.md`。
 
+## 新买家站（P9，设计与选型已定，骨架见 WS9）
+
+- 目录 `apps/buyer-web/`（不是 Maven 模块），端口 `LIROAM_BUYER_WEB_PORT`（39010，`deploy/ports.env`）。设计稿、信息架构与路由表在 `apps/buyer-web/design/`（`index.html` 手机 / PC 对照，`README.md` 页面清单与组件对应）；页面文案在 store `docs/brand-copy.md`「新买家站」一节。
+- 选型（2026-11-28 核实 npm 当前版本、下载包读 LICENSE 原文）：
+
+| 用途 | 选用 | 版本 | 许可 |
+|------|------|------|------|
+| 框架 | Nuxt（官方脚手架 `npm create nuxt@latest`，create-nuxt 4.1.0） | 4.7.0，Node `^22.22.3 \|\| ^24.15.0` | MIT |
+| 组件库 | Nuxt UI（底层 Reka UI 2.12、Tailwind CSS 4.3、tailwind-variants、vaul-vue 抽屉） | 4.13.1 | 均 MIT（vaul-vue 包内缺许可证文件，读仓库 LICENSE 原文为 MIT） |
+| 图标 | `@nuxt/icon` + 本地 `@iconify-json/lucide` | 2.6.3 / 1.2.x | MIT / ISC |
+| 字体模块 | `@nuxt/fonts`（Nuxt UI 自带） | 1.2.1 | MIT |
+| 站点地图 | `@nuxtjs/sitemap` | 9.2.0 | MIT |
+| 测试 / lint / 表单校验 | `@nuxt/test-utils` + vitest、`@nuxt/eslint`、zod | 4.4.0 / 5.1.2、1.17.0、4.x | MIT（npm 声明） |
+
+- 落选：Element Plus 2.14（MIT，四端在用，但以 PC 为主、缺手机交互）；Vant 4.10（MIT，只适合手机）；PrimeVue 5.0（LICENSE 改为 PrimeUI 商业许可，有营收 / 人数门槛并需许可证密钥，不并入）。
+- 传递依赖（nuxt + @nuxt/ui + sitemap 全量安装后 license-checker 汇总）：MIT 553、ISC 20、Apache-2.0 19、BlueOak-1.0.0 11、BSD 10，其余为 0BSD / CC0；需留意的只有构建期工具：`lightningcss`（MPL-2.0，Tailwind / 字体模块的 CSS 编译器，不修改其源码即无额外义务，也不进浏览器产物）、`caniuse-lite`（CC-BY-4.0 数据）、`node-forge`（BSD-3-Clause 或 GPL-2.0 双许可，取 BSD，只在开发服务器 HTTPS 用）。新增依赖时复跑同一汇总。
+- 渲染：首页、`/esim/**`、`/help/**` 服务端渲染 + 短时缓存（`routeRules` swr）；结算、支付、我的卡、订单、账户关 SSR 纯客户端。退路：目的地页构建时预渲染，整站静态部署。
+- 主题：只用浅色（关闭 color mode）；颜色只引 `shop/lilishop-ui/brand/theme.css` 的 `--lr-*`，`--ui-primary` → `--lr-primary`、`--ui-text` → `--lr-ink`，Tailwind 不另写色值；品牌闸 `scripts/brand.test.mjs` 扫描范围须含 `apps/buyer-web`（WS9 落地）。
+- 国内可达性：图标本地打包，不走 Iconify 在线接口；`@nuxt/fonts` 关闭远程字体源，用系统字体栈（PingFang SC / Noto Sans SC 优先）。
+
 ## 工程方法
 
 见 `.cursor/rules/cross-project-dev.mdc` 与知识库《跨项目开工约定》。
