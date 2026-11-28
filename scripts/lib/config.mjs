@@ -30,6 +30,20 @@ export function validatePorts(env) {
     seen.set(port, key);
   }
   if (seen.size === 0) throw new Error('ports.env 未登记任何 LIROAM_*_PORT');
+  const ranges = [];
+  for (const [key, value] of Object.entries(env)) {
+    if (!/^LIROAM_.*_PORTS$/.test(key)) continue;
+    const m = /^(\d+)-(\d+)$/.exec(value);
+    const [lo, hi] = m ? [Number(m[1]), Number(m[2])] : [NaN, NaN];
+    if (!m || lo < 1024 || hi > 65535 || lo > hi) throw new Error(`${key}=${value} 不是合法端口段（形如 39100-39199，1024-65535）`);
+    for (const [port, owner] of seen) {
+      if (port >= lo && port <= hi) throw new Error(`端口 ${port}（${owner}）落在 ${key} 端口段内`);
+    }
+    for (const r of ranges) {
+      if (lo <= r.hi && r.lo <= hi) throw new Error(`${key} 与 ${r.key} 端口段重叠`);
+    }
+    ranges.push({ key, lo, hi });
+  }
 }
 
 // LIROAM_DATA_KEY_V1 / LIROAM_DATA_HASH_KEY（V1 只在还没有任何数据密钥版本时生成；轮换见 data-keys.mjs）：ICCID、交码内容等敏感字段的 AES-256-GCM 密钥与查重用 HMAC 密钥（liroam-common SensitiveCipher）

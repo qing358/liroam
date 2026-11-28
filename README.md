@@ -11,7 +11,7 @@
 | `shop/docker/` | 上游 docker 仓摘取：初始化 SQL、`my.cnf`、前端配置渲染库 |
 | `modules/` | 自研 Maven 模块（P1 起） |
 | `deploy/` | 本机专用中间件 compose 与端口登记 `ports.env` |
-| `scripts/` | 本机一键编排 `dev.mjs` |
+| `scripts/` | 本机一键编排 `dev.mjs`、重活排队 `heavy.mjs` |
 
 ## 本机一键启停
 
@@ -46,6 +46,8 @@ node scripts/dev.mjs retire-data-key <n>   # 下线旧版本：经后台接口�
 | buyer-api | http://localhost:39888 |
 | MySQL 8.0.30（库 `lilishop`） | 127.0.0.1:39306 |
 | Redis 7.0.4 | 127.0.0.1:39379 |
+| 新买家站 `apps/buyer-web`（P9） | http://localhost:39010 |
+| worktree 临时前端（一人取一个，连主检出的后端） | 39100–39199 |
 
 中间件只绑 127.0.0.1，compose 项目名 `liroam`；不复用、不停本机其它项目的 3306 / 6379 等服务。改端口只改 `ports.env`。前端写入的 API 地址用 `localhost`：Windows 侧浏览器访问 WSL2 时只有 `localhost` 会转发到 Java 的监听。
 
@@ -97,6 +99,14 @@ node --test 'scripts/**/*.test.mjs'    # 编排脚本单测
 (cd shop/lilishop-ui/buyer && node --test tests/*.test.cjs && npm run build)    # 买家端单测与构建（manager 同理）
 # 仓根 reactor（JDK 21）：上游只编译（上游测试见下文 -Pupstream-tests）；自研模块单测、契约套件、集成测试、架构检查、主路径冒烟全跑
 mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
+```
+
+本机多个 worktree 并行时，`mvn verify`、`dev.mjs up --build` 等重活一律经排队命令跑：所有 worktree 共用 git 公共目录下的 `flock` 槽位，同时最多 2 个，其余排队；可用内存低于 8G 时不开新活，等待并提示。它还会自动用 `.sdkmanrc` 的 JDK 21；在 worktree 里没设口令时取主检出 `.env` 的 `LIROAM_MYSQL_ROOT_PASSWORD`，没设 `LIROAM_IT_DB_PREFIX` 时按 worktree 目录名设为 `liroam_it_<目录名>_`（主检出不改）。退出码与被包命令一致。
+
+```bash
+node scripts/heavy.mjs mvn -B -pl shop/lilishop/manager-api,shop/lilishop/buyer-api,modules/liroam-architecture-tests,modules/liroam-smoke-tests -am verify
+node scripts/heavy.mjs mvn -B -pl shop/lilishop/framework,shop/lilishop/manager-api,shop/lilishop/buyer-api,shop/lilishop/im-api -am -Pupstream-tests -DskipTests test
+# 可调：LIROAM_HEAVY_SLOTS（默认 2）、LIROAM_HEAVY_MIN_MEM_GB（默认 8）、LIROAM_HEAVY_POLL_MS（默认 5000）
 ```
 
 自研集成测试只连 `deploy/ports.env` 登记的本项目 MySQL（`127.0.0.1:39306`，拒绝 3306），口令取环境变量 `LIROAM_MYSQL_ROOT_PASSWORD`，没有则读仓根 `.env`（所以先 `node scripts/dev.mjs up` 起中间件）；每个测试类重建自己的库 `liroam_it_<名称>`，不碰 `lilishop` 库。在 worktree 里跑时把主检出 `.env` 的口令导出为该变量。

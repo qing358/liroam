@@ -37,6 +37,21 @@ test('仓内 deploy/ports.env 合法，且不占用本机其它项目的 3306 / 
   assert.equal(env.COMPOSE_PROJECT_NAME, 'liroam');
 });
 
+test('仓内 deploy/ports.env 登记新买家站端口与 worktree 临时前端端口段', () => {
+  const env = parseEnv(fs.readFileSync(path.join(repoRoot, 'deploy/ports.env'), 'utf8'));
+  assert.equal(env.LIROAM_BUYER_WEB_PORT, '39010');
+  assert.match(env.LIROAM_WORKTREE_UI_PORTS, /^\d+-\d+$/);
+});
+
+test('validatePorts 校验端口段：格式、上下界、与单端口或其它段重叠', () => {
+  validatePorts({ LIROAM_A_PORT: '39000', LIROAM_X_PORTS: '39100-39199' });
+  assert.throws(() => validatePorts({ LIROAM_A_PORT: '39000', LIROAM_X_PORTS: '39100' }), /端口段/);
+  assert.throws(() => validatePorts({ LIROAM_A_PORT: '39000', LIROAM_X_PORTS: '39199-39100' }), /端口段/);
+  assert.throws(() => validatePorts({ LIROAM_A_PORT: '39000', LIROAM_X_PORTS: '1000-1010' }), /端口段/);
+  assert.throws(() => validatePorts({ LIROAM_A_PORT: '39150', LIROAM_X_PORTS: '39100-39199' }), /落在/);
+  assert.throws(() => validatePorts({ LIROAM_A_PORT: '39000', LIROAM_X_PORTS: '39100-39199', LIROAM_Y_PORTS: '39190-39210' }), /重叠/);
+});
+
 test('buildConfig 由端口登记推出各端地址（浏览器侧用 localhost，WSL2 才会转发到 Windows）', () => {
   const config = buildConfig({
     LIROAM_MYSQL_PORT: '39306', LIROAM_REDIS_PORT: '39379',
